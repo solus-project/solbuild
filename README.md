@@ -38,7 +38,7 @@ For legacy `pspec.xml` format builds, not all of these steps are possible, howev
 this format will no longer be supported within Solus with the advent of the `sol`
 package manager. For now we'll disable some steps when building old style packages.
 
-**sobuild proposed workflow**:
+**solbuild proposed workflow**:
 
  - Enter new namespace (`clone`) - preserve networking here
  - Mount overlayfs from *configuration-based* profile
