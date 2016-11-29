@@ -18,10 +18,43 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/commands"
 	"os"
+	"syscall"
 )
 
+func wgetTest(url string) error {
+	defer func() {
+		os.Remove("index.html")
+	}()
+	return commands.ExecStdoutArgs("wget", []string{url})
+}
+
 func main() {
-	fmt.Fprintf(os.Stderr, "Not yet implemented\n")
-	os.Exit(1)
+	// Drop main namespace stuff
+	log.Info("Entering new namespace for child processes")
+	if err := syscall.Unshare(syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC); err != nil {
+		panic(err)
+	}
+
+	log.Info("Attempting download (should work)")
+	if err := wgetTest("https://google.com"); err != nil {
+		fmt.Fprintf(os.Stderr, "Downloading should still work, but doesn't: %v\n", err)
+		os.Exit(1)
+	}
+
+	log.Info("Dropping networking")
+	// Drop networking now
+	if err := syscall.Unshare(syscall.CLONE_NEWNET | syscall.CLONE_NEWUTS); err != nil {
+		panic(err)
+	}
+
+	log.Info("Redownloading, should fail")
+	if err := wgetTest("https://google.com"); err != nil {
+		fmt.Fprintf(os.Stderr, "Great, networking doesn't work :)\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "Networking should not be working!\n")
+		os.Exit(1)
+	}
 }
