@@ -33,3 +33,7 @@ var RootCmd = &cobra.Command{
 	Use:   "solbuild",
 	Short: "solbuild is the Solus package builder",
 }
+
+func init() {
+	RootCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+}
