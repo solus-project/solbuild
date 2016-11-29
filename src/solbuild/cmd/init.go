@@ -22,19 +22,19 @@ import (
 	"os"
 )
 
-var buildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "build a package",
-	Long: `Build the given package in a chroot environment, and upon success,
-store those packages in the current directory`,
-	Run: buildPackage,
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "initialise a solbuild profile",
+	Long: `Initialise a solbuild profile so that it can be used for subsequent
+builds`,
+	Run: initProfile,
 }
 
 func init() {
-	buildCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
-	RootCmd.AddCommand(buildCmd)
+	initCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+	RootCmd.AddCommand(initCmd)
 }
 
-func buildPackage(cmd *cobra.Command, args []string) {
-	fmt.Fprintf(os.Stderr, "Yay building for %v..\n", profile)
+func initProfile(cmd *cobra.Command, args []string) {
+	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
 }

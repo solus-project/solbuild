@@ -20,6 +20,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// DefaultProfile is the profile solbuild will use when none are specified
+	DefaultProfile = "main"
+)
+
+// Shared between most of the subcommands
+var profile string
+
 // RootCmd is the main entry point into solbuild
 var RootCmd = &cobra.Command{
 	Use:   "solbuild",
