@@ -4,3 +4,6 @@
 [submodule "src/vendor/github.com/Sirupsen/logrus"]
 	path = src/vendor/github.com/Sirupsen/logrus
 	url = https://github.com/Sirupsen/logrus.git
+[submodule "src/vendor/github.com/spf13/pflag"]
+	path = src/vendor/github.com/spf13/pflag
+	url = https://github.com/spf13/pflag.git
