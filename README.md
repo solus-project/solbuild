@@ -1,5 +1,5 @@
 solbuild
-------
+--------
 
 [![Report](https://goreportcard.com/badge/github.com/solus-project/solbuild)](https://goreportcard.com/report/github.com/solus-project/solbuild) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
