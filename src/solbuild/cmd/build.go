@@ -14,17 +14,27 @@
 // limitations under the License.
 //
 
-package main
+package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
-	"solbuild/cmd"
 )
 
-func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+// RootCmd is the main entry point into solbuild
+var buildCmd = &cobra.Command{
+	Use:   "build",
+	Short: "build a package",
+	Long: `Build the given package in a chroot environment, and upon success,
+store those packages in the current directory`,
+	Run: buildPackage,
+}
+
+func init() {
+	RootCmd.AddCommand(buildCmd)
+}
+
+func buildPackage(cmd *cobra.Command, args []string) {
+	fmt.Fprintf(os.Stderr, "Yay building..\n")
 }

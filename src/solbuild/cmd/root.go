@@ -14,17 +14,14 @@
 // limitations under the License.
 //
 
-package main
+package cmd
 
 import (
-	"fmt"
-	"os"
-	"solbuild/cmd"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+// RootCmd is the main entry point into solbuild
+var RootCmd = &cobra.Command{
+	Use:   "solbuild",
+	Short: "solbuild is the Solus package builder",
 }

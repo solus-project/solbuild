@@ -9,8 +9,12 @@ BINARIES = \
 
 include Makefile.gobuild
 
+_PKGS = \
+	solbuild \
+	solbuild/cmd
+
 # We want to add compliance for all built binaries
-_CHECK_COMPLIANCE = $(addsuffix .compliant,$(BINARIES))
+_CHECK_COMPLIANCE = $(addsuffix .compliant,$(_PKGS))
 
 # Build all binaries as static binary
 BINS = $(addsuffix .statbin,$(BINARIES))
