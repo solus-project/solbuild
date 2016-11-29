@@ -40,7 +40,7 @@ package manager. For now we'll disable some steps when building old style packag
 
 **solbuild proposed workflow**:
 
- - Enter new namespace (`clone`) - preserve networking here
+ - Enter new namespace (`unshare`) - preserve networking here
  - Mount overlayfs from *configuration-based* profile
  - Bring up services
  - Add any required repositories
