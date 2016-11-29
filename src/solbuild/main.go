@@ -23,12 +23,22 @@ import (
 )
 
 var commands map[string]*flag.FlagSet
+var profile string
+
+func addProfileFlag(f *flag.FlagSet) {
+	f.StringVar(&profile, "profile", "main", "build profile to use")
+	f.StringVar(&profile, "p", "main", "build profile to use")
+}
 
 func init() {
 	commands = make(map[string]*flag.FlagSet)
 	commands["init"] = flag.NewFlagSet("build", flag.ExitOnError)
 	commands["build"] = flag.NewFlagSet("build", flag.ExitOnError)
 	commands["update"] = flag.NewFlagSet("update", flag.ExitOnError)
+
+	addProfileFlag(commands["init"])
+	addProfileFlag(commands["build"])
+	addProfileFlag(commands["update"])
 }
 
 func printMainUsage() {
@@ -39,5 +49,17 @@ func printMainUsage() {
 func main() {
 	if len(os.Args) < 2 {
 		printMainUsage()
+		os.Exit(1)
 	}
+	arg := os.Args[1]
+	cmd, found := commands[arg]
+	if !found {
+		fmt.Fprintf(os.Stderr, "Unknown command: %v\n", arg)
+		printMainUsage()
+		os.Exit(1)
+	}
+	// Parse beyond subcommand
+	cmd.Parse(os.Args[2:])
+
+	fmt.Fprintf(os.Stderr, "Selected %v\n", profile)
 }
