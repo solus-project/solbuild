@@ -9,6 +9,49 @@ solbuild is a [Solus project](https://solus-project.com/).
 
 ![logo](https://build.solus-project.com/logo.png)
 
+**evobuild (legacy) workflow**:
+
+ - Mount overlayfs with profile directory as lower node
+ - Copy aux files into root
+ - Bring up dbus/eopkg/etc
+ - Upgrade & install `system.devel`
+ - Bind mount system wide cache directory
+ - Chroot, run build as root
+ - If successful, copy newly built files out of chroot into current directory
+
+**Issues with the `evobuild` approach**:
+
+The build process is delicate and very much a simple script. We allow the chroot'd
+process to download and install both build dependencies and the sources themselves.
+We continue to allow networking within this chroot, which in turn allows any package
+to download it's own additional tarballs without warning (`LibreOffice`, anyone?)
+
+On top of this, all builds are performed as root. This allows the process within
+the chroot to break the chroot itself quite badly. While it's not the worst problem
+in the world (this is why we `chroot` after all) it's not **good**. Instead, we'll
+operate with "normal" permissions, and allow `ypkg` to utilise `fakeroot` to complete
+it's tasks.
+
+**Note**:
+
+For legacy `pspec.xml` format builds, not all of these steps are possible, however
+this format will no longer be supported within Solus with the advent of the `sol`
+package manager. For now we'll disable some steps when building old style packages.
+
+**sobuild proposed workflow**:
+
+ - Enter new namespace (`clone`) - preserve networking here
+ - Mount overlayfs from *configuration-based* profile
+ - Bring up services
+ - Add any required repositories
+ - Upgrade & install `system.devel`
+ - Copy aux files
+ - Fetch sources & cache in system, bind mount **individual sources**
+ - Request installation of build dependencies
+ - Now `unshare` networking
+ - Begin build in chroot namespace as unprivileged user
+ - If successful, copy newly built files out of chroot into current directory
+
 License
 -------
 
