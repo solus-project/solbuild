@@ -22,6 +22,13 @@ import (
 	"os"
 )
 
+const (
+	// DefaultProfile is the profile solbuild will use when none are specified
+	DefaultProfile = "main"
+)
+
+var profile string
+
 // RootCmd is the main entry point into solbuild
 var buildCmd = &cobra.Command{
 	Use:   "build",
@@ -32,9 +39,10 @@ store those packages in the current directory`,
 }
 
 func init() {
+	buildCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
 	RootCmd.AddCommand(buildCmd)
 }
 
 func buildPackage(cmd *cobra.Command, args []string) {
-	fmt.Fprintf(os.Stderr, "Yay building..\n")
+	fmt.Fprintf(os.Stderr, "Yay building for %v..\n", profile)
 }
