@@ -17,8 +17,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	flag "github.com/spf13/pflag"
 	"os"
 )
 
@@ -26,8 +26,7 @@ var commands map[string]*flag.FlagSet
 var profile string
 
 func addProfileFlag(f *flag.FlagSet) {
-	f.StringVar(&profile, "profile", "main", "build profile to use")
-	f.StringVar(&profile, "p", "main", "build profile to use")
+	f.StringVarP(&profile, "profile", "p", "main", "build profile to use")
 }
 
 func init() {
