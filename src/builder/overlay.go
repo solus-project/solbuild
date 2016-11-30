@@ -17,8 +17,9 @@
 package builder
 
 import (
-	"errors"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
 )
@@ -114,5 +115,44 @@ func (o *Overlay) CleanExisting() error {
 // properly.
 func (o *Overlay) Mount() error {
 	log.Info("Mounting overlayfs")
-	return errors.New("Not yet implemented")
+
+	mountMan := disk.GetMountManager()
+
+	// First up, mount the backing image
+	log.WithFields(log.Fields{
+		"point": o.Back.ImagePath,
+	}).Debug("Mounting backing image")
+	if err := mountMan.Mount(o.Back.ImagePath, o.ImgDir, "auto", "loop", "ro"); err != nil {
+		log.WithFields(log.Fields{
+			"point": o.Back.ImagePath,
+			"error": err,
+		}).Error("Failed to mount backing image")
+		return err
+	}
+
+	// TODO: Mount tmpfs at upperdir if requested!
+
+	// Now mount the overlayfs
+	log.WithFields(log.Fields{
+		"upper":   o.UpperDir,
+		"lower":   o.ImgDir,
+		"workdir": o.WorkDir,
+		"target":  o.MountPoint,
+	}).Debug("Mounting overlayfs")
+
+	// Mounting overlayfs..
+	err := mountMan.Mount("overlay", o.MountPoint, "overlay",
+		fmt.Sprintf("lowerdir='%s'", o.ImgDir),
+		fmt.Sprintf("upperdir='%s'", o.UpperDir),
+		fmt.Sprintf("workdir='%s'", o.WorkDir))
+
+	// Check non-fatal..
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"point": o.MountPoint,
+		}).Error("Failed to mount overlayfs")
+		return err
+	}
+	return nil
 }
