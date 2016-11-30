@@ -17,13 +17,16 @@
 package builder
 
 import (
+	"encoding/xml"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
-	Source  string
 	Name    string
 	Version string
 	Release int
@@ -70,7 +73,45 @@ func NewPackage(path string) (*Package, error) {
 
 // NewXMLPackage will attempt to parse the pspec.xml file @ path
 func NewXMLPackage(path string) (*Package, error) {
-	return nil, errors.New("xml: Not yet implemented")
+	var by []byte
+	var err error
+	var fi *os.File
+
+	fi, err = os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	by, err = ioutil.ReadAll(fi)
+	if err != nil {
+		return nil, err
+	}
+	xpkg := &XMLPackage{}
+	if err = xml.Unmarshal(by, xpkg); err != nil {
+		return nil, err
+	}
+	if len(xpkg.History) < 1 {
+		return nil, errors.New("xml: Malformed pspec file")
+	}
+
+	upd := xpkg.History[0]
+	ret := &Package{
+		Name:    strings.TrimSpace(xpkg.Source.Name),
+		Version: strings.TrimSpace(upd.Version),
+		Release: upd.Release,
+	}
+
+	if ret.Name == "" {
+		return nil, errors.New("xml: Missing name in package")
+	}
+	if ret.Version == "" {
+		return nil, errors.New("xml: Missing version in package")
+	}
+	if ret.Release < 0 {
+		return nil, fmt.Errorf("xml: Invalid release in package: %d", ret.Release)
+	}
+	return ret, nil
 }
 
 // NewYmlPackage will attempt to parse the ypkg package.yml file @ path
