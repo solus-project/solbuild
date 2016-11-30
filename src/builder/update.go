@@ -77,6 +77,11 @@ func (b *BackingImage) updatePackages() error {
 func (b *BackingImage) Update() error {
 	// TODO: Check if it is locked!
 
+	// First things first, setup the namespace
+	if err := ConfigureNamespace(); err != nil {
+		return err
+	}
+
 	mountMan := disk.GetMountManager()
 	defer mountMan.UnmountAll()
 
