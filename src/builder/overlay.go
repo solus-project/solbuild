@@ -32,8 +32,8 @@ const (
 // Using this Overlay we can bring up new temporary build roots using the
 // overlayfs kernel module.
 type Overlay struct {
-	Back    *BackingImage
-	Package *Package
+	Back    *BackingImage // This will be mounted at $dir/image
+	Package *Package      // The package we intend to interact with
 
 	WorkDir    string // WorkDir is the overlayfs workdir lock
 	UpperDir   string // UpperDir is where real inode changes happen (transient)
