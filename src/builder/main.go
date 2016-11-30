@@ -43,6 +43,11 @@ const (
 	ImageRootsDir = "/var/lib/solbuild/roots"
 )
 
+const (
+	// PackageCacheDirectory is where we share packages between all builders
+	PackageCacheDirectory = "/var/lib/solbuild/packages"
+)
+
 var (
 	// ValidProfiles is a set of known, Solus-published, base profiles
 	ValidProfiles = []string{

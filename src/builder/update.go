@@ -23,6 +23,35 @@ import (
 	"os"
 )
 
+func (b *BackingImage) updatePackages() error {
+	pkgMan := NewEopkgManager(b.RootDir)
+	defer pkgMan.Cleanup()
+
+	log.Info("Initialising package manager")
+
+	// TODO: Copy host aux assets (eopkg.conf)
+
+	// Bring up dbus to do Things
+	log.Debug("Starting D-BUS")
+	if err := pkgMan.StartDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to start d-bus")
+		return err
+	}
+
+	// Cleanup now
+	log.Debug("Stopping D-BUS")
+	if err := pkgMan.StopDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to stop d-bus")
+		return err
+	}
+
+	return errors.New("Not yet implemented")
+}
+
 // Update will attempt to update the backing image to the latest version
 // internally.
 func (b *BackingImage) Update() error {
@@ -58,6 +87,11 @@ func (b *BackingImage) Update() error {
 			"image": b.ImagePath,
 			"error": err,
 		}).Error("Failed to mount rootfs")
+		return err
+	}
+
+	// Hand over to package management to allow clean deferring to take place.
+	if err := b.updatePackages(); err != nil {
 		return err
 	}
 
