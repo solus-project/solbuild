@@ -19,10 +19,19 @@ package builder
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/disk"
 )
 
 // Build will attempt to build the package in the overlayfs system
 func (p *Package) Build(img *BackingImage) error {
+	// First things first, setup the namespace
+	if err := ConfigureNamespace(); err != nil {
+		return err
+	}
+
+	mountMan := disk.GetMountManager()
+	defer mountMan.UnmountAll()
+
 	overlay := NewOverlay(img, p)
 
 	log.WithFields(log.Fields{
@@ -45,6 +54,11 @@ func (p *Package) Build(img *BackingImage) error {
 		return err
 	}
 	if err := overlay.EnsureDirs(); err != nil {
+		return err
+	}
+
+	// Now mount the overlayfs
+	if err := overlay.Mount(); err != nil {
 		return err
 	}
 

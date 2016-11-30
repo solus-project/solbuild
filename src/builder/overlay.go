@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"errors"
 	log "github.com/Sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -107,4 +108,11 @@ func (o *Overlay) CleanExisting() error {
 		return err
 	}
 	return nil
+}
+
+// Mount will set up the overlayfs structure with the lower/upper respected
+// properly.
+func (o *Overlay) Mount() error {
+	log.Info("Mounting overlayfs")
+	return errors.New("Not yet implemented")
 }
