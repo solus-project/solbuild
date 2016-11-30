@@ -148,9 +148,9 @@ func (o *Overlay) Mount() error {
 
 	// Mounting overlayfs..
 	err := mountMan.Mount("overlay", o.MountPoint, "overlay",
-		fmt.Sprintf("lowerdir='%s'", o.ImgDir),
-		fmt.Sprintf("upperdir='%s'", o.UpperDir),
-		fmt.Sprintf("workdir='%s'", o.WorkDir))
+		fmt.Sprintf("lowerdir=%s", o.ImgDir),
+		fmt.Sprintf("upperdir=%s", o.UpperDir),
+		fmt.Sprintf("workdir=%s", o.WorkDir))
 
 	// Check non-fatal..
 	if err != nil {
