@@ -46,5 +46,9 @@ func initProfile(cmd *cobra.Command, args []string) {
 		fmt.Printf("'%v' has already been initialised\n", profile)
 		return
 	}
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
+		os.Exit(1)
+	}
 	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
 }
