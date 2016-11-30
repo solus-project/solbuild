@@ -47,6 +47,6 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
 		return nil
 	}
-	fmt.Printf("Building (profile: %v): %v\n", profile, pkg.Name)
+	fmt.Printf("Building (profile: %s): %s (%s-%d)\n", profile, pkg.Name, pkg.Version, pkg.Release)
 	return nil
 }
