@@ -50,5 +50,13 @@ func initProfile(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
 		os.Exit(1)
 	}
+	// Ensure directories exist
+	if !builder.PathExists(builder.ImagesDir) {
+		if err := os.MkdirAll(builder.ImagesDir, 00755); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create required images directory: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
 }
