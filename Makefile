@@ -10,6 +10,7 @@ BINARIES = \
 include Makefile.gobuild
 
 _PKGS = \
+	builder \
 	solbuild \
 	solbuild/cmd
 
