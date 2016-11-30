@@ -55,6 +55,11 @@ func updateProfile(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
+		os.Exit(1)
+	}
+
 	if err := bk.Update(); err != nil {
 		os.Exit(1)
 	}
