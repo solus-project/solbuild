@@ -208,10 +208,19 @@ func (o *Overlay) AddBuildUser() error {
 		"gecos":    BuildUserGecos,
 	}).Debug("Adding build user to system")
 
+	// Add the build group
+	if err := commands.AddGroup(o.MountPoint, BuildUser, BuildUserGID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to add build group to system")
+		return err
+	}
+
 	if err := commands.AddUser(o.MountPoint, BuildUser, BuildUserGecos, BuildUserHome, BuildUserShell, BuildUserID, BuildUserGID); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to add build user to system")
+		return err
 	}
 	return nil
 }
