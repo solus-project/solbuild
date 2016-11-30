@@ -23,6 +23,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 var buildCmd = &cobra.Command{
@@ -39,11 +40,22 @@ func init() {
 }
 
 func buildPackage(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
+	pkgPath := ""
+
+	if len(args) == 1 {
+		pkgPath = args[0]
+	} else {
+		// Try to find the logical path..
+		pkgPath = FindLikelyArg()
+	}
+
+	pkgPath = strings.TrimSpace(pkgPath)
+
+	if pkgPath == "" {
 		return errors.New("Require a filename to build")
 	}
 
-	pkg, err := builder.NewPackage(args[0])
+	pkg, err := builder.NewPackage(pkgPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
 		return nil

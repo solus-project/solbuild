@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"os"
 )
 
 const (
@@ -36,4 +37,21 @@ var RootCmd = &cobra.Command{
 
 func init() {
 	RootCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+}
+
+// FindLikelyArg will look in the current directory to see if common path names exist,
+// for when it is acceptable to omit a filename.
+func FindLikelyArg() string {
+	lookPaths := []string{
+		"package.yml",
+		"pspec.xml",
+	}
+	for _, p := range lookPaths {
+		if st, err := os.Stat(p); err == nil {
+			if st != nil {
+				return p
+			}
+		}
+	}
+	return ""
 }
