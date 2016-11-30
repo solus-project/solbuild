@@ -22,7 +22,31 @@ import (
 )
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build() error {
-	log.Error("Building isn't implemented yet")
-	return errors.New("Nope. Not you")
+func (p *Package) Build(img *BackingImage) error {
+	overlay := NewOverlay(img, p)
+
+	log.WithFields(log.Fields{
+		"profile": img.Name,
+		"version": p.Version,
+		"package": p.Name,
+		"type":    p.Type,
+		"release": p.Release,
+	}).Info("Building package")
+
+	// Warn about lack of sandboxing
+	if p.Type != PackageTypeYpkg {
+		log.Warning("Full sandboxing is not possible with legacy format")
+	}
+
+	log.Info("Configuring overlay storage")
+
+	// Set up environment
+	if err := overlay.CleanExisting(); err != nil {
+		return err
+	}
+	if err := overlay.EnsureDirs(); err != nil {
+		return err
+	}
+
+	return errors.New("Not yet implemented")
 }

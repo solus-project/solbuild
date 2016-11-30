@@ -73,18 +73,7 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	log.WithFields(log.Fields{
-		"profile": profile,
-		"version": pkg.Version,
-		"package": pkg.Name,
-		"type":    pkg.Type,
-		"release": pkg.Release,
-	}).Info("Building package")
-	if pkg.Type != builder.PackageTypeYpkg {
-		log.Warning("Full sandboxing is not possible with legacy format")
-	}
-
-	if err := pkg.Build(); err != nil {
+	if err := pkg.Build(bk); err != nil {
 		log.Error("Building failed")
 	} else {
 		log.Info("Building succeeded")
