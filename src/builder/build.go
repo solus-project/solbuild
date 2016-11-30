@@ -70,5 +70,11 @@ func (p *Package) Build(img *BackingImage) error {
 		return err
 	}
 
+	// Add build user
+	// TODO: Make this ypkg only
+	if err := overlay.AddBuildUser(); err != nil {
+		return err
+	}
+
 	return errors.New("Not yet implemented")
 }

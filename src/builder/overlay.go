@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/disk"
@@ -181,4 +182,10 @@ func (o *Overlay) Unmount() error {
 		o.mountedOverlay = false
 	}
 	return nil
+}
+
+// AddBuildUser will attempt to add the solbuild user & group if they've not
+// previously been added
+func (o *Overlay) AddBuildUser() error {
+	return errors.New("Not yet implemented")
 }
