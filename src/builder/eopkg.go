@@ -142,6 +142,7 @@ func (e *EopkgManager) StopDBUS() error {
 // Cleanup will take care of any work we've already done before
 func (e *EopkgManager) Cleanup() {
 	e.StopDBUS()
+	disk.GetMountManager().Unmount(e.cacheTarget)
 }
 
 // Upgrade will perform an eopkg upgrade inside the chroot
