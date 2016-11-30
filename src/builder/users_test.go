@@ -21,8 +21,18 @@ import (
 )
 
 func TestPasswd(t *testing.T) {
-	_, err := NewPasswd("./@W'el@@")
-	if err == nil {
+	if _, err := NewPasswd("./@W'el@@"); err == nil {
 		t.Fatalf("Should not be able to parse non existent file")
+	}
+
+	pwd, err := NewPasswd("testdata")
+	if err != nil {
+		t.Fatalf("Unable to parse known good passwd data: %v", err)
+	}
+	if len(pwd.Users) != 19 {
+		t.Fatalf("Invalid number of users parsed: %v vs expected 19", len(pwd.Users))
+	}
+	if len(pwd.Groups) != 48 {
+		t.Fatalf("Invalid number of groups parsed: %v vs expected 48", len(pwd.Groups))
 	}
 }
