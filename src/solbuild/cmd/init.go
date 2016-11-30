@@ -19,6 +19,7 @@ package cmd
 import (
 	"builder"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -50,12 +51,21 @@ func initProfile(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
 		os.Exit(1)
 	}
+
+	imgDir := builder.ImagesDir
+
 	// Ensure directories exist
-	if !builder.PathExists(builder.ImagesDir) {
-		if err := os.MkdirAll(builder.ImagesDir, 00755); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create required images directory: %v\n", err)
+	if !builder.PathExists(imgDir) {
+		if err := os.MkdirAll(imgDir, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"dir":   imgDir,
+				"error": err,
+			}).Error("Failed to create images directory")
 			os.Exit(1)
 		}
+		log.WithFields(log.Fields{
+			"dir": imgDir,
+		}).Debug("Created images directory")
 	}
 
 	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
