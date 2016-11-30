@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"builder"
 	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -40,6 +41,12 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Require a filename to build")
 	}
-	fmt.Fprintf(os.Stderr, "Yay building for %v..\n", profile)
+
+	pkg, err := builder.NewPackage(args[0])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
+		return nil
+	}
+	fmt.Printf("Building (profile: %v): %v\n", profile, pkg.Name)
 	return nil
 }
