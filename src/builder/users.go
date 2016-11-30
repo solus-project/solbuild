@@ -127,8 +127,12 @@ func ParseGroups(grps string) (map[string]*Group, error) {
 			return nil, fmt.Errorf("Invalid number of fields in group file: %d", len(splits))
 		}
 		group := &Group{
-			Name:    strings.TrimSpace(splits[0]),
-			Members: strings.Split(strings.TrimSpace(splits[3]), ","),
+			Name: strings.TrimSpace(splits[0]),
+		}
+		// So we don't get one empty member situation
+		membs := strings.TrimSpace(splits[3])
+		if membs != "" {
+			group.Members = strings.Split(membs, ",")
 		}
 		// Parse the gid
 		if gid, err := strconv.Atoi(strings.TrimSpace(splits[2])); err == nil {
