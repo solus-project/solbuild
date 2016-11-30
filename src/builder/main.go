@@ -38,6 +38,9 @@ const (
 
 	// DefaultProfile is the profile solbuild will use when none are specified
 	DefaultProfile = "main-x86_64"
+
+	// ImageRootsDir is where updates are performed on base images
+	ImageRootsDir = "/var/lib/solbuild/roots"
 )
 
 var (
@@ -82,6 +85,7 @@ type BackingImage struct {
 	ImagePath   string // Absolute path to the .img file
 	ImagePathXZ string // Absolute path to the .img.xz file
 	ImageURI    string // URI of the image origin
+	RootDir     string // Where to mount the backing image for updates
 }
 
 // IsInstalled will determine whether the given backing image has been installed
@@ -103,5 +107,6 @@ func NewBackingImage(name string) *BackingImage {
 		ImagePath:   filepath.Join(ImagesDir, name+ImageSuffix),
 		ImagePathXZ: filepath.Join(ImagesDir, name+ImageCompressedSuffix),
 		ImageURI:    fmt.Sprintf("%s/%s%s", ImageBaseURI, name, ImageCompressedSuffix),
+		RootDir:     filepath.Join(ImageRootsDir, name),
 	}
 }
