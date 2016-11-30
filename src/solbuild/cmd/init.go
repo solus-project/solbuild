@@ -83,5 +83,20 @@ func initProfile(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
+	// Decompress the image
+	log.WithFields(log.Fields{
+		"source": bk.ImagePathXZ,
+		"target": bk.ImagePath,
+	}).Debug("Decompressing backing image")
+
+	if err := commands.ExecStdoutArgsDir(builder.ImagesDir, "unxz", []string{bk.ImagePathXZ}); err != nil {
+		log.WithFields(log.Fields{
+			"source": bk.ImagePathXZ,
+			"error":  err,
+		}).Error("Failed to decompress image")
+	}
+
+	log.WithFields(log.Fields{
+		"profile": profile,
+	}).Info("Profile successfully initialised")
 }
