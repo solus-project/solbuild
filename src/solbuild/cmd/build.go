@@ -52,6 +52,8 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		"profile": profile,
 		"version": pkg.Version,
 		"package": pkg.Name,
+		"type":    pkg.Type,
+		"release": pkg.Release,
 	}).Info("Building package")
 	return nil
 }
