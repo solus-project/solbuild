@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 var updateCmd = &cobra.Command{
@@ -37,9 +38,24 @@ func init() {
 }
 
 func updateProfile(cmd *cobra.Command, args []string) {
+	if len(args) == 1 {
+		profile = strings.TrimSpace(args[0])
+	}
+
 	if !builder.IsValidProfile(profile) {
 		builder.EmitProfileError(profile)
 		return
 	}
-	fmt.Fprintf(os.Stderr, "Yay updating for %v..\n", profile)
+
+	// Updating is handled all within the library itself
+	bk := builder.NewBackingImage(profile)
+
+	if !bk.IsInstalled() {
+		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
+		os.Exit(1)
+	}
+
+	if err := bk.Update(); err != nil {
+		os.Exit(1)
+	}
 }
