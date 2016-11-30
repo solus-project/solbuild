@@ -21,10 +21,11 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
+	Use:   "init [profile]",
 	Short: "initialise a solbuild profile",
 	Long: `Initialise a solbuild profile so that it can be used for subsequent
 builds`,
@@ -37,6 +38,9 @@ func init() {
 }
 
 func initProfile(cmd *cobra.Command, args []string) {
+	if len(args) == 1 {
+		profile = strings.TrimSpace(args[0])
+	}
 	bk := builder.NewBackingImage(profile)
 	if bk.IsInstalled() {
 		fmt.Printf("'%v' has already been initialised\n", profile)
