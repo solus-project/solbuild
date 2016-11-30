@@ -16,6 +16,10 @@
 
 package builder
 
+import (
+	"errors"
+)
+
 // A User is an /etc/passwd defined user
 type User struct {
 	Name  string
