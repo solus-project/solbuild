@@ -17,9 +17,9 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
@@ -186,6 +186,32 @@ func (o *Overlay) Unmount() error {
 
 // AddBuildUser will attempt to add the solbuild user & group if they've not
 // previously been added
+// Note this should be changed when Solus goes fully stateless for /etc/passwd
 func (o *Overlay) AddBuildUser() error {
-	return errors.New("Not yet implemented")
+	pwd, err := NewPasswd(filepath.Join(o.MountPoint, "etc"))
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Unable to discover chroot users")
+		return err
+	}
+	// User already exists
+	if _, ok := pwd.Users[BuildUser]; ok {
+		return nil
+	}
+	log.WithFields(log.Fields{
+		"username": BuildUser,
+		"uid":      BuildUserID,
+		"gid":      BuildUserGID,
+		"home":     BuildUserHome,
+		"shell":    BuildUserShell,
+		"gecos":    BuildUserGecos,
+	}).Debug("Adding build user to system")
+
+	if err := commands.AddUser(o.MountPoint, BuildUser, BuildUserGecos, BuildUserHome, BuildUserShell, BuildUserID, BuildUserGID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to add build user to system")
+	}
+	return nil
 }

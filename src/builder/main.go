@@ -48,6 +48,26 @@ const (
 	PackageCacheDirectory = "/var/lib/solbuild/packages"
 )
 
+const (
+	// BuildUser is the user that builds will run as inside the chroot
+	BuildUser = "build"
+
+	// BuildUserID is the build user's numerical ID
+	BuildUserID = 1000
+
+	// BuildUserGID is the group to use
+	BuildUserGID = 1000
+
+	// BuildUserHome is the build user's home directory
+	BuildUserHome = "/home/build"
+
+	// BuildUserGecos is the build user's description
+	BuildUserGecos = "solbuild user"
+
+	// BuildUserShell is the system shell for the build user
+	BuildUserShell = "/bin/bash"
+)
+
 var (
 	// ValidProfiles is a set of known, Solus-published, base profiles
 	ValidProfiles = []string{
