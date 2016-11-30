@@ -20,6 +20,7 @@ import (
 	"builder"
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -47,6 +48,10 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
 		return nil
 	}
-	fmt.Printf("Building (profile: %s): %s (%s-%d)\n", profile, pkg.Name, pkg.Version, pkg.Release)
+	log.WithFields(log.Fields{
+		"profile": profile,
+		"version": pkg.Version,
+		"package": pkg.Name,
+	}).Info("Building package")
 	return nil
 }
