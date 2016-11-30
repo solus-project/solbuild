@@ -42,6 +42,9 @@ type Overlay struct {
 	UpperDir   string // UpperDir is where real inode changes happen (tmp)
 	ImgDir     string // Where the profile is mounted (ro)
 	MountPoint string // The actual mount point for the union'd directories
+
+	mountedImg     bool // Whether we mounted the image or not
+	mountedOverlay bool // Whether we mounted the overlay or not
 }
 
 // NewOverlay creates a new Overlay for us in builds, etc.
@@ -54,13 +57,15 @@ func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
 	// i.e. /var/cache/solbuild/unstable-x86_64/nano
 	basedir := filepath.Join(OverlayRootDir, back.Name, dirname)
 	return &Overlay{
-		Back:       back,
-		Package:    pkg,
-		BaseDir:    basedir,
-		WorkDir:    filepath.Join(basedir, "work"),
-		UpperDir:   filepath.Join(basedir, "tmp"),
-		ImgDir:     filepath.Join(basedir, "img"),
-		MountPoint: filepath.Join(basedir, "union"),
+		Back:           back,
+		Package:        pkg,
+		BaseDir:        basedir,
+		WorkDir:        filepath.Join(basedir, "work"),
+		UpperDir:       filepath.Join(basedir, "tmp"),
+		ImgDir:         filepath.Join(basedir, "img"),
+		MountPoint:     filepath.Join(basedir, "union"),
+		mountedImg:     false,
+		mountedOverlay: false,
 	}
 }
 
@@ -129,6 +134,7 @@ func (o *Overlay) Mount() error {
 		}).Error("Failed to mount backing image")
 		return err
 	}
+	o.mountedImg = true
 
 	// TODO: Mount tmpfs at upperdir if requested!
 
@@ -153,6 +159,26 @@ func (o *Overlay) Mount() error {
 			"point": o.MountPoint,
 		}).Error("Failed to mount overlayfs")
 		return err
+	}
+	o.mountedOverlay = true
+	return nil
+}
+
+// Unmount will tear down the overlay mount again
+func (o *Overlay) Unmount() error {
+	mountMan := disk.GetMountManager()
+
+	if o.mountedImg {
+		if err := mountMan.Unmount(o.ImgDir); err != nil {
+			return err
+		}
+		o.mountedImg = false
+	}
+	if o.mountedOverlay {
+		if err := mountMan.Unmount(o.MountPoint); err != nil {
+			return err
+		}
+		o.mountedOverlay = false
 	}
 	return nil
 }
