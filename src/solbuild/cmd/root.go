@@ -17,13 +17,9 @@
 package cmd
 
 import (
+	"builder"
 	"github.com/spf13/cobra"
 	"os"
-)
-
-const (
-	// DefaultProfile is the profile solbuild will use when none are specified
-	DefaultProfile = "main-x86_64"
 )
 
 // Shared between most of the subcommands
@@ -36,7 +32,7 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+	RootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 }
 
 // FindLikelyArg will look in the current directory to see if common path names exist,

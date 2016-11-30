@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"builder"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
@@ -31,10 +32,14 @@ minimize the build times in future updates with this profile.`,
 }
 
 func init() {
-	updateCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+	updateCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	RootCmd.AddCommand(updateCmd)
 }
 
 func updateProfile(cmd *cobra.Command, args []string) {
+	if !builder.IsValidProfile(profile) {
+		builder.EmitProfileError(profile)
+		return
+	}
 	fmt.Fprintf(os.Stderr, "Yay updating for %v..\n", profile)
 }

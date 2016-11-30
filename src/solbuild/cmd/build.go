@@ -35,7 +35,7 @@ store those packages in the current directory`,
 }
 
 func init() {
-	buildCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+	buildCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	RootCmd.AddCommand(buildCmd)
 }
 
@@ -47,6 +47,11 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	} else {
 		// Try to find the logical path..
 		pkgPath = FindLikelyArg()
+	}
+
+	if !builder.IsValidProfile(profile) {
+		builder.EmitProfileError(profile)
+		return nil
 	}
 
 	pkgPath = strings.TrimSpace(pkgPath)

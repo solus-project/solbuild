@@ -35,7 +35,7 @@ builds`,
 }
 
 func init() {
-	initCmd.Flags().StringVarP(&profile, "profile", "p", DefaultProfile, "Build profile to use")
+	initCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	RootCmd.AddCommand(initCmd)
 }
 
@@ -43,6 +43,12 @@ func initProfile(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		profile = strings.TrimSpace(args[0])
 	}
+
+	if !builder.IsValidProfile(profile) {
+		builder.EmitProfileError(profile)
+		return
+	}
+
 	bk := builder.NewBackingImage(profile)
 	if bk.IsInstalled() {
 		fmt.Printf("'%v' has already been initialised\n", profile)

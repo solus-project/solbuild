@@ -35,6 +35,17 @@ const (
 
 	// ImageBaseURI is the storage area for base images
 	ImageBaseURI = "https://solus-project.com/image_root"
+
+	// DefaultProfile is the profile solbuild will use when none are specified
+	DefaultProfile = "main-x86_64"
+)
+
+var (
+	// ValidProfiles is a set of known, Solus-published, base profiles
+	ValidProfiles = []string{
+		"main-x86_64",
+		"unstable-x86_64",
+	}
 )
 
 // PathExists is a helper function to determine the existence of a file path
@@ -43,6 +54,26 @@ func PathExists(path string) bool {
 		return true
 	}
 	return false
+}
+
+// IsValidProfile will check if the specified profile is a valid one.
+func IsValidProfile(profile string) bool {
+	for _, p := range ValidProfiles {
+		if p == profile {
+			return true
+		}
+	}
+	return false
+}
+
+// EmitProfileError emits the stock response to requesting an invalid profile
+func EmitProfileError(profile string) {
+	fmt.Fprintf(os.Stderr, "Error: '%v' is not a known profile\n", profile)
+	fmt.Fprintf(os.Stderr, "Valid profiles include:\n\n")
+	for _, p := range ValidProfiles {
+		fmt.Fprintf(os.Stderr, " * %v\n", p)
+	}
+	fmt.Fprintf(os.Stderr, "\nThe default profile is: %v\n", DefaultProfile)
 }
 
 // A BackingImage is the core of any given profile

@@ -55,6 +55,11 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 		return errors.New("Require a filename to chroot")
 	}
 
+	if !builder.IsValidProfile(profile) {
+		builder.EmitProfileError(profile)
+		return nil
+	}
+
 	pkg, err := builder.NewPackage(pkgPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
