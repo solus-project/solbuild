@@ -17,7 +17,6 @@
 package builder
 
 import (
-	"errors"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/disk"
 	"os"
@@ -72,7 +71,7 @@ func (b *BackingImage) updatePackages() error {
 		return err
 	}
 
-	return errors.New("Not yet implemented")
+	return nil
 }
 
 // Update will attempt to update the backing image to the latest version
@@ -118,5 +117,9 @@ func (b *BackingImage) Update() error {
 		return err
 	}
 
-	return errors.New("Not yet implemented")
+	log.WithFields(log.Fields{
+		"profile": b.Name,
+	}).Info("Image successfully updated")
+
+	return nil
 }
