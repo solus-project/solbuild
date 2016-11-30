@@ -19,6 +19,7 @@ package builder
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 )
 
@@ -36,12 +37,31 @@ const (
 	ImageBaseURI = "https://solus-project.com/image_root"
 )
 
+// PathExists is a helper function to determine the existence of a file path
+func PathExists(path string) bool {
+	if st, err := os.Stat(path); err == nil && st != nil {
+		return true
+	}
+	return false
+}
+
 // A BackingImage is the core of any given profile
 type BackingImage struct {
 	Name        string // Name of the profile
 	ImagePath   string // Absolute path to the .img file
 	ImagePathXZ string // Absolute path to the .img.xz file
 	ImageURI    string // URI of the image origin
+}
+
+// IsInstalled will determine whether the given backing image has been installed
+// to the global image directory or not.
+func (b *BackingImage) IsInstalled() bool {
+	return PathExists(b.ImagePath)
+}
+
+// IsFetched will determine whether or not the XZ image itself has been fetched
+func (b *BackingImage) IsFetched() bool {
+	return PathExists(b.ImagePathXZ)
 }
 
 // NewBackingImage will return a correctly configured backing image for
