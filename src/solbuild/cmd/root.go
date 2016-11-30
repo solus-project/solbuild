@@ -23,7 +23,7 @@ import (
 
 const (
 	// DefaultProfile is the profile solbuild will use when none are specified
-	DefaultProfile = "main"
+	DefaultProfile = "main-x86_64"
 )
 
 // Shared between most of the subcommands
