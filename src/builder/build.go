@@ -30,9 +30,17 @@ func (p *Package) Build(img *BackingImage) error {
 	}
 
 	mountMan := disk.GetMountManager()
-	defer mountMan.UnmountAll()
-
 	overlay := NewOverlay(img, p)
+
+	defer func() {
+		if err := overlay.Unmount(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Error unmounting overlay")
+		}
+		log.Info("Requesting unmount of all remaining mountpoints")
+		mountMan.UnmountAll()
+	}()
 
 	log.WithFields(log.Fields{
 		"profile": img.Name,
