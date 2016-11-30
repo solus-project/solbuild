@@ -20,6 +20,7 @@ import (
 	"builder"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/commands"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -66,6 +67,20 @@ func initProfile(cmd *cobra.Command, args []string) {
 		log.WithFields(log.Fields{
 			"dir": imgDir,
 		}).Debug("Created images directory")
+	}
+
+	// Now ensure we actually have said image
+	if !bk.IsFetched() {
+		com := []string{"-o", bk.ImagePathXZ, "-L", "--progress-bar", bk.ImageURI}
+		log.WithFields(log.Fields{
+			"uri": bk.ImageURI,
+		}).Info("Fetching backing image")
+		if err := commands.ExecStdoutArgs("curl", com); err != nil {
+			log.WithFields(log.Fields{
+				"uri":   bk.ImageURI,
+				"error": err,
+			}).Error("Failed to fetch image")
+		}
 	}
 
 	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
