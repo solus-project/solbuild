@@ -17,8 +17,8 @@
 package builder
 
 import (
-	// We'll end up using this later
-	_ "github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
+	"os"
 	"path/filepath"
 )
 
@@ -35,6 +35,7 @@ type Overlay struct {
 	Back    *BackingImage // This will be mounted at $dir/image
 	Package *Package      // The package we intend to interact with
 
+	BaseDir    string // BaseDir is the base directory containing the root
 	WorkDir    string // WorkDir is the overlayfs workdir lock
 	UpperDir   string // UpperDir is where real inode changes happen (transient)
 	ImgDir     string // Where the profile is mounted (ro)
@@ -53,9 +54,57 @@ func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
 	return &Overlay{
 		Back:       back,
 		Package:    pkg,
+		BaseDir:    basedir,
 		WorkDir:    filepath.Join(basedir, "work"),
 		UpperDir:   filepath.Join(basedir, "transient"),
 		ImgDir:     filepath.Join(basedir, "image"),
 		MountPoint: filepath.Join(basedir, "union"),
 	}
+}
+
+// EnsureDirs is a helper to make sure we have all directories in place
+func (o *Overlay) EnsureDirs() error {
+	paths := []string{
+		o.BaseDir,
+		o.WorkDir,
+		o.UpperDir,
+		o.ImgDir,
+		o.MountPoint,
+	}
+
+	for _, p := range paths {
+		if PathExists(p) {
+			continue
+		}
+		log.WithFields(log.Fields{
+			"dir": p,
+		}).Debug("Creating overlay storage directory")
+		if err := os.MkdirAll(p, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"dir":   p,
+				"error": err,
+			}).Error("Failed to create overlay storage directory")
+			return err
+		}
+	}
+	return nil
+}
+
+// CleanExisting will purge an existing overlayfs configuration if it
+// exists.
+func (o *Overlay) CleanExisting() error {
+	if !PathExists(o.BaseDir) {
+		return nil
+	}
+	log.WithFields(log.Fields{
+		"dir": o.BaseDir,
+	}).Debug("Removing stale workspace")
+	if err := os.RemoveAll(o.BaseDir); err != nil {
+		log.WithFields(log.Fields{
+			"dir":   o.BaseDir,
+			"error": err,
+		}).Error("Failed to remove stale workspace")
+		return err
+	}
+	return nil
 }
