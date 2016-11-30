@@ -18,6 +18,7 @@ package builder
 
 import (
 	"errors"
+	"path/filepath"
 )
 
 // A User is an /etc/passwd defined user
@@ -44,5 +45,27 @@ type Passwd struct {
 // NewPasswd will parse the given path and return a friendly representation
 // of those files
 func NewPasswd(path string) (*Passwd, error) {
+	passwdPath := filepath.Join(path, "passwd")
+	groupPath := filepath.Join(path, "group")
+
+	var err error
+
+	ret := &Passwd{}
+	if ret.Users, err = ParseUsers(passwdPath); err != nil {
+		return nil, err
+	}
+	if ret.Groups, err = ParseGroups(groupPath); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// ParseUsers will attempt to parse a *NIX style passwd file
+func ParseUsers(passwd string) (map[string]*User, error) {
+	return nil, errors.New("Not yet implemented")
+}
+
+// ParseGroups will attempt to parse a *NIX style group file
+func ParseGroups(grps string) (map[int]*Group, error) {
 	return nil, errors.New("Not yet implemented")
 }
