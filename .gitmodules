@@ -10,3 +10,6 @@
 [submodule "src/vendor/github.com/spf13/cobra"]
 	path = src/vendor/github.com/spf13/cobra
 	url = https://github.com/spf13/cobra.git
+[submodule "src/vendor/github.com/go-yaml/yaml"]
+	path = src/vendor/github.com/go-yaml/yaml
+	url = https://github.com/go-yaml/yaml.git
