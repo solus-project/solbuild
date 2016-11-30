@@ -28,8 +28,6 @@ func (b *BackingImage) updatePackages() error {
 
 	log.Info("Initialising package manager")
 
-	// TODO: Copy host aux assets (eopkg.conf)
-	// TODO: Mount cache directory!!
 	if err := pkgMan.Init(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
