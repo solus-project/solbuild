@@ -18,9 +18,19 @@ package main
 
 import (
 	_ "builder"
+	log "github.com/Sirupsen/logrus"
 	"os"
 	"solbuild/cmd"
 )
+
+// Set up the main logger formatting used in USpin
+func init() {
+	form := &log.TextFormatter{}
+	form.FullTimestamp = true
+	form.TimestampFormat = "15:04:05"
+	log.SetFormatter(form)
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
 	if err := cmd.RootCmd.Execute(); err != nil {
