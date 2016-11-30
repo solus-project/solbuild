@@ -30,6 +30,7 @@ func (b *BackingImage) updatePackages() error {
 	log.Info("Initialising package manager")
 
 	// TODO: Copy host aux assets (eopkg.conf)
+	// TODO: Mount cache directory!!
 
 	// Bring up dbus to do Things
 	log.Debug("Starting D-BUS")
@@ -37,6 +38,22 @@ func (b *BackingImage) updatePackages() error {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to start d-bus")
+		return err
+	}
+
+	log.Info("Upgrading builder image")
+	if err := pkgMan.Upgrade(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to perform upgrade")
+		return err
+	}
+
+	log.Info("Asserting system.devel component")
+	if err := pkgMan.InstallComponent("system.devel"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to install system.devel")
 		return err
 	}
 

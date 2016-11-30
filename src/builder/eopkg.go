@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"fmt"
 	"github.com/solus-project/libosdev/commands"
 	"io/ioutil"
 	"os"
@@ -89,4 +90,14 @@ func (e *EopkgManager) StopDBUS() error {
 // Cleanup will take care of any work we've already done before
 func (e *EopkgManager) Cleanup() {
 	e.StopDBUS()
+}
+
+// Upgrade will perform an eopkg upgrade inside the chroot
+func (e *EopkgManager) Upgrade() error {
+	return commands.ChrootExec(e.root, "eopkg upgrade -y")
+}
+
+// InstallComponent will install the named component inside the chroot
+func (e *EopkgManager) InstallComponent(comp string) error {
+	return commands.ChrootExec(e.root, fmt.Sprintf("eopkg install -c %v -y", comp))
 }
