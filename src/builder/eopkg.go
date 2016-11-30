@@ -18,6 +18,7 @@ package builder
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
 	"io/ioutil"
@@ -52,6 +53,40 @@ func (e *EopkgManager) Init() error {
 	// Ensure dbus pid is gone
 	if PathExists(e.dbusPid) {
 		if err := os.Remove(e.dbusPid); err != nil {
+			return err
+		}
+	}
+
+	requiredAssets := map[string]string{
+		"/etc/resolv.conf": filepath.Join(e.root, "etc/resolv.conf"),
+		"/etc/eopkg.conf":  filepath.Join(e.root, "etc/eopkg/eopkg.conf"),
+	}
+
+	for key, value := range requiredAssets {
+		if !PathExists(key) {
+			continue
+		}
+		dirName := filepath.Dir(value)
+		if !PathExists(dirName) {
+			log.WithFields(log.Fields{
+				"dir": dirName,
+			}).Debug("Creating required directory")
+			if err := os.MkdirAll(dirName, 00755); err != nil {
+				log.WithFields(log.Fields{
+					"dir":   dirName,
+					"error": err,
+				}).Error("Failed to create required asset directory")
+				return err
+			}
+		}
+		log.WithFields(log.Fields{
+			"file": key,
+		}).Debug("Copying host asset")
+		if err := disk.CopyFile(key, value); err != nil {
+			log.WithFields(log.Fields{
+				"file":  key,
+				"error": err,
+			}).Error("Failed to copy host asset")
 			return err
 		}
 	}
