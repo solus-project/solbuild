@@ -17,17 +17,18 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 var buildCmd = &cobra.Command{
-	Use:   "build",
+	Use:   "build [package.yml|pspec.xml]",
 	Short: "build a package",
 	Long: `Build the given package in a chroot environment, and upon success,
 store those packages in the current directory`,
-	Run: buildPackage,
+	RunE: buildPackage,
 }
 
 func init() {
@@ -35,6 +36,10 @@ func init() {
 	RootCmd.AddCommand(buildCmd)
 }
 
-func buildPackage(cmd *cobra.Command, args []string) {
+func buildPackage(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return errors.New("Require a filename to build")
+	}
 	fmt.Fprintf(os.Stderr, "Yay building for %v..\n", profile)
+	return nil
 }
