@@ -20,6 +20,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/go-yaml/yaml"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -116,5 +117,39 @@ func NewXMLPackage(path string) (*Package, error) {
 
 // NewYmlPackage will attempt to parse the ypkg package.yml file @ path
 func NewYmlPackage(path string) (*Package, error) {
-	return nil, errors.New("ypkg: Not yet implemented")
+	var by []byte
+	var err error
+	var fi *os.File
+
+	fi, err = os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
+	by, err = ioutil.ReadAll(fi)
+	if err != nil {
+		return nil, err
+	}
+	ypkg := &YmlPackage{}
+	if err = yaml.Unmarshal(by, ypkg); err != nil {
+		return nil, err
+	}
+
+	ret := &Package{
+		Name:    strings.TrimSpace(ypkg.Name),
+		Version: strings.TrimSpace(ypkg.Version),
+		Release: ypkg.Release,
+	}
+
+	if ret.Name == "" {
+		return nil, errors.New("ypkg: Missing name in package")
+	}
+	if ret.Version == "" {
+		return nil, errors.New("ypkg: Missing version in package")
+	}
+	if ret.Release < 0 {
+		return nil, fmt.Errorf("ypkg: Invalid release in package: %d", ret.Release)
+	}
+	return ret, nil
 }
