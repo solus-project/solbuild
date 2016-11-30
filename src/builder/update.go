@@ -31,6 +31,12 @@ func (b *BackingImage) updatePackages() error {
 
 	// TODO: Copy host aux assets (eopkg.conf)
 	// TODO: Mount cache directory!!
+	if err := pkgMan.Init(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to initialise package manager")
+		return err
+	}
 
 	// Bring up dbus to do Things
 	log.Debug("Starting D-BUS")

@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/solus-project/libosdev/commands"
+	"github.com/solus-project/libosdev/disk"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,6 +33,7 @@ type EopkgManager struct {
 	root        string
 	cacheSource string
 	cacheTarget string
+	dbusPid     string
 }
 
 // NewEopkgManager will return a new eopkg manager
@@ -41,7 +43,23 @@ func NewEopkgManager(root string) *EopkgManager {
 		root:        root,
 		cacheSource: PackageCacheDirectory,
 		cacheTarget: filepath.Join(root, "var/cache/eopkg/packages"),
+		dbusPid:     filepath.Join(root, "var/run/dbus/pid"),
 	}
+}
+
+// Init will do some basic preparation of the chroot
+func (e *EopkgManager) Init() error {
+	// Ensure dbus pid is gone
+	if PathExists(e.dbusPid) {
+		if err := os.Remove(e.dbusPid); err != nil {
+			return err
+		}
+	}
+
+	if err := os.MkdirAll(e.cacheTarget, 00755); err != nil {
+		return err
+	}
+	return disk.GetMountManager().BindMount(e.cacheSource, e.cacheTarget)
 }
 
 // StartDBUS will bring up dbus within the chroot
@@ -65,17 +83,16 @@ func (e *EopkgManager) StopDBUS() error {
 	if !e.dbusActive {
 		return nil
 	}
-	fpath := filepath.Join(e.root, "var/run/dbus/pid")
 	var b []byte
 	var err error
 	var f *os.File
 
-	if f, err = os.Open(fpath); err != nil {
+	if f, err = os.Open(e.dbusPid); err != nil {
 		return err
 	}
 	defer func() {
 		f.Close()
-		os.Remove(fpath)
+		os.Remove(e.dbusPid)
 		e.dbusActive = false
 	}()
 
