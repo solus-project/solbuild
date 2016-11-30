@@ -7,6 +7,9 @@ VERSION = 0.1
 BINARIES = \
 	solbuild
 
+GO_TESTS = \
+	builder.test
+
 include Makefile.gobuild
 
 _PKGS = \
