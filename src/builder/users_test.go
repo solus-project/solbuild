@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -34,5 +35,44 @@ func TestPasswd(t *testing.T) {
 	}
 	if len(pwd.Groups) != 48 {
 		t.Fatalf("Invalid number of groups parsed: %v vs expected 48", len(pwd.Groups))
+	}
+
+	derp, foundDerp := pwd.Users["derpmcderpface"]
+	if !foundDerp {
+		t.Fatalf("Failed to find known user")
+	}
+	if derp.UID != 1001 {
+		t.Fatalf("User ID wrong: %d vs expected 1001", derp.UID)
+	}
+	if derp.GID != 1002 {
+		t.Fatalf("User GID wrong: %d vs expected 1002", derp.UID)
+	}
+	if derp.Home != "/home/derpmcderpface" {
+		t.Fatalf("Wrong homedir: '%s' vs expected /home/derpmcderpface", derp.Home)
+	}
+
+	if shell := pwd.Users["root"].Shell; shell != "/bin/bash" {
+		t.Fatalf("Wrong shell for root: %s", shell)
+	}
+
+	sudo, foundSudo := pwd.Groups["sudo"]
+	if !foundSudo {
+		t.Fatalf("I am without sudo")
+	}
+	if len(sudo.Members) != 2 {
+		t.Fatalf("sudo has wrong member count of %d vs expected 2", len(sudo.Members))
+	}
+	members := strings.Join(sudo.Members, ",")
+	if members != "ikey,derpmcderpface" {
+		t.Fatalf("Wrong members for sudo: %s", members)
+	}
+
+	lightdm := pwd.Groups["lightdm"]
+	if lightdm.ID != pwd.Users["lightdm"].GID {
+		t.Fatalf("Wrong GID for lightdm: %d vs expected %d", lightdm.ID, pwd.Users["lightdm"].GID)
+	}
+
+	if len(lightdm.Members) != 0 {
+		t.Fatalf("Myseriously have members of lightdm: |%s| %d", strings.Join(lightdm.Members, ", "), len(lightdm.Members))
 	}
 }
