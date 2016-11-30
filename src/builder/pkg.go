@@ -26,11 +26,23 @@ import (
 	"strings"
 )
 
+// PackageType is simply the type of package we're building, i.e. xml / pspec
+type PackageType string
+
+const (
+	// PackageTypeXML is the legacy package format, to be removed with sol introduction.
+	PackageTypeXML PackageType = "legacy"
+
+	// PackageTypeYpkg is the native build format of Solus, the package.yml format
+	PackageTypeYpkg PackageType = "ypkg"
+)
+
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
 	Name    string
 	Version string
 	Release int
+	Type    PackageType
 }
 
 // YmlPackage is a parsed ypkg build file
@@ -101,6 +113,7 @@ func NewXMLPackage(path string) (*Package, error) {
 		Name:    strings.TrimSpace(xpkg.Source.Name),
 		Version: strings.TrimSpace(upd.Version),
 		Release: upd.Release,
+		Type:    PackageTypeXML,
 	}
 
 	if ret.Name == "" {
@@ -140,6 +153,7 @@ func NewYmlPackage(path string) (*Package, error) {
 		Name:    strings.TrimSpace(ypkg.Name),
 		Version: strings.TrimSpace(ypkg.Version),
 		Release: ypkg.Release,
+		Type:    PackageTypeYpkg,
 	}
 
 	if ret.Name == "" {
