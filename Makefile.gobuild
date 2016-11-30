@@ -1,6 +1,10 @@
 # "Normal" static binary
 %.statbin:
-	GOPATH=$(PWD) go install $(subst .statbin,,$@)
+	GOPATH=$(PWD) go install -pkgdir ./pkg $(subst .statbin,,$@)
+
+# Dynamic golang binary
+%.dynbin:
+	GOPATH=$(PWD) go install -linkshared $(subst .dynbin,,$@)
 
 clean:
 	test ! -d $(PWD)/pkg || rm -rvf $(PWD)/pkg; \

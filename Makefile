@@ -16,8 +16,8 @@ _PKGS = \
 # We want to add compliance for all built binaries
 _CHECK_COMPLIANCE = $(addsuffix .compliant,$(_PKGS))
 
-# Build all binaries as static binary
-BINS = $(addsuffix .statbin,$(BINARIES))
+# Build all binaries as dynamic binary
+BINS = $(addsuffix .dynbin,$(BINARIES))
 
 # Ensure our own code is compliant..
 compliant: $(_CHECK_COMPLIANCE)
