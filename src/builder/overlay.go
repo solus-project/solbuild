@@ -19,6 +19,13 @@ package builder
 import (
 	// We'll end up using this later
 	_ "github.com/Sirupsen/logrus"
+	"path/filepath"
+)
+
+const (
+	// OverlayRootDir is the root in which we form all solbuild cache paths,
+	// these are the temp build roots that we happily throw away.
+	OverlayRootDir = "/var/cache/solbuild"
 )
 
 // An Overlay is formed from a backing image & Package combination.
@@ -27,12 +34,28 @@ import (
 type Overlay struct {
 	Back    *BackingImage
 	Package *Package
+
+	WorkDir    string // WorkDir is the overlayfs workdir lock
+	UpperDir   string // UpperDir is where real inode changes happen (transient)
+	ImgDir     string // Where the profile is mounted (ro)
+	MountPoint string // The actual mount point for the union'd directories
 }
 
 // NewOverlay creates a new Overlay for us in builds, etc.
+//
+// Unlike evobuild, we use fixed names within the more dynamic profile name,
+// as opposed to a single dir with "unstable-x86_64" inside it, etc.
 func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
+	// Ideally we could make this better..
+	dirname := pkg.Name
+	// i.e. /var/cache/solbuild/unstable-x86_64/nano
+	basedir := filepath.Join(OverlayRootDir, back.Name, dirname)
 	return &Overlay{
-		Back:    back,
-		Package: pkg,
+		Back:       back,
+		Package:    pkg,
+		WorkDir:    filepath.Join(basedir, "work"),
+		UpperDir:   filepath.Join(basedir, "transient"),
+		ImgDir:     filepath.Join(basedir, "image"),
+		MountPoint: filepath.Join(basedir, "union"),
 	}
 }
