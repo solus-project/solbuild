@@ -58,8 +58,8 @@ func (e *EopkgManager) Init() error {
 	}
 
 	requiredAssets := map[string]string{
-		"/etc/resolv.conf": filepath.Join(e.root, "etc/resolv.conf"),
-		"/etc/eopkg.conf":  filepath.Join(e.root, "etc/eopkg/eopkg.conf"),
+		"/etc/resolv.conf":      filepath.Join(e.root, "etc/resolv.conf"),
+		"/etc/eopkg/eopkg.conf": filepath.Join(e.root, "etc/eopkg/eopkg.conf"),
 	}
 
 	for key, value := range requiredAssets {
