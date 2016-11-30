@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"builder"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
@@ -36,5 +37,10 @@ func init() {
 }
 
 func initProfile(cmd *cobra.Command, args []string) {
+	bk := builder.NewBackingImage(profile)
+	if bk.IsInstalled() {
+		fmt.Printf("'%v' has already been initialised\n", profile)
+		return
+	}
 	fmt.Fprintf(os.Stderr, "Yay initialising for %v..\n", profile)
 }
