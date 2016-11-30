@@ -38,7 +38,7 @@ type Overlay struct {
 
 	BaseDir    string // BaseDir is the base directory containing the root
 	WorkDir    string // WorkDir is the overlayfs workdir lock
-	UpperDir   string // UpperDir is where real inode changes happen (transient)
+	UpperDir   string // UpperDir is where real inode changes happen (tmp)
 	ImgDir     string // Where the profile is mounted (ro)
 	MountPoint string // The actual mount point for the union'd directories
 }
@@ -57,8 +57,8 @@ func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
 		Package:    pkg,
 		BaseDir:    basedir,
 		WorkDir:    filepath.Join(basedir, "work"),
-		UpperDir:   filepath.Join(basedir, "transient"),
-		ImgDir:     filepath.Join(basedir, "image"),
+		UpperDir:   filepath.Join(basedir, "tmp"),
+		ImgDir:     filepath.Join(basedir, "img"),
 		MountPoint: filepath.Join(basedir, "union"),
 	}
 }
