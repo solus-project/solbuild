@@ -55,6 +55,13 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return errors.New("Require a filename to build")
 	}
 
+	// Complain about missing profile
+	bk := builder.NewBackingImage(profile)
+	if !bk.IsInstalled() {
+		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
+		return nil
+	}
+
 	pkg, err := builder.NewPackage(pkgPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
