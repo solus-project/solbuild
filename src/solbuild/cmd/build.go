@@ -73,6 +73,11 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to run build packages\n")
+		os.Exit(1)
+	}
+
 	if err := pkg.Build(bk); err != nil {
 		log.Error("Building failed")
 	} else {
