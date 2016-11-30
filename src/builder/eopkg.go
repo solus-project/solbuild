@@ -91,6 +91,20 @@ func (e *EopkgManager) Init() error {
 		}
 	}
 
+	// Ensure system wide cache exists
+	if !PathExists(e.cacheSource) {
+		log.WithFields(log.Fields{
+			"dir": e.cacheSource,
+		}).Debug("Creating system-wide package cache")
+		if err := os.MkdirAll(e.cacheSource, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"dir":   e.cacheSource,
+				"error": err,
+			}).Error("Failed to create package cache")
+			return err
+		}
+	}
+
 	if err := os.MkdirAll(e.cacheTarget, 00755); err != nil {
 		return err
 	}
