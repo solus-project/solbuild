@@ -17,6 +17,7 @@
 package main
 
 import (
+	_ "builder"
 	"os"
 	"solbuild/cmd"
 )
