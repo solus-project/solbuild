@@ -38,8 +38,12 @@ func (p *Package) Build(img *BackingImage) error {
 		return err
 	}
 
-	// Group {de,ac}tivate
-	defer p.DeactivateRoot(overlay)
+	// Ensure we clean up after ourselves
+	reaper := GrimReaper(overlay, p)
+	defer reaper()
+	HandleInterrupt(reaper)
+
+	// Bring up the root
 	if err := p.ActivateRoot(overlay); err != nil {
 		return err
 	}

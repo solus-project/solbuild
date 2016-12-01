@@ -145,3 +145,18 @@ func HandleInterrupt(v func()) {
 		os.Exit(1)
 	}()
 }
+
+// Whether we've GrimReaper'd yet
+var overlayClaimed = false
+
+// GrimReaper will create a new cleanup handler for the given overlay & package
+// configuration
+func GrimReaper(o *Overlay, p *Package) func() {
+	return func() {
+		if overlayClaimed {
+			return
+		}
+		overlayClaimed = true
+		p.DeactivateRoot(o)
+	}
+}
