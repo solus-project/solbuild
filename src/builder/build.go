@@ -55,12 +55,46 @@ func (p *Package) Build(img *BackingImage) error {
 		log.Warning("Full sandboxing is not possible with legacy format")
 	}
 
-	// Do build like stuff here
-
 	// Set up package manager
 	if err := pman.Init(); err != nil {
 		return err
 	}
+
+	// Bring up dbus to do Things
+	log.Debug("Starting D-BUS")
+	if err := pman.StartDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to start d-bus")
+		return err
+	}
+
+	log.Info("Upgrading system base")
+	if err := pman.Upgrade(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to upgrade rootfs")
+	}
+
+	log.Info("Asserting system.devel component installation")
+	if err := pman.InstallComponent("system.devel"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to assert system.devel")
+	}
+
+	// TODO: Install build dependencies here.
+
+	// Cleanup now
+	log.Debug("Stopping D-BUS")
+	if err := pman.StopDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to stop d-bus")
+		return err
+	}
+
+	// Do build like stuff here
 
 	return errors.New("Not yet implemented")
 }
