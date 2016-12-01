@@ -171,18 +171,6 @@ func (o *Overlay) Mount() error {
 func (o *Overlay) Unmount() error {
 	mountMan := disk.GetMountManager()
 
-	if o.mountedImg {
-		if err := mountMan.Unmount(o.ImgDir); err != nil {
-			return err
-		}
-		o.mountedImg = false
-	}
-	if o.mountedOverlay {
-		if err := mountMan.Unmount(o.MountPoint); err != nil {
-			return err
-		}
-		o.mountedOverlay = false
-	}
 	vfsPoints := []string{
 		filepath.Join(o.MountPoint, "dev/pts"),
 		filepath.Join(o.MountPoint, "proc"),
@@ -195,6 +183,19 @@ func (o *Overlay) Unmount() error {
 			}
 			o.mountedVFS = false
 		}
+	}
+
+	if o.mountedImg {
+		if err := mountMan.Unmount(o.ImgDir); err != nil {
+			return err
+		}
+		o.mountedImg = false
+	}
+	if o.mountedOverlay {
+		if err := mountMan.Unmount(o.MountPoint); err != nil {
+			return err
+		}
+		o.mountedOverlay = false
 	}
 	return nil
 }
