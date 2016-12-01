@@ -79,6 +79,14 @@ func (s *Source) Fetch() error {
 
 	destPath := filepath.Join(SourceStagingDir, base)
 
+	// Check staging is available
+	if !PathExists(SourceStagingDir) {
+		if err := os.MkdirAll(SourceStagingDir, 00755); err != nil {
+			return err
+		}
+	}
+
+	// Download to staging
 	command := []string{
 		"-L",
 		"-o",
@@ -86,6 +94,7 @@ func (s *Source) Fetch() error {
 		"--progress-bar",
 		s.URI,
 	}
+
 	if err := commands.ExecStdoutArgs("curl", command); err != nil {
 		return err
 	}
@@ -96,12 +105,14 @@ func (s *Source) Fetch() error {
 		return err
 	}
 
+	// Make the target directory
 	tgtDir := filepath.Join(SourceDir, hash)
 	if !PathExists(tgtDir) {
 		if err := os.MkdirAll(tgtDir, 00755); err != nil {
 			return err
 		}
 	}
+	// Move from staging into hash based directory
 	dest := filepath.Join(tgtDir, base)
 	if err := os.Rename(destPath, dest); err != nil {
 		return err
