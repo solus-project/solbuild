@@ -46,6 +46,7 @@ type Overlay struct {
 
 	mountedImg     bool // Whether we mounted the image or not
 	mountedOverlay bool // Whether we mounted the overlay or not
+	mountedVFS     bool // Whether we mounted vfs or not
 }
 
 // NewOverlay creates a new Overlay for us in builds, etc.
@@ -67,6 +68,7 @@ func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
 		MountPoint:     filepath.Join(basedir, "union"),
 		mountedImg:     false,
 		mountedOverlay: false,
+		mountedVFS:     false,
 	}
 }
 
@@ -181,6 +183,19 @@ func (o *Overlay) Unmount() error {
 		}
 		o.mountedOverlay = false
 	}
+	vfsPoints := []string{
+		filepath.Join(o.MountPoint, "dev/pts"),
+		filepath.Join(o.MountPoint, "proc"),
+		filepath.Join(o.MountPoint, "sys"),
+	}
+	if o.mountedVFS {
+		for _, p := range vfsPoints {
+			if err := mountMan.Unmount(p); err != nil {
+				return err
+			}
+			o.mountedVFS = false
+		}
+	}
 	return nil
 }
 
@@ -222,5 +237,68 @@ func (o *Overlay) AddBuildUser() error {
 		}).Error("Failed to add build user to system")
 		return err
 	}
+	return nil
+}
+
+// MountVFS will bring up virtual filesystems within the chroot
+func (o *Overlay) MountVFS() error {
+	mountMan := disk.GetMountManager()
+
+	vfsPoints := []string{
+		filepath.Join(o.MountPoint, "dev/pts"),
+		filepath.Join(o.MountPoint, "proc"),
+		filepath.Join(o.MountPoint, "sys"),
+	}
+
+	for _, p := range vfsPoints {
+		if PathExists(p) {
+			continue
+		}
+
+		log.WithFields(log.Fields{
+			"dir": o,
+		}).Debug("Creating VFS directory")
+
+		if err := os.MkdirAll(p, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to create VFS directory")
+			return err
+		}
+	}
+
+	// Bring up dev/pts
+	log.WithFields(log.Fields{
+		"vfs": "/dev/pts",
+	}).Info("Mounting vfs")
+	if err := mountMan.Mount("devpts", vfsPoints[0], "devpts", "gid=5", "mode=620"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /dev/pts")
+		return err
+	}
+
+	// Bring up proc
+	log.WithFields(log.Fields{
+		"vfs": "/proc",
+	}).Info("Mounting vfs")
+	if err := mountMan.Mount("proc", vfsPoints[1], "proc"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /proc")
+		return err
+	}
+
+	// Bring up sys
+	log.WithFields(log.Fields{
+		"vfs": "/sys",
+	}).Info("Mounting vfs")
+	if err := mountMan.Mount("sysfs", vfsPoints[2], "sysfs"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /sys")
+		return err
+	}
+	o.mountedVFS = true
 	return nil
 }
