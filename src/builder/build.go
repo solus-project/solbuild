@@ -118,7 +118,7 @@ func (p *Package) BindSources(o *Overlay) error {
 		}
 
 		// Bind mount local source into chroot
-		if err := mountMan.BindMount(localFile, tgtPath); err != nil {
+		if err := mountMan.BindMount(localFile, tgtPath, "ro"); err != nil {
 			log.WithFields(log.Fields{
 				"target": tgtPath,
 				"error":  err,
