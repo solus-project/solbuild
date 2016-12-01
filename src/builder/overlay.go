@@ -302,7 +302,7 @@ func (o *Overlay) MountVFS() error {
 	log.WithFields(log.Fields{
 		"vfs": "/dev/pts",
 	}).Info("Mounting vfs")
-	if err := mountMan.Mount("devpts", vfsPoints[1], "devpts", "gid=5", "mode=620"); err != nil {
+	if err := mountMan.Mount("devpts", vfsPoints[1], "devpts", "gid=5", "mode=620", "nosuid", "noexec"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /dev/pts")
@@ -313,7 +313,7 @@ func (o *Overlay) MountVFS() error {
 	log.WithFields(log.Fields{
 		"vfs": "/proc",
 	}).Info("Mounting vfs")
-	if err := mountMan.Mount("proc", vfsPoints[2], "proc"); err != nil {
+	if err := mountMan.Mount("proc", vfsPoints[2], "proc", "nosuid", "noexec"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /proc")
