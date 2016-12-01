@@ -188,6 +188,24 @@ func EnsureEopkgLayout(root string) error {
 		"var/cache/eopkg/packages",
 	}
 
+	// Now we must nuke /run if it exists inside the chroot!
+	runPath := filepath.Join(root, "run")
+	if PathExists(runPath) {
+		if err := os.RemoveAll(runPath); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to clean stale /run")
+			return err
+		}
+	}
+
+	if err := os.MkdirAll(runPath, 00755); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to clean create /run")
+		return err
+	}
+
 	// Construct the required directories in the tree
 	for _, dir := range reqDirs {
 		dirPath := filepath.Join(root, dir)
