@@ -161,7 +161,15 @@ func (e *EopkgManager) Cleanup() {
 
 // Upgrade will perform an eopkg upgrade inside the chroot
 func (e *EopkgManager) Upgrade() error {
-	return commands.ChrootExec(e.root, "eopkg upgrade -y")
+	// Certain requirements may not be in system.base, but are required for
+	// proper containerized functionality.
+	newReqs := []string{
+		"iproute2",
+	}
+	if err := commands.ChrootExec(e.root, "eopkg upgrade -y"); err != nil {
+		return err
+	}
+	return commands.ChrootExec(e.root, fmt.Sprintf("eopkg install -y %s", strings.Join(newReqs, " ")))
 }
 
 // InstallComponent will install the named component inside the chroot
