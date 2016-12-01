@@ -50,11 +50,17 @@ func (p *Package) Chroot(img *BackingImage) error {
 		return nil
 	}
 
-	// TODO: Stay as root for pspec
 	log.Info("Spawning login shell")
 	// Allow bash to work
 	commands.SetStdin(os.Stdin)
-	loginCommand := fmt.Sprintf("/bin/su - %s -s %s", BuildUser, BuildUserShell)
+
+	// Legacy package format requires root, stay as root.
+	user := BuildUser
+	if p.Type == PackageTypeXML {
+		user = "root"
+	}
+
+	loginCommand := fmt.Sprintf("/bin/su - %s -s %s", user, BuildUserShell)
 	err := commands.ChrootExec(overlay.MountPoint, loginCommand)
 	commands.SetStdin(nil)
 	return err
