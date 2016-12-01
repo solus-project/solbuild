@@ -36,6 +36,7 @@ dependencies.`,
 }
 
 func init() {
+	chrootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	RootCmd.AddCommand(chrootCmd)
 }
 
