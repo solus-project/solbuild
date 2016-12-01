@@ -174,8 +174,9 @@ func (p *Package) Build(img *BackingImage) error {
 		if err := overlay.ConfigureNetworking(); err != nil {
 			return nil
 		}
+
 		// Now build the package (This will fail currently with missing sources!
-		cmd = fmt.Sprintf("ypkg-build -D %s %s", wdir, ymlFile)
+		cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 		log.WithFields(log.Fields{
 			"package": p.Name,
 		}).Info("Now starting build of package")
