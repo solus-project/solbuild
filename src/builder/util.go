@@ -43,9 +43,10 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 	}
 
 	// Add build user
-	// TODO: Make this ypkg only
-	if err := overlay.AddBuildUser(); err != nil {
-		return err
+	if p.Type == PackageTypeXML {
+		if err := overlay.AddBuildUser(); err != nil {
+			return err
+		}
 	}
 
 	log.Info("Bringing up virtual filesystems")
