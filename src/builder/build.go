@@ -69,6 +69,7 @@ func (p *Package) Build(img *BackingImage) error {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to upgrade rootfs")
+		return err
 	}
 
 	log.Info("Asserting system.devel component installation")
@@ -76,6 +77,7 @@ func (p *Package) Build(img *BackingImage) error {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to assert system.devel")
+		return err
 	}
 
 	if p.Type == PackageTypeYpkg {
