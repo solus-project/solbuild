@@ -165,6 +165,15 @@ func (p *Package) Build(img *BackingImage) error {
 			return err
 		}
 
+		// Chwn the directory before bringing up sources
+		cmd = fmt.Sprintf("chown -R %s:%s %s", BuildUser, BuildUser, BuildUserHome)
+		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to set home directory permissions")
+			return err
+		}
+
 		// Now kill networking
 		if err := DropNetworking(); err != nil {
 			return nil
