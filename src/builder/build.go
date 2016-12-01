@@ -50,11 +50,6 @@ func (p *Package) Build(img *BackingImage) error {
 		return err
 	}
 
-	// Warn about lack of sandboxing
-	if p.Type != PackageTypeYpkg {
-		log.Warning("Full sandboxing is not possible with legacy format")
-	}
-
 	// Set up package manager
 	if err := pman.Init(); err != nil {
 		return err
@@ -83,18 +78,43 @@ func (p *Package) Build(img *BackingImage) error {
 		}).Error("Failed to assert system.devel")
 	}
 
-	// TODO: Install build dependencies here.
+	if p.Type == PackageTypeYpkg {
+		// TODO: Install build dependencies here.
 
-	// Cleanup now
-	log.Debug("Stopping D-BUS")
-	if err := pman.StopDBUS(); err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Failed to stop d-bus")
-		return err
+		// Cleanup now
+		log.Debug("Stopping D-BUS")
+		if err := pman.StopDBUS(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to stop d-bus")
+			return err
+		}
+
+		// Now kill networking
+		if err := DropNetworking(); err != nil {
+			return nil
+		}
+
+		// Ensure the overlay can network on localhost only
+		if err := overlay.ConfigureNetworking(); err != nil {
+			return nil
+		}
+		// Now build the package
+	} else {
+		// Just straight up build it with eopkg
+		log.Warning("Full sandboxing is not possible with legacy format")
+
+		// Now we can stop dbus..
+		log.Debug("Stopping D-BUS")
+		if err := pman.StopDBUS(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to stop d-bus")
+			return err
+		}
 	}
 
-	// Do build like stuff here
+	// TODO: Collect build results
 
 	return errors.New("Not yet implemented")
 }
