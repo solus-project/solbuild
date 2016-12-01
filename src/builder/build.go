@@ -22,6 +22,15 @@ import (
 	"path/filepath"
 )
 
+// GetWorkDir will return the externally visible work directory for the
+// given build type.
+func (p *Package) GetWorkDir(o *Overlay) string {
+	if p.Type == PackageTypeXML {
+		return filepath.Join(o.MountPoint, "WORK")
+	}
+	return filepath.Join(o.MountPoint, BuildUserHome[1:], "work")
+}
+
 // CopyAssets will copy all of the required assets into the builder root
 func (p *Package) CopyAssets(o *Overlay) error {
 	baseDir := filepath.Dir(p.Path)
@@ -44,7 +53,7 @@ func (p *Package) CopyAssets(o *Overlay) error {
 	}
 
 	// This should be changed for ypkg.
-	destdir := filepath.Join(o.MountPoint, "WORK")
+	destdir := p.GetWorkDir(o)
 
 	for _, p := range copyPaths {
 		fso := filepath.Join(baseDir, p)
