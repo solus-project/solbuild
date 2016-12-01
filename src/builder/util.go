@@ -20,6 +20,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"syscall"
+	"time"
 )
 
 // ActivateRoot will do the hard work of actually bring up the overlayfs
@@ -67,4 +73,60 @@ func (p *Package) DeactivateRoot(overlay *Overlay) {
 	}
 	log.Info("Requesting unmount of all remaining mountpoints")
 	mountMan.UnmountAll()
+}
+
+// MurderDeathKill will find all processes with a root matching the given root
+// and set about killing them, to assist in clean closing.
+func MurderDeathKill(root string) error {
+	path, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return err
+	}
+
+	var files []os.FileInfo
+
+	if files, err = ioutil.ReadDir("/proc"); err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		fpath := filepath.Join("/proc", f.Name(), "cwd")
+
+		spath, err := filepath.EvalSymlinks(fpath)
+		if err != nil {
+			continue
+		}
+
+		if spath != path {
+			continue
+		}
+
+		spid := f.Name()
+		var pid int
+
+		if pid, err = strconv.Atoi(spid); err != nil {
+			log.WithFields(log.Fields{
+				"pid":   spid,
+				"error": err,
+			}).Error("POSIX Weeps - broken pid identifier")
+			return err
+		}
+
+		log.WithFields(log.Fields{
+			"pid": pid,
+		}).Info("Killing child process in chroot")
+
+		if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
+			log.WithFields(log.Fields{
+				"pid": pid,
+			}).Error("Error terminating process, attempting force kill")
+			time.Sleep(400 * time.Millisecond)
+			if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
+				log.WithFields(log.Fields{
+					"pid": pid,
+				}).Error("Error killing (-9) process")
+			}
+		}
+	}
+	return nil
 }
