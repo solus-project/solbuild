@@ -24,6 +24,20 @@ import (
 	"path/filepath"
 )
 
+// FetchSources will attempt to fetch the sources from the network
+// if necessary
+func (p *Package) FetchSources(o *Overlay) error {
+	for _, source := range p.Sources {
+		// TODO: Check its installed/available!
+		log.WithFields(log.Fields{
+			"error": "the cake is a lie",
+			"uri":   source.URI,
+		}).Error("Failed to fetch sources")
+		return errors.New("We don't know how to do sources :S")
+	}
+	return nil
+}
+
 // GetWorkDir will return the externally visible work directory for the
 // given build type.
 func (p *Package) GetWorkDir(o *Overlay) string {
@@ -105,6 +119,11 @@ func (p *Package) Build(img *BackingImage) error {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to copy required source assets")
+		return err
+	}
+
+	log.Info("Validating sources")
+	if err := p.FetchSources(overlay); err != nil {
 		return err
 	}
 

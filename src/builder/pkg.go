@@ -52,7 +52,7 @@ type YmlPackage struct {
 	Name    string
 	Version string
 	Release int
-	Source  map[string]string
+	Source  []map[string]string
 }
 
 // XMLUpdate represents an update in the package history
@@ -176,10 +176,12 @@ func NewYmlPackage(path string) (*Package, error) {
 	}
 
 	// TODO: Add git detection!!
-	for key, value := range ypkg.Source {
-		source := NewSource(key)
-		source.SHA256Sum = value
-		ret.Sources = append(ret.Sources, source)
+	for _, row := range ypkg.Source {
+		for key, value := range row {
+			source := NewSource(key)
+			source.SHA256Sum = value
+			ret.Sources = append(ret.Sources, source)
+		}
 	}
 
 	if ret.Name == "" {
