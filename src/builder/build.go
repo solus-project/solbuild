@@ -139,7 +139,8 @@ func (p *Package) Build(img *BackingImage) error {
 	}
 
 	if p.Type == PackageTypeYpkg {
-		ymlFile := filepath.Join(p.GetWorkDirInternal(), filepath.Base(p.Path))
+		wdir := p.GetWorkDirInternal()
+		ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
 		cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
 
 		// Install build dependencies
@@ -173,7 +174,17 @@ func (p *Package) Build(img *BackingImage) error {
 		if err := overlay.ConfigureNetworking(); err != nil {
 			return nil
 		}
-		// Now build the package
+		// Now build the package (This will fail currently with missing sources!
+		cmd = fmt.Sprintf("ypkg-build -D %s %s", wdir, ymlFile)
+		log.WithFields(log.Fields{
+			"package": p.Name,
+		}).Info("Now starting build of package")
+		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to build package")
+			return err
+		}
 	} else {
 		// Just straight up build it with eopkg
 		log.Warning("Full sandboxing is not possible with legacy format")
