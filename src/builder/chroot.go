@@ -20,31 +20,11 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
-	"github.com/solus-project/libosdev/disk"
 	"os"
 )
 
 // Chroot will attempt to spawn a chroot in the overlayfs system
 func (p *Package) Chroot(img *BackingImage) error {
-	// First things first, setup the namespace
-	if err := ConfigureNamespace(); err != nil {
-		return err
-	}
-
-	mountMan := disk.GetMountManager()
-	overlay := NewOverlay(img, p)
-
-	defer func() {
-		commands.SetStdin(nil)
-		if err := overlay.Unmount(); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Error unmounting overlay")
-		}
-		log.Info("Requesting unmount of all remaining mountpoints")
-		mountMan.UnmountAll()
-	}()
-
 	log.WithFields(log.Fields{
 		"profile": img.Name,
 		"version": p.Version,
@@ -53,26 +33,10 @@ func (p *Package) Chroot(img *BackingImage) error {
 		"release": p.Release,
 	}).Info("Beginning chroot")
 
-	log.Info("Configuring overlay storage")
+	overlay := NewOverlay(img, p)
 
-	// Set up environment
-	if err := overlay.EnsureDirs(); err != nil {
-		return err
-	}
-
-	// Now mount the overlayfs
-	if err := overlay.Mount(); err != nil {
-		return err
-	}
-
-	// Add build user
-	// TODO: Make this ypkg only
-	if err := overlay.AddBuildUser(); err != nil {
-		return err
-	}
-
-	log.Info("Bringing up virtual filesystems")
-	if err := overlay.MountVFS(); err != nil {
+	defer p.DeactivateRoot(overlay)
+	if err := p.ActivateRoot(overlay); err != nil {
 		return err
 	}
 
