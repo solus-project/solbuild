@@ -115,6 +115,14 @@ func (b *BackingImage) Update() error {
 		return err
 	}
 
+	if err := EnsureEopkgLayout(b.RootDir); err != nil {
+		log.WithFields(log.Fields{
+			"image": b.ImagePath,
+			"error": err,
+		}).Error("Failed to fix filesystem layout")
+		return err
+	}
+
 	// Hand over to package management to allow clean deferring to take place.
 	if err := b.updatePackages(); err != nil {
 		return err
