@@ -13,3 +13,6 @@
 [submodule "src/vendor/github.com/go-yaml/yaml"]
 	path = src/vendor/github.com/go-yaml/yaml
 	url = https://github.com/go-yaml/yaml.git
+[submodule "src/vendor/github.com/rifflock/lfshook"]
+	path = src/vendor/github.com/rifflock/lfshook
+	url = https://github.com/rifflock/lfshook.git
