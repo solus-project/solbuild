@@ -60,16 +60,35 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	// Complain about missing profile
+	bk := builder.NewBackingImage(profile)
+	if !bk.IsInstalled() {
+		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
+		return nil
+	}
+
 	pkg, err := builder.NewPackage(pkgPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
 		return nil
 	}
+
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to use chroot\n")
+		os.Exit(1)
+	}
+
 	log.WithFields(log.Fields{
 		"version": pkg.Version,
 		"package": pkg.Name,
 		"type":    pkg.Type,
 		"release": pkg.Release,
 	}).Info("Chrooting into package tree")
+
+	if err := pkg.Chroot(bk); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Error with chrooting")
+	}
 	return nil
 }
