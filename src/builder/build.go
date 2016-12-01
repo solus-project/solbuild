@@ -274,12 +274,18 @@ func (p *Package) Build(img *BackingImage) error {
 
 		// Now kill networking
 		if err := DropNetworking(); err != nil {
-			return nil
+			return err
 		}
 
 		// Ensure the overlay can network on localhost only
 		if err := overlay.ConfigureNetworking(); err != nil {
-			return nil
+			return err
+		}
+
+		// Bring up sources
+		if err := p.BindSources(overlay); err != nil {
+			log.Error("Cannot continue without sources")
+			return err
 		}
 
 		// Now build the package (This will fail currently with missing sources!
