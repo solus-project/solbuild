@@ -17,7 +17,7 @@
 package builder
 
 import (
-	// "fmt"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
@@ -80,8 +80,8 @@ func (p *Package) Chroot(img *BackingImage) error {
 	log.Info("Spawning login shell")
 	// Allow bash to work
 	commands.SetStdin(os.Stdin)
-	// loginCommand := fmt.Sprintf("/bin/su -l %s -s %s", BuildUser, BuildUserShell)
-	err := commands.ChrootExec(overlay.MountPoint, "/bin/bash --login")
+	loginCommand := fmt.Sprintf("/bin/su - %s -s %s", BuildUser, BuildUserShell)
+	err := commands.ChrootExec(overlay.MountPoint, loginCommand)
 	commands.SetStdin(nil)
 	return err
 }
