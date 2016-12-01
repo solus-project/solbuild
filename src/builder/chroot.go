@@ -55,9 +55,6 @@ func (p *Package) Chroot(img *BackingImage) error {
 	log.Info("Configuring overlay storage")
 
 	// Set up environment
-	if err := overlay.CleanExisting(); err != nil {
-		return err
-	}
 	if err := overlay.EnsureDirs(); err != nil {
 		return err
 	}
