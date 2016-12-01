@@ -18,17 +18,24 @@ package builder
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/commands"
 	"path/filepath"
 )
 
 // GetWorkDir will return the externally visible work directory for the
 // given build type.
 func (p *Package) GetWorkDir(o *Overlay) string {
+	return filepath.Join(o.MountPoint, p.GetWorkDirInternal()[1:])
+}
+
+// GetWorkDirInternal returns the internal chroot path for the work directory
+func (p *Package) GetWorkDirInternal() string {
 	if p.Type == PackageTypeXML {
-		return filepath.Join(o.MountPoint, "WORK")
+		return "/WORK"
 	}
-	return filepath.Join(o.MountPoint, BuildUserHome[1:], "work")
+	return filepath.Join(BuildUserHome, "work")
 }
 
 // CopyAssets will copy all of the required assets into the builder root
@@ -132,7 +139,21 @@ func (p *Package) Build(img *BackingImage) error {
 	}
 
 	if p.Type == PackageTypeYpkg {
-		// TODO: Install build dependencies here.
+		ymlFile := filepath.Join(p.GetWorkDirInternal(), filepath.Base(p.Path))
+		cmd := fmt.Sprintf("ypkg-install-deps %s", ymlFile)
+
+		// Install build dependencies
+		log.WithFields(log.Fields{
+			"buildFile": ymlFile,
+		}).Info("Installing build dependencies")
+
+		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+			log.WithFields(log.Fields{
+				"buildFile": ymlFile,
+				"error":     err,
+			}).Error("Failed to install build dependencies")
+			return err
+		}
 
 		// Cleanup now
 		log.Debug("Stopping D-BUS")
