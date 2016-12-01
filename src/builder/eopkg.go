@@ -116,6 +116,10 @@ func (e *EopkgManager) StartDBUS() error {
 	if e.dbusActive {
 		return nil
 	}
+	dbusDir := filepath.Join(e.root, "run", "dbus")
+	if err := os.MkdirAll(dbusDir, 00755); err != nil {
+		return err
+	}
 	if err := commands.ChrootExec(e.root, "dbus-uuidgen --ensure"); err != nil {
 		return err
 	}
