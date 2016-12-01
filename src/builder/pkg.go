@@ -43,6 +43,7 @@ type Package struct {
 	Version string
 	Release int
 	Type    PackageType
+	Path    string
 }
 
 // YmlPackage is a parsed ypkg build file
@@ -114,6 +115,7 @@ func NewXMLPackage(path string) (*Package, error) {
 		Version: strings.TrimSpace(upd.Version),
 		Release: upd.Release,
 		Type:    PackageTypeXML,
+		Path:    path,
 	}
 
 	if ret.Name == "" {
@@ -154,6 +156,7 @@ func NewYmlPackage(path string) (*Package, error) {
 		Version: strings.TrimSpace(ypkg.Version),
 		Release: ypkg.Release,
 		Type:    PackageTypeYpkg,
+		Path:    path,
 	}
 
 	if ret.Name == "" {

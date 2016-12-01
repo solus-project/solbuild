@@ -19,7 +19,41 @@ package builder
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
+	"path/filepath"
 )
+
+// CopyAssets will copy all of the required assets into the builder root
+func (p *Package) CopyAssets(o *Overlay) error {
+	baseDir := filepath.Dir(p.Path)
+
+	if abs, err := filepath.Abs(baseDir); err == nil {
+		baseDir = abs
+	} else {
+		return err
+	}
+
+	copyPaths := []string{
+		filepath.Base(p.Path),
+		"files",
+		"comar",
+		"component.xml",
+	}
+
+	if p.Type == PackageTypeXML {
+		copyPaths = append(copyPaths, "actions.py")
+	}
+
+	// This should be changed for ypkg.
+	destdir := filepath.Join(o.MountPoint, "WORK")
+
+	for _, p := range copyPaths {
+		fso := filepath.Join(baseDir, p)
+		if err := CopyAll(fso, destdir); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // Build will attempt to build the package in the overlayfs system
 func (p *Package) Build(img *BackingImage) error {
@@ -47,6 +81,14 @@ func (p *Package) Build(img *BackingImage) error {
 
 	// Bring up the root
 	if err := p.ActivateRoot(overlay); err != nil {
+		return err
+	}
+
+	// Ensure source assets are in place
+	if err := p.CopyAssets(overlay); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to copy required source assets")
 		return err
 	}
 
