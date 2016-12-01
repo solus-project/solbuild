@@ -22,6 +22,7 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"syscall"
@@ -130,4 +131,17 @@ func MurderDeathKill(root string) error {
 		}
 	}
 	return nil
+}
+
+// HandleInterrupt will call the specified reaper function when the terminal
+// is interrupted (i.e. ctrl+c)
+func HandleInterrupt(v func()) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt)
+	go func() {
+		<-ch
+		log.Warning("CTRL+C interrupted, cleaning up")
+		v()
+		os.Exit(1)
+	}()
 }
