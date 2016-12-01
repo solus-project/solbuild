@@ -161,3 +161,14 @@ func GrimReaper(o *Overlay, p *Package, pman *EopkgManager) func() {
 		disk.GetMountManager().UnmountAll()
 	}
 }
+
+// TouchFile will create the file if it doesn't exist, enabling use of bind
+// mounts.
+func TouchFile(path string) error {
+	w, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 00644)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	return nil
+}

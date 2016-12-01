@@ -91,6 +91,14 @@ func (p *Package) BindSources(o *Overlay) error {
 			"target": tgtPath,
 		}).Debug("Exposing source to container")
 
+		if err := TouchFile(tgtPath); err != nil {
+			log.WithFields(log.Fields{
+				"target": tgtPath,
+				"error":  err,
+			}).Error("Failed to create bind mount target")
+			return nil
+		}
+
 		// Bind mount local source into chroot
 		if err := mountMan.BindMount(localFile, tgtPath); err != nil {
 			log.WithFields(log.Fields{
