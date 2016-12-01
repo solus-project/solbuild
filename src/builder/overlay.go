@@ -164,6 +164,23 @@ func (o *Overlay) Mount() error {
 		return err
 	}
 	o.mountedOverlay = true
+
+	// Now we must nuke /run if it exists inside the chroot!
+	runPath := filepath.Join(o.MountPoint, "run")
+	if PathExists(runPath) {
+		if err := os.RemoveAll(runPath); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to clean stale /run")
+			return err
+		}
+	}
+	if err := os.MkdirAll(runPath, 00755); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to clean create /run")
+		return err
+	}
 	return nil
 }
 
