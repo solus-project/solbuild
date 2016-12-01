@@ -39,11 +39,12 @@ const (
 
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
-	Name    string
-	Version string
-	Release int
-	Type    PackageType
-	Path    string
+	Name    string      // Name of the package
+	Version string      // Version of this package
+	Release int         // Solus upgrades are based entirely on relno
+	Type    PackageType // ypkg or pspec.xml legacy
+	Path    string      // Path to the build spec
+	Sources []*Source   // Each package has 0 or more sources that we fetch
 }
 
 // YmlPackage is a parsed ypkg build file
@@ -51,6 +52,7 @@ type YmlPackage struct {
 	Name    string
 	Version string
 	Release int
+	Source  map[string]string
 }
 
 // XMLUpdate represents an update in the package history
@@ -63,10 +65,18 @@ type XMLUpdate struct {
 	Email   string
 }
 
+// XMLArchive is an <Archive> line in Source section
+type XMLArchive struct {
+	Type    string `xml:"type,href"`
+	SHA1Sum string `xml:"sha1sum,href"`
+	URI     string `xml:",chardata"`
+}
+
 // XMLSource is the actual source info for each pspec.xml
 type XMLSource struct {
 	Homepage string
 	Name     string
+	Archive  []XMLArchive
 }
 
 // XMLPackage contains all of the pspec.xml metadata
@@ -118,6 +128,12 @@ func NewXMLPackage(path string) (*Package, error) {
 		Path:    path,
 	}
 
+	for _, archive := range xpkg.Source.Archive {
+		source := NewSource(archive.URI)
+		source.SHA1Sum = archive.SHA1Sum
+		ret.Sources = append(ret.Sources, source)
+	}
+
 	if ret.Name == "" {
 		return nil, errors.New("xml: Missing name in package")
 	}
@@ -157,6 +173,13 @@ func NewYmlPackage(path string) (*Package, error) {
 		Release: ypkg.Release,
 		Type:    PackageTypeYpkg,
 		Path:    path,
+	}
+
+	// TODO: Add git detection!!
+	for key, value := range ypkg.Source {
+		source := NewSource(key)
+		source.SHA256Sum = value
+		ret.Sources = append(ret.Sources, source)
 	}
 
 	if ret.Name == "" {
