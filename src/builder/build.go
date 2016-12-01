@@ -126,15 +126,6 @@ func (p *Package) BindSources(o *Overlay) error {
 			return err
 		}
 
-		// *Ensure* the source is really read-only!
-		if err := mountMan.RemountReadonly(tgtPath); err != nil {
-			log.WithFields(log.Fields{
-				"target": tgtPath,
-				"error":  err,
-			}).Error("Failed to force source to be read only")
-			return err
-		}
-
 		// Account for these to help cleanups
 		o.ExtraMounts = append(o.ExtraMounts, tgtPath)
 	}
