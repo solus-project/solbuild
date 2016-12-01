@@ -71,6 +71,11 @@ func (p *Package) Chroot(img *BackingImage) error {
 		return err
 	}
 
+	log.Info("Bringing up virtual filesystems")
+	if err := overlay.MountVFS(); err != nil {
+		return err
+	}
+
 	// TODO: Stay as root for pspec
 	log.Info("Spawning login shell")
 	// Allow bash to work
