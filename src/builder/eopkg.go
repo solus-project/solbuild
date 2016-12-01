@@ -176,3 +176,38 @@ func (e *EopkgManager) Upgrade() error {
 func (e *EopkgManager) InstallComponent(comp string) error {
 	return commands.ChrootExec(e.root, fmt.Sprintf("eopkg install -c %v -y", comp))
 }
+
+// EnsureEopkgLayout will enforce changes to the filesystem to make sure that
+// it works as expected.
+func EnsureEopkgLayout(root string) error {
+	// Ensures we don't end up with /var/lock vs /run/lock nonsense
+	reqDirs := []string{
+		"run/lock",
+		"var",
+		// Enables our bind mounting for caching
+		"var/cache/eopkg/packages",
+	}
+
+	// Construct the required directories in the tree
+	for _, dir := range reqDirs {
+		dirPath := filepath.Join(root, dir)
+		if err := os.MkdirAll(dirPath, 00755); err != nil {
+			return err
+		}
+	}
+
+	lockTgt := filepath.Join(root, "var", "lock")
+	if !PathExists(lockTgt) {
+		if err := os.Symlink("../run/lock", lockTgt); err != nil {
+			return err
+		}
+	}
+	runTgt := filepath.Join(root, "var", "run")
+	if !PathExists(runTgt) {
+		if err := os.Symlink("../run", filepath.Join(root, "var", "run")); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
