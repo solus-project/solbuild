@@ -43,7 +43,7 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 	}
 
 	// Add build user
-	if p.Type == PackageTypeXML {
+	if p.Type == PackageTypeYpkg {
 		if err := overlay.AddBuildUser(); err != nil {
 			return err
 		}
