@@ -68,11 +68,7 @@ func (p *Package) DeactivateRoot(overlay *Overlay) {
 	MurderDeathKill(overlay.MountPoint)
 	mountMan := disk.GetMountManager()
 	commands.SetStdin(nil)
-	if err := overlay.Unmount(); err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Error unmounting overlay")
-	}
+	overlay.Unmount()
 	log.Info("Requesting unmount of all remaining mountpoints")
 	mountMan.UnmountAll()
 }
@@ -151,12 +147,17 @@ var overlayClaimed = false
 
 // GrimReaper will create a new cleanup handler for the given overlay & package
 // configuration
-func GrimReaper(o *Overlay, p *Package) func() {
+func GrimReaper(o *Overlay, p *Package, pman *EopkgManager) func() {
 	return func() {
 		if overlayClaimed {
 			return
 		}
 		overlayClaimed = true
+		if pman != nil {
+			pman.Cleanup()
+		}
 		p.DeactivateRoot(o)
+		MurderDeathKill(o.MountPoint)
+		disk.GetMountManager().UnmountAll()
 	}
 }

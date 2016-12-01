@@ -38,8 +38,10 @@ func (p *Package) Build(img *BackingImage) error {
 		return err
 	}
 
+	pman := NewEopkgManager(overlay.MountPoint)
+
 	// Ensure we clean up after ourselves
-	reaper := GrimReaper(overlay, p)
+	reaper := GrimReaper(overlay, p, pman)
 	defer reaper()
 	HandleInterrupt(reaper)
 
@@ -54,6 +56,11 @@ func (p *Package) Build(img *BackingImage) error {
 	}
 
 	// Do build like stuff here
+
+	// Set up package manager
+	if err := pman.Init(); err != nil {
+		return err
+	}
 
 	return errors.New("Not yet implemented")
 }

@@ -196,11 +196,9 @@ func (o *Overlay) Unmount() error {
 	}
 	if o.mountedVFS {
 		for _, p := range vfsPoints {
-			if err := mountMan.Unmount(p); err != nil {
-				return err
-			}
-			o.mountedVFS = false
+			mountMan.Unmount(p)
 		}
+		o.mountedVFS = false
 	}
 
 	if o.mountedImg {
@@ -297,6 +295,7 @@ func (o *Overlay) MountVFS() error {
 		}).Error("Failed to mount /dev")
 		return err
 	}
+	o.mountedVFS = true
 
 	// Bring up dev/pts
 	log.WithFields(log.Fields{
@@ -330,7 +329,6 @@ func (o *Overlay) MountVFS() error {
 		}).Error("Failed to mount /sys")
 		return err
 	}
-	o.mountedVFS = true
 	return nil
 }
 

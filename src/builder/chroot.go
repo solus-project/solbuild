@@ -36,7 +36,7 @@ func (p *Package) Chroot(img *BackingImage) error {
 	overlay := NewOverlay(img, p)
 
 	// Ensure we clean up after ourselves
-	reaper := GrimReaper(overlay, p)
+	reaper := GrimReaper(overlay, p, nil)
 	defer reaper()
 	HandleInterrupt(reaper)
 
