@@ -44,6 +44,8 @@ type Overlay struct {
 	ImgDir     string // Where the profile is mounted (ro)
 	MountPoint string // The actual mount point for the union'd directories
 
+	ExtraMounts []string // Any extra mounts to take care of when cleaning up
+
 	mountedImg     bool // Whether we mounted the image or not
 	mountedOverlay bool // Whether we mounted the overlay or not
 	mountedVFS     bool // Whether we mounted vfs or not
@@ -176,6 +178,11 @@ func (o *Overlay) Mount() error {
 // Unmount will tear down the overlay mount again
 func (o *Overlay) Unmount() error {
 	mountMan := disk.GetMountManager()
+
+	for _, m := range o.ExtraMounts {
+		mountMan.Unmount(m)
+	}
+	o.ExtraMounts = nil
 
 	vfsPoints := []string{
 		filepath.Join(o.MountPoint, "dev/pts"),

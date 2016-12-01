@@ -107,6 +107,9 @@ func (p *Package) BindSources(o *Overlay) error {
 			}).Error("Failed to bind mount source")
 			return err
 		}
+
+		// Account for these to help cleanups
+		o.ExtraMounts = append(o.ExtraMounts, tgtPath)
 	}
 	return nil
 }
