@@ -190,6 +190,7 @@ func (o *Overlay) Unmount() error {
 
 	vfsPoints := []string{
 		filepath.Join(o.MountPoint, "dev/pts"),
+		filepath.Join(o.MountPoint, "dev"),
 		filepath.Join(o.MountPoint, "proc"),
 		filepath.Join(o.MountPoint, "sys"),
 	}
@@ -263,6 +264,7 @@ func (o *Overlay) MountVFS() error {
 	mountMan := disk.GetMountManager()
 
 	vfsPoints := []string{
+		filepath.Join(o.MountPoint, "dev"),
 		filepath.Join(o.MountPoint, "dev/pts"),
 		filepath.Join(o.MountPoint, "proc"),
 		filepath.Join(o.MountPoint, "sys"),
@@ -285,11 +287,22 @@ func (o *Overlay) MountVFS() error {
 		}
 	}
 
+	// Bring up dev
+	log.WithFields(log.Fields{
+		"vfs": "/dev",
+	}).Info("Mounting vfs")
+	if err := mountMan.Mount("devtmpfs", vfsPoints[0], "devtmpfs", "nosuid", "mode=755"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /dev")
+		return err
+	}
+
 	// Bring up dev/pts
 	log.WithFields(log.Fields{
 		"vfs": "/dev/pts",
 	}).Info("Mounting vfs")
-	if err := mountMan.Mount("devpts", vfsPoints[0], "devpts", "gid=5", "mode=620"); err != nil {
+	if err := mountMan.Mount("devpts", vfsPoints[1], "devpts", "gid=5", "mode=620"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /dev/pts")
@@ -300,7 +313,7 @@ func (o *Overlay) MountVFS() error {
 	log.WithFields(log.Fields{
 		"vfs": "/proc",
 	}).Info("Mounting vfs")
-	if err := mountMan.Mount("proc", vfsPoints[1], "proc"); err != nil {
+	if err := mountMan.Mount("proc", vfsPoints[2], "proc"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /proc")
@@ -311,7 +324,7 @@ func (o *Overlay) MountVFS() error {
 	log.WithFields(log.Fields{
 		"vfs": "/sys",
 	}).Info("Mounting vfs")
-	if err := mountMan.Mount("sysfs", vfsPoints[2], "sysfs"); err != nil {
+	if err := mountMan.Mount("sysfs", vfsPoints[3], "sysfs"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /sys")
