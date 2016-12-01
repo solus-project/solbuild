@@ -73,6 +73,13 @@ func (s *Source) GetSHA256Sum(path string) (string, error) {
 	return hex.EncodeToString(sum), nil
 }
 
+// IsFetched will determine if the source is already present
+func (s *Source) IsFetched(expectedHash string) bool {
+	base := filepath.Base(s.URI)
+	fp := filepath.Join(SourceDir, expectedHash, base)
+	return PathExists(fp)
+}
+
 // Fetch will download the given source and cache it locally
 func (s *Source) Fetch() error {
 	base := filepath.Base(s.URI)

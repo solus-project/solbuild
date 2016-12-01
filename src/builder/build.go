@@ -29,6 +29,18 @@ import (
 func (p *Package) FetchSources(o *Overlay) error {
 	for _, source := range p.Sources {
 		// TODO: Check its installed/available!
+		var expHash string
+		if p.Type == PackageTypeXML {
+			expHash = source.SHA1Sum
+		} else {
+			expHash = source.SHA256Sum
+		}
+
+		// Already fetched, skip it
+		if source.IsFetched(expHash) {
+			continue
+		}
+
 		log.WithFields(log.Fields{
 			"error": "the cake is a lie",
 			"uri":   source.URI,
