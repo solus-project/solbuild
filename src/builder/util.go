@@ -64,6 +64,7 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 
 // DeactivateRoot will tear down the previously activated root
 func (p *Package) DeactivateRoot(overlay *Overlay) {
+	MurderDeathKill(overlay.MountPoint)
 	mountMan := disk.GetMountManager()
 	commands.SetStdin(nil)
 	if err := overlay.Unmount(); err != nil {
