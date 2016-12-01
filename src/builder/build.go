@@ -26,6 +26,24 @@ import (
 	"path/filepath"
 )
 
+// CreateDirs creates any directories we may need later on
+func (p *Package) CreateDirs(o *Overlay) error {
+	dirs := []string{
+		p.GetWorkDir(o),
+		p.GetSourceDir(o),
+	}
+	for _, p := range dirs {
+		if err := os.MkdirAll(p, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"dir":   p,
+			}).Error("Failed to create required directory")
+			return err
+		}
+	}
+	return nil
+}
+
 // FetchSources will attempt to fetch the sources from the network
 // if necessary
 func (p *Package) FetchSources(o *Overlay) error {
@@ -244,6 +262,11 @@ func (p *Package) Build(img *BackingImage) error {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to assert system.devel")
+		return err
+	}
+
+	// Ensure all directories are in place
+	if err := p.CreateDirs(overlay); err != nil {
 		return err
 	}
 
