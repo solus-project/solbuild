@@ -140,7 +140,7 @@ func (p *Package) Build(img *BackingImage) error {
 
 	if p.Type == PackageTypeYpkg {
 		ymlFile := filepath.Join(p.GetWorkDirInternal(), filepath.Base(p.Path))
-		cmd := fmt.Sprintf("ypkg-install-deps %s", ymlFile)
+		cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
 
 		// Install build dependencies
 		log.WithFields(log.Fields{
