@@ -81,7 +81,7 @@ func (p *Package) Chroot(img *BackingImage) error {
 	// Allow bash to work
 	commands.SetStdin(os.Stdin)
 	// loginCommand := fmt.Sprintf("/bin/su -l %s -s %s", BuildUser, BuildUserShell)
-	err := commands.ChrootExec(overlay.MountPoint, "/bin/bash")
+	err := commands.ChrootExec(overlay.MountPoint, "/bin/bash --login")
 	commands.SetStdin(nil)
 	return err
 }
