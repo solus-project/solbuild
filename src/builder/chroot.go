@@ -81,6 +81,11 @@ func (p *Package) Chroot(img *BackingImage) error {
 		return nil
 	}
 
+	// Ensure the overlay can network on localhost only
+	if err := overlay.ConfigureNetworking(); err != nil {
+		return nil
+	}
+
 	// TODO: Stay as root for pspec
 	log.Info("Spawning login shell")
 	// Allow bash to work
