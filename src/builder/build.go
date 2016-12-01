@@ -21,6 +21,8 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
+	"github.com/solus-project/libosdev/disk"
+	"os"
 	"path/filepath"
 )
 
@@ -55,6 +57,52 @@ func (p *Package) FetchSources(o *Overlay) error {
 	return nil
 }
 
+// BindSources will make the sources available to the chroot by bind mounting
+// them into place.
+func (p *Package) BindSources(o *Overlay) error {
+	mountMan := disk.GetMountManager()
+
+	for _, source := range p.Sources {
+		var expHash string
+		if p.Type == PackageTypeXML {
+			expHash = source.SHA1Sum
+		} else {
+			expHash = source.SHA256Sum
+		}
+
+		// Find the local file
+		localFile := source.GetPath(expHash)
+		sourceDir := p.GetSourceDir(o)
+
+		// Ensure sources tree exists
+		if !PathExists(sourceDir) {
+			if err := os.MkdirAll(sourceDir, 00755); err != nil {
+				log.WithFields(log.Fields{
+					"dir":   sourceDir,
+					"error": err,
+				}).Error("Failed to create source directory")
+				return err
+			}
+		}
+
+		// Find the target path in the chroot
+		tgtPath := filepath.Join(sourceDir, source.File)
+		log.WithFields(log.Fields{
+			"target": tgtPath,
+		}).Debug("Exposing source to container")
+
+		// Bind mount local source into chroot
+		if err := mountMan.BindMount(localFile, tgtPath); err != nil {
+			log.WithFields(log.Fields{
+				"target": tgtPath,
+				"error":  err,
+			}).Error("Failed to bind mount source")
+			return err
+		}
+	}
+	return nil
+}
+
 // GetWorkDir will return the externally visible work directory for the
 // given build type.
 func (p *Package) GetWorkDir(o *Overlay) string {
@@ -67,6 +115,20 @@ func (p *Package) GetWorkDirInternal() string {
 		return "/WORK"
 	}
 	return filepath.Join(BuildUserHome, "work")
+}
+
+// GetSourceDir will return the externally visible work directory
+func (p *Package) GetSourceDir(o *Overlay) string {
+	return filepath.Join(o.MountPoint, p.GetSourceDirInternal()[1:])
+}
+
+// GetSourceDirInternal will return the chroot-internal source directory
+// for the given build type.
+func (p *Package) GetSourceDirInternal() string {
+	if p.Type == PackageTypeXML {
+		return "/var/cache/eopkg/archives"
+	}
+	return filepath.Join(BuildUserHome, "YPKG", "sources")
 }
 
 // CopyAssets will copy all of the required assets into the builder root

@@ -36,17 +36,24 @@ const (
 
 // A Source is a tarball or other source for a package
 type Source struct {
-	SHA1Sum    string
-	SHA256Sum  string
-	URI        string
-	TargetPath string
+	SHA1Sum   string
+	SHA256Sum string
+	URI       string
+	File      string // Basename of the file
 }
 
 // NewSource will create a new source instance
 func NewSource(uri string) *Source {
+	// TODO: Use a better method than filepath here
 	return &Source{
-		URI: uri,
+		URI:  uri,
+		File: filepath.Base(uri),
 	}
+}
+
+// GetPath gets the path on the filesystem of the source
+func (s *Source) GetPath(hash string) string {
+	return filepath.Join(SourceDir, hash, filepath.Base(s.URI))
 }
 
 // GetSHA1Sum will return the sha1sum for the given path
@@ -75,9 +82,7 @@ func (s *Source) GetSHA256Sum(path string) (string, error) {
 
 // IsFetched will determine if the source is already present
 func (s *Source) IsFetched(expectedHash string) bool {
-	base := filepath.Base(s.URI)
-	fp := filepath.Join(SourceDir, expectedHash, base)
-	return PathExists(fp)
+	return PathExists(s.GetPath(expectedHash))
 }
 
 // Fetch will download the given source and cache it locally
