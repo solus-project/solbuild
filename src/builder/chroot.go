@@ -35,7 +35,11 @@ func (p *Package) Chroot(img *BackingImage) error {
 
 	overlay := NewOverlay(img, p)
 
-	defer p.DeactivateRoot(overlay)
+	// Ensure we clean up after ourselves
+	reaper := GrimReaper(overlay, p)
+	defer reaper()
+	HandleInterrupt(reaper)
+
 	if err := p.ActivateRoot(overlay); err != nil {
 		return err
 	}
