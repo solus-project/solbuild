@@ -28,7 +28,6 @@ import (
 // if necessary
 func (p *Package) FetchSources(o *Overlay) error {
 	for _, source := range p.Sources {
-		// TODO: Check its installed/available!
 		var expHash string
 		if p.Type == PackageTypeXML {
 			expHash = source.SHA1Sum
@@ -41,11 +40,17 @@ func (p *Package) FetchSources(o *Overlay) error {
 			continue
 		}
 
+		// Now go and download it
 		log.WithFields(log.Fields{
-			"error": "the cake is a lie",
-			"uri":   source.URI,
-		}).Error("Failed to fetch sources")
-		return errors.New("We don't know how to do sources :S")
+			"uri": source.URI,
+		}).Info("Downloading source")
+
+		if err := source.Fetch(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"uri":   source.URI,
+			}).Error("Failed to fetch source")
+		}
 	}
 	return nil
 }
