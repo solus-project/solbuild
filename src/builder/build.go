@@ -322,6 +322,11 @@ func (p *Package) Build(img *BackingImage) error {
 			return err
 		}
 
+		// Reaffirm the layout
+		if err := EnsureEopkgLayout(overlay.MountPoint); err != nil {
+			return err
+		}
+
 		// Now build the package (This will fail currently with missing sources!
 		cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 		log.WithFields(log.Fields{
