@@ -76,6 +76,11 @@ func (p *Package) Chroot(img *BackingImage) error {
 		return err
 	}
 
+	// Now kill networking
+	if err := DropNetworking(); err != nil {
+		return nil
+	}
+
 	// TODO: Stay as root for pspec
 	log.Info("Spawning login shell")
 	// Allow bash to work
