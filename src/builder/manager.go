@@ -107,18 +107,6 @@ func (m *Manager) SetPackage(pkg *Package) error {
 	return nil
 }
 
-// Build will attempt to build the package associated with this manager,
-// automatically handling any required cleanups.
-func (m *Manager) Build() error {
-	m.lock.Lock()
-	if m.pkg == nil {
-		m.lock.Unlock()
-		return ErrNoPackage
-	}
-	m.lock.Unlock()
-	return ErrNotImplemented
-}
-
 // IsCancelled will determine if the build has been cancelled, this will result
 // in a lot of locking between all operations
 func (m *Manager) IsCancelled() bool {
@@ -157,4 +145,16 @@ func (m *Manager) SigIntCleanup() {
 		m.Cleanup()
 		os.Exit(1)
 	}()
+}
+
+// Build will attempt to build the package associated with this manager,
+// automatically handling any required cleanups.
+func (m *Manager) Build() error {
+	m.lock.Lock()
+	if m.pkg == nil {
+		m.lock.Unlock()
+		return ErrNoPackage
+	}
+	m.lock.Unlock()
+	return ErrNotImplemented
 }
