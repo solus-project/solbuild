@@ -117,7 +117,7 @@ func (m *Manager) SetPackage(pkg *Package) error {
 
 	m.pkg = pkg
 	m.overlay = NewOverlay(m.image, m.pkg)
-	m.pkgManager = NewEopkgManager(m.overlay.MountPoint)
+	m.pkgManager = NewEopkgManager(m, m.overlay.MountPoint)
 	return nil
 }
 

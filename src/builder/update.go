@@ -23,7 +23,7 @@ import (
 )
 
 func (b *BackingImage) updatePackages() error {
-	pkgMan := NewEopkgManager(b.RootDir)
+	pkgMan := NewEopkgManager(nil, b.RootDir)
 	defer pkgMan.Cleanup()
 
 	log.Info("Initialising package manager")

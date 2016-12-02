@@ -35,16 +35,19 @@ type EopkgManager struct {
 	cacheSource string
 	cacheTarget string
 	dbusPid     string
+
+	notif PidNotifier
 }
 
 // NewEopkgManager will return a new eopkg manager
-func NewEopkgManager(root string) *EopkgManager {
+func NewEopkgManager(notif PidNotifier, root string) *EopkgManager {
 	return &EopkgManager{
 		dbusActive:  false,
 		root:        root,
 		cacheSource: PackageCacheDirectory,
 		cacheTarget: filepath.Join(root, "var/cache/eopkg/packages"),
 		dbusPid:     filepath.Join(root, "var/run/dbus/pid"),
+		notif:       notif,
 	}
 }
 
@@ -120,12 +123,14 @@ func (e *EopkgManager) StartDBUS() error {
 	if err := os.MkdirAll(dbusDir, 00755); err != nil {
 		return err
 	}
-	if err := commands.ChrootExec(e.root, "dbus-uuidgen --ensure"); err != nil {
+	if err := ChrootExec(e.notif, e.root, "dbus-uuidgen --ensure"); err != nil {
 		return err
 	}
-	if err := commands.ChrootExec(e.root, "dbus-daemon --system"); err != nil {
+	e.notif.SetActivePID(0)
+	if err := ChrootExec(e.notif, e.root, "dbus-daemon --system"); err != nil {
 		return err
 	}
+	e.notif.SetActivePID(0)
 	e.dbusActive = true
 	return nil
 }
@@ -170,15 +175,19 @@ func (e *EopkgManager) Upgrade() error {
 	newReqs := []string{
 		"iproute2",
 	}
-	if err := commands.ChrootExec(e.root, "eopkg upgrade -y"); err != nil {
+	if err := ChrootExec(e.notif, e.root, "eopkg upgrade -y"); err != nil {
 		return err
 	}
-	return commands.ChrootExec(e.root, fmt.Sprintf("eopkg install -y %s", strings.Join(newReqs, " ")))
+	e.notif.SetActivePID(0)
+	err := ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg install -y %s", strings.Join(newReqs, " ")))
+	return err
 }
 
 // InstallComponent will install the named component inside the chroot
 func (e *EopkgManager) InstallComponent(comp string) error {
-	return commands.ChrootExec(e.root, fmt.Sprintf("eopkg install -c %v -y", comp))
+	err := ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg install -c %v -y", comp))
+	e.notif.SetActivePID(0)
+	return err
 }
 
 // EnsureEopkgLayout will enforce changes to the filesystem to make sure that
