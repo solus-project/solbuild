@@ -42,17 +42,13 @@ func updateProfile(cmd *cobra.Command, args []string) {
 		profile = strings.TrimSpace(args[0])
 	}
 
-	if !builder.IsValidProfile(profile) {
-		builder.EmitProfileError(profile)
+	// Initialise the build manager
+	manager := builder.NewManager()
+	if err := manager.SetProfile(profile); err != nil {
+		if err == builder.ErrInvalidProfile {
+			builder.EmitProfileError(profile)
+		}
 		return
-	}
-
-	// Updating is handled all within the library itself
-	bk := builder.NewBackingImage(profile)
-
-	if !bk.IsInstalled() {
-		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
-		os.Exit(1)
 	}
 
 	if os.Geteuid() != 0 {
@@ -60,7 +56,7 @@ func updateProfile(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := bk.Update(); err != nil {
+	if err := manager.Update(); err != nil {
 		os.Exit(1)
 	}
 }
