@@ -135,8 +135,13 @@ func (m *Manager) SetCancelled() {
 	m.cancelled = true
 }
 
-// Cleanup will take care of any teardown operations
+// Cleanup will take care of any teardown operations. It takes an exclusive lock
+// and ensures all cleaning is handled before anyone else is permitted to continue,
+// at which point error propagation and the IsCancelled() function should be enough
+// logic to go on.
 func (m *Manager) Cleanup() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
 }
 
 // SigIntCleanup will take care of cleaning up the
