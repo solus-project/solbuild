@@ -56,15 +56,12 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 		return errors.New("Require a filename to chroot")
 	}
 
-	if !builder.IsValidProfile(profile) {
-		builder.EmitProfileError(profile)
-		return nil
-	}
-
-	// Complain about missing profile
-	bk := builder.NewBackingImage(profile)
-	if !bk.IsInstalled() {
-		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
+	// Initialise the build manager
+	manager := builder.NewManager()
+	if err := manager.SetProfile(profile); err != nil {
+		if err == builder.ErrInvalidProfile {
+			builder.EmitProfileError(profile)
+		}
 		return nil
 	}
 
@@ -79,17 +76,19 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	log.WithFields(log.Fields{
-		"version": pkg.Version,
-		"package": pkg.Name,
-		"type":    pkg.Type,
-		"release": pkg.Release,
-	}).Info("Chrooting into package tree")
-
-	if err := pkg.Chroot(bk); err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Error with chrooting")
+	// Set the package
+	if err := manager.SetPackage(pkg); err != nil {
+		if err == builder.ErrProfileNotInstalled {
+			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
+		}
+		return nil
 	}
+
+	if err := manager.Chroot(); err != nil {
+		log.Error("Chroot failure")
+		return nil
+	}
+
+	log.Info("Chroot complete")
 	return nil
 }
