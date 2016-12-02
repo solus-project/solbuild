@@ -44,15 +44,7 @@ func init() {
 	RootCmd.AddCommand(initCmd)
 }
 
-func initProfile(cmd *cobra.Command, args []string) {
-	if len(args) == 1 {
-		profile = strings.TrimSpace(args[0])
-	}
-
-	if CLIDebug {
-		log.SetLevel(log.DebugLevel)
-	}
-
+func doInit() {
 	if !builder.IsValidProfile(profile) {
 		builder.EmitProfileError(profile)
 		return
@@ -114,11 +106,10 @@ func initProfile(cmd *cobra.Command, args []string) {
 	log.WithFields(log.Fields{
 		"profile": profile,
 	}).Info("Profile successfully initialised")
+}
 
-	if !autoUpdate {
-		return
-	}
-
+// doUpdate will perform an update to the image after the initial init stage
+func doUpdate() {
 	// Now we'll update the newly initialised image
 	manager, err := builder.NewManager()
 	if err != nil {
@@ -134,5 +125,21 @@ func initProfile(cmd *cobra.Command, args []string) {
 
 	if err := manager.Update(); err != nil {
 		os.Exit(1)
+	}
+}
+
+func initProfile(cmd *cobra.Command, args []string) {
+	if len(args) == 1 {
+		profile = strings.TrimSpace(args[0])
+	}
+
+	if CLIDebug {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	doInit()
+
+	if autoUpdate {
+		doUpdate()
 	}
 }
