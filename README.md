@@ -55,7 +55,7 @@ package manager. For now we'll disable some steps when building old style packag
 **TODO**:
 
  - [x] Port `update` and `chroot` to manager interface
- - [ ] Restore `eopkg build` support for legacy format.
+ - [x] Restore `eopkg build` support for legacy format.
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add profile concept *based on backing images*
