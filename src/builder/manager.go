@@ -140,8 +140,10 @@ func (m *Manager) SetCancelled() {
 // at which point error propagation and the IsCancelled() function should be enough
 // logic to go on.
 func (m *Manager) Cleanup() {
+	log.Info("Acquiring global lock")
 	m.lock.Lock()
 	defer m.lock.Unlock()
+	log.Info("Cleaning up")
 }
 
 // SigIntCleanup will take care of cleaning up the build process.
