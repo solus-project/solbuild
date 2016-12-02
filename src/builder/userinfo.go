@@ -113,18 +113,52 @@ func (u *UserInfo) SetFromCurrent() {
 	}
 }
 
+// SetFromPackager will set the username/email fields from the legacy solus
+// packager file.
+func (u *UserInfo) SetFromPackager() bool {
+	candidatePaths := []string{
+		filepath.Join(u.HomeDir, ".solus", "packager"),
+		filepath.Join(u.HomeDir, ".evolveos", "packager"),
+	}
+
+	// Attempt to parse one of the packager files
+	for _, p := range candidatePaths {
+		if !PathExists(p) {
+			continue
+		}
+	}
+
+	return false
+}
+
+// SetFromGit will set the username/email fields from the git config file
+func (u *UserInfo) SetFromGit() bool {
+	return false
+}
+
 // GetUserInfo will always succeed, as it will use a fallback policy until it
 // finally comes up with a valid combination of name/email to use.
 func GetUserInfo() *UserInfo {
-	uinfo := &UserInfo{
-		Name:  FallbackUserName,
-		Email: FallbackUserEmail,
-	}
+	uinfo := &UserInfo{}
 
 	// First up try to set the uid/gid
 	if !uinfo.SetFromSudo() {
 		uinfo.SetFromCurrent()
 	}
+
+	attempts := []func() bool{
+		uinfo.SetFromPackager,
+		uinfo.SetFromGit,
+	}
+
+	for _, a := range attempts {
+		if a() {
+			return uinfo
+		}
+	}
+
+	uinfo.Name = FallbackUserName
+	uinfo.Email = FallbackUserEmail
 
 	return uinfo
 }
