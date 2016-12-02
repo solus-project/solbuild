@@ -83,6 +83,7 @@ func (m *Manager) SetPackage(pkg *Package) error {
 		return ErrManagerInitialised
 	}
 	m.pkg = pkg
+	m.overlay = NewOverlay(m.image, m.pkg)
 	return nil
 }
 
