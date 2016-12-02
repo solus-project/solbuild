@@ -18,6 +18,7 @@ package builder
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/go-ini/ini"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -126,6 +127,42 @@ func (u *UserInfo) SetFromPackager() bool {
 		if !PathExists(p) {
 			continue
 		}
+		cfg, err := ini.Load(p)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"path":  p,
+			}).Error("Error loading INI file")
+			continue
+		}
+
+		section, err := cfg.GetSection("Packager")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"path": p,
+			}).Error("Missing [Packager] section in file")
+			continue
+		}
+
+		uname, err := section.GetKey("Name")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"path":  p,
+			}).Error("Packager file has missing Name")
+			continue
+		}
+		email, err := section.GetKey("Email")
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"path":  p,
+			}).Error("Packager file has missing Email")
+			continue
+		}
+		u.Name = uname.String()
+		u.Email = email.String()
+		return true
 	}
 
 	return false
