@@ -60,7 +60,8 @@ type Manager struct {
 	pkgManager *EopkgManager // Package manager, if any
 	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
 
-	cancelled bool // Whether or not we've been cancelled
+	cancelled  bool // Whether or not we've been cancelled
+	updateMode bool // Whether we're just updating an image
 
 	activePID int // Active PID
 }
@@ -68,8 +69,9 @@ type Manager struct {
 // NewManager will return a newly initialised manager instance
 func NewManager() *Manager {
 	man := &Manager{
-		cancelled: false,
-		activePID: 0,
+		cancelled:  false,
+		activePID:  0,
+		updateMode: false,
 	}
 	man.lock = new(sync.Mutex)
 	return man
@@ -154,6 +156,14 @@ func (m *Manager) Cleanup() {
 		m.pkgManager.Cleanup()
 	}
 
+	deathPoint := ""
+	if m.overlay != nil {
+		deathPoint = m.overlay.MountPoint
+	}
+	if m.updateMode {
+		deathPoint = m.image.RootDir
+	}
+
 	// Try to kill the active root PID first
 	if m.activePID > 0 {
 		syscall.Kill(-m.activePID, syscall.SIGKILL)
@@ -163,18 +173,19 @@ func (m *Manager) Cleanup() {
 	}
 
 	// Still might have *something* alive in there, kill it with fire.
-	if m.overlay != nil {
+	if deathPoint != "" {
 		for i := 0; i < 10; i++ {
-			MurderDeathKill(m.overlay.MountPoint)
+			MurderDeathKill(deathPoint)
 		}
 	}
 
 	if m.pkg != nil {
 		m.pkg.DeactivateRoot(m.overlay)
 	}
+
 	// Deactivation may have started something off, kill them too
-	if m.overlay != nil {
-		MurderDeathKill(m.overlay.MountPoint)
+	if deathPoint != "" {
+		MurderDeathKill(deathPoint)
 	}
 
 	// Unmount anything we may have mounted
@@ -233,4 +244,24 @@ func (m *Manager) Chroot() error {
 	m.SigIntCleanup()
 
 	return m.pkg.Chroot(m, m.pkgManager, m.overlay)
+}
+
+// Update will attempt to update the base image
+func (m *Manager) Update() error {
+	if m.IsCancelled() {
+		return ErrInterrupted
+	}
+	m.lock.Lock()
+	if m.image == nil {
+		m.lock.Unlock()
+		return ErrInvalidProfile
+	}
+	m.updateMode = true
+	m.pkgManager = NewEopkgManager(m, m.image.RootDir)
+	m.lock.Unlock()
+
+	defer m.Cleanup()
+	m.SigIntCleanup()
+
+	return m.image.Update(m, m.pkgManager)
 }

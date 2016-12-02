@@ -22,13 +22,10 @@ import (
 	"os"
 )
 
-func (b *BackingImage) updatePackages() error {
-	pkgMan := NewEopkgManager(nil, b.RootDir)
-	defer pkgMan.Cleanup()
-
+func (b *BackingImage) updatePackages(notif PidNotifier, pkgManager *EopkgManager) error {
 	log.Info("Initialising package manager")
 
-	if err := pkgMan.Init(); err != nil {
+	if err := pkgManager.Init(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to initialise package manager")
@@ -37,7 +34,7 @@ func (b *BackingImage) updatePackages() error {
 
 	// Bring up dbus to do Things
 	log.Debug("Starting D-BUS")
-	if err := pkgMan.StartDBUS(); err != nil {
+	if err := pkgManager.StartDBUS(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to start d-bus")
@@ -45,7 +42,7 @@ func (b *BackingImage) updatePackages() error {
 	}
 
 	log.Info("Upgrading builder image")
-	if err := pkgMan.Upgrade(); err != nil {
+	if err := pkgManager.Upgrade(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to perform upgrade")
@@ -53,7 +50,7 @@ func (b *BackingImage) updatePackages() error {
 	}
 
 	log.Info("Asserting system.devel component")
-	if err := pkgMan.InstallComponent("system.devel"); err != nil {
+	if err := pkgManager.InstallComponent("system.devel"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to install system.devel")
@@ -62,7 +59,7 @@ func (b *BackingImage) updatePackages() error {
 
 	// Cleanup now
 	log.Debug("Stopping D-BUS")
-	if err := pkgMan.StopDBUS(); err != nil {
+	if err := pkgManager.StopDBUS(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to stop d-bus")
@@ -74,17 +71,8 @@ func (b *BackingImage) updatePackages() error {
 
 // Update will attempt to update the backing image to the latest version
 // internally.
-func (b *BackingImage) Update() error {
-	// TODO: Check if it is locked!
-
-	// First things first, setup the namespace
-	if err := ConfigureNamespace(); err != nil {
-		return err
-	}
-
+func (b *BackingImage) Update(notif PidNotifier, pkgManager *EopkgManager) error {
 	mountMan := disk.GetMountManager()
-	defer mountMan.UnmountAll()
-
 	log.WithFields(log.Fields{
 		"image": b.Name,
 	}).Info("Updating backing image")
@@ -123,8 +111,8 @@ func (b *BackingImage) Update() error {
 		return err
 	}
 
-	// Hand over to package management to allow clean deferring to take place.
-	if err := b.updatePackages(); err != nil {
+	// Hand over to package management to do the updates
+	if err := b.updatePackages(notif, pkgManager); err != nil {
 		return err
 	}
 
