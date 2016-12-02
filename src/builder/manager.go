@@ -163,15 +163,19 @@ func (m *Manager) Cleanup() {
 	}
 
 	// Still might have *something* alive in there, kill it with fire.
-	for i := 0; i < 10; i++ {
-		MurderDeathKill(m.overlay.MountPoint)
+	if m.overlay != nil {
+		for i := 0; i < 10; i++ {
+			MurderDeathKill(m.overlay.MountPoint)
+		}
 	}
 
 	if m.pkg != nil {
 		m.pkg.DeactivateRoot(m.overlay)
 	}
 	// Deactivation may have started something off, kill them too
-	MurderDeathKill(m.overlay.MountPoint)
+	if m.overlay != nil {
+		MurderDeathKill(m.overlay.MountPoint)
+	}
 
 	// Unmount anything we may have mounted
 	disk.GetMountManager().UnmountAll()
