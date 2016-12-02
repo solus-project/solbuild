@@ -197,7 +197,7 @@ func (u *UserInfo) SetFromGit() bool {
 		log.WithFields(log.Fields{
 			"error": err,
 			"path":  gitConfPath,
-		}).Error("gitconfig file has missing Name")
+		}).Error("gitconfig file has missing name")
 		return false
 	}
 	email, err := section.GetKey("email")
@@ -205,7 +205,7 @@ func (u *UserInfo) SetFromGit() bool {
 		log.WithFields(log.Fields{
 			"error": err,
 			"path":  gitConfPath,
-		}).Error("gitconfig file has missing Email")
+		}).Error("gitconfig file has missing email")
 		return false
 	}
 	u.Name = uname.String()
