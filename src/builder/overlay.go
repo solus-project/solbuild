@@ -148,7 +148,7 @@ func (o *Overlay) Mount() error {
 		log.WithFields(log.Fields{
 			"point": o.BaseDir,
 			"size":  o.TmpfsSize,
-		}).Info("Mounting root tmpfs")
+		}).Debug("Mounting root tmpfs")
 
 		var tmpfsOptions []string
 		if o.TmpfsSize != "" {

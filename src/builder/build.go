@@ -177,7 +177,7 @@ func (p *Package) BindCcache(o *Overlay) error {
 
 	log.WithFields(log.Fields{
 		"dir": ccacheDir,
-	}).Info("Exposing ccache to build")
+	}).Debug("Exposing ccache to build")
 
 	// Bind mount local ccache into chroot
 	if err := mountMan.BindMount(ccacheSource, ccacheDir); err != nil {
@@ -468,7 +468,7 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 
 	log.WithFields(log.Fields{
 		"numFiles": len(collections),
-	}).Info("Collecting files")
+	}).Debug("Collecting files")
 
 	sudoUID := os.Getenv("SUDO_UID")
 	sudoGID := os.Getenv("SUDO_GID")
@@ -522,7 +522,7 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 			"uid":  uid,
 			"gid":  gid,
 			"file": filepath.Base(p),
-		}).Info("Setting file ownership for current user")
+		}).Debug("Setting file ownership for current user")
 
 		if err = os.Chown(tgt, uid, gid); err != nil {
 			log.WithFields(log.Fields{
