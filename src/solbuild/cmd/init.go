@@ -34,9 +34,13 @@ builds`,
 	Run: initProfile,
 }
 
+// Whether we should automatically update the image after initialising it.
+var autoUpdate bool
+
 func init() {
 	initCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	initCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	initCmd.Flags().BoolVarP(&autoUpdate, "update", "u", false, "Automatically update the new image")
 	RootCmd.AddCommand(initCmd)
 }
 
@@ -110,4 +114,25 @@ func initProfile(cmd *cobra.Command, args []string) {
 	log.WithFields(log.Fields{
 		"profile": profile,
 	}).Info("Profile successfully initialised")
+
+	if !autoUpdate {
+		return
+	}
+
+	// Now we'll update the newly initialised image
+	manager, err := builder.NewManager()
+	if err != nil {
+		return
+	}
+	// Safety first..
+	if err := manager.SetProfile(profile); err != nil {
+		if err == builder.ErrInvalidProfile {
+			builder.EmitProfileError(profile)
+		}
+		return
+	}
+
+	if err := manager.Update(); err != nil {
+		os.Exit(1)
+	}
 }
