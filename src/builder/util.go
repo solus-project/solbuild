@@ -22,6 +22,7 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strconv"
@@ -171,4 +172,34 @@ func TouchFile(path string) error {
 	}
 	defer w.Close()
 	return nil
+}
+
+// ChrootExec is a simple wrapper to return a correctly set up chroot command,
+// so that we can store the PID, for long running tasks
+func ChrootExec(dir, command string) (int, error) {
+	args := []string{dir, "/bin/sh", "-c", command}
+	c := exec.Command("chroot", args...)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	c.Stdin = nil
+
+	if err := c.Start(); err != nil {
+		return -1, err
+	}
+	return c.Process.Pid, c.Wait()
+}
+
+// ChrootExecStdin is almost identical to ChrootExec, except it permits a stdin
+// to be associated with the command
+func ChrootExecStdin(dir, command string) (int, error) {
+	args := []string{dir, "/bin/sh", "-c", command}
+	c := exec.Command("chroot", args...)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	c.Stdin = os.Stdin
+
+	if err := c.Start(); err != nil {
+		return -1, err
+	}
+	return c.Process.Pid, c.Wait()
 }
