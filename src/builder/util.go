@@ -187,6 +187,7 @@ func ChrootExec(notif PidNotifier, dir, command string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = nil
+	c.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 
 	if err := c.Start(); err != nil {
 		return err
@@ -203,6 +204,7 @@ func ChrootExecStdin(notif PidNotifier, dir, command string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
+	c.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 
 	if err := c.Start(); err != nil {
 		return err
