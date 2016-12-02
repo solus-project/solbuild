@@ -206,6 +206,7 @@ func (m *Manager) SigIntCleanup() {
 		log.Warning("CTRL+C interrupted, cleaning up")
 		m.SetCancelled()
 		m.Cleanup()
+		log.Error("Exiting due to interruption")
 		os.Exit(1)
 	}()
 }
