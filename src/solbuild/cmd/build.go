@@ -80,12 +80,11 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	log.Debug("Building is being reimplemented :)")
+	if err := manager.Build(); err != nil {
+		log.Error("Failed to build packages")
+		return nil
+	}
 
-	//if err := pkg.Build(bk); err != nil {
-	//	log.Error("Building failed")
-	//} else {
-	//	log.Info("Building succeeded")
-	//}
+	log.Info("Building succeeded")
 	return nil
 }

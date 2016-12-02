@@ -26,6 +26,12 @@ var (
 	// ErrManagerInitialised is returned when the library user attempts to set
 	// a core part of the Manager after it's already been initialised
 	ErrManagerInitialised = errors.New("The manager has already been initialised")
+
+	// ErrNoPackage is returned when we've got no package
+	ErrNoPackage = errors.New("You must first set a package to build it")
+
+	// ErrNotImplemented is returned as a placeholder when developing functionality.
+	ErrNotImplemented = errors.New("Function not yet implemented")
 )
 
 // A Manager is responsible for cleanly managing the entire session within solbuild,
@@ -78,4 +84,10 @@ func (m *Manager) SetPackage(pkg *Package) error {
 	}
 	m.pkg = pkg
 	return nil
+}
+
+// Build will attempt to build the package associated with this manager,
+// automatically handling any required cleanups.
+func (m *Manager) Build() error {
+	return ErrNotImplemented
 }
