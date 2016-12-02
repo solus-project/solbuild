@@ -129,5 +129,17 @@ func (s *Source) Fetch() error {
 	if err := os.Rename(destPath, dest); err != nil {
 		return err
 	}
+	// If the file has a sha1sum set, symlink it to the sha256sum because
+	// it's a legacy archive (pspec.xml)
+	if s.SHA1Sum != "" {
+		sha, err := s.GetSHA1Sum(dest)
+		if err != nil {
+			return err
+		}
+		tgtLink := filepath.Join(SourceDir, sha)
+		if err := os.Symlink(hash, tgtLink); err != nil {
+			return err
+		}
+	}
 	return nil
 }
