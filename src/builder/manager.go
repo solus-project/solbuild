@@ -156,7 +156,7 @@ func (m *Manager) Cleanup() {
 
 	// Try to kill the active root PID first
 	if m.activePID > 0 {
-		syscall.Kill(m.activePID, syscall.SIGTERM)
+		syscall.Kill(m.activePID, syscall.SIGKILL)
 		time.Sleep(2 * time.Second)
 		syscall.Kill(m.activePID, syscall.SIGKILL)
 		m.activePID = 0
