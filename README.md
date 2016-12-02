@@ -52,6 +52,16 @@ package manager. For now we'll disable some steps when building old style packag
  - Begin build in chroot namespace as unprivileged user
  - If successful, copy newly built files out of chroot into current directory
 
+**TODO**:
+
+ - [ ] Port `update` and `chroot` to manager interface
+ - [ ] Add config file support
+ - [ ] Add custom repo support
+ - [ ] Add new `networking` key to `ypkg` files to disable network isolation
+ - [ ] Add profile concept *based on backing images*
+ - [ ] Add documentation
+ - [ ] Seal the deal, v1
+
 License
 -------
 
