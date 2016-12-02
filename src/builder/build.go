@@ -267,7 +267,29 @@ func (p *Package) CopyAssets(o *Overlay) error {
 
 // BuildYpkg will take care of the ypkg specific build process and is called only
 // by Build()
-func (p *Package) BuildYpkg(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay) error {
+	log.Debug("Writing packager file")
+	fp := filepath.Join(overlay.MountPoint, BuildUserHome, ".solus", "packager")
+	fpd := filepath.Dir(fp)
+
+	if !PathExists(fpd) {
+		if err := os.MkdirAll(fpd, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"dir":   fpd,
+			}).Error("Failed to create packager directory")
+			return err
+		}
+	}
+
+	if err := usr.WritePackager(fp); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"path":  fp,
+		}).Error("Failed to write packager file")
+		return err
+	}
+
 	wdir := p.GetWorkDirInternal()
 	ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
 	cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
@@ -531,7 +553,7 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 
 	// Call the relevant build function
 	if p.Type == PackageTypeYpkg {
-		if err := p.BuildYpkg(notif, pman, overlay); err != nil {
+		if err := p.BuildYpkg(notif, usr, pman, overlay); err != nil {
 			return err
 		}
 	} else {
