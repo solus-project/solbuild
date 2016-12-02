@@ -266,6 +266,133 @@ func (p *Package) CopyAssets(o *Overlay) error {
 	return nil
 }
 
+// BuildYpkg will take care of the ypkg specific build process and is called only
+// by Build()
+func (p *Package) BuildYpkg(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
+	wdir := p.GetWorkDirInternal()
+	ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
+	cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
+
+	// Install build dependencies
+	log.WithFields(log.Fields{
+		"buildFile": ymlFile,
+	}).Info("Installing build dependencies")
+
+	if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
+		log.WithFields(log.Fields{
+			"buildFile": ymlFile,
+			"error":     err,
+		}).Error("Failed to install build dependencies")
+		return err
+	}
+	notif.SetActivePID(0)
+
+	// Cleanup now
+	log.Debug("Stopping D-BUS")
+	if err := pman.StopDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to stop d-bus")
+		return err
+	}
+
+	// Chwn the directory before bringing up sources
+	cmd = fmt.Sprintf("chown -R %s:%s %s", BuildUser, BuildUser, BuildUserHome)
+	if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to set home directory permissions")
+		return err
+	}
+	notif.SetActivePID(0)
+
+	// Now kill networking
+	if err := DropNetworking(); err != nil {
+		return err
+	}
+
+	// Ensure the overlay can network on localhost only
+	if err := overlay.ConfigureNetworking(); err != nil {
+		return err
+	}
+
+	// Bring up sources
+	if err := p.BindSources(overlay); err != nil {
+		log.Error("Cannot continue without sources")
+		return err
+	}
+
+	// Reaffirm the layout
+	if err := EnsureEopkgLayout(overlay.MountPoint); err != nil {
+		return err
+	}
+
+	// Ensure we have ccache available
+	if err := p.BindCcache(overlay); err != nil {
+		return err
+	}
+
+	// Now build the package
+	cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
+	log.WithFields(log.Fields{
+		"package": p.Name,
+	}).Info("Now starting build of package")
+	if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to build package")
+		return err
+	}
+	notif.SetActivePID(0)
+	return nil
+}
+
+// BuildXML will take care of building the legacy pspec.xml format, and is called only
+// by Build()
+func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
+	// Just straight up build it with eopkg
+	log.Warning("Full sandboxing is not possible with legacy format")
+
+	wdir := p.GetWorkDirInternal()
+	xmlFile := filepath.Join(wdir, filepath.Base(p.Path))
+
+	// Bring up sources
+	if err := p.BindSources(overlay); err != nil {
+		log.Error("Cannot continue without sources")
+		return err
+	}
+
+	// Ensure we have ccache available
+	if err := p.BindCcache(overlay); err != nil {
+		return err
+	}
+
+	// Now build the package, ignore-sandbox in case someone is stupid
+	// and activates it in eopkg.conf..
+	cmd := fmt.Sprintf("eopkg build --ignore-sandbox -O %s %s", wdir, xmlFile)
+	log.WithFields(log.Fields{
+		"package": p.Name,
+	}).Info("Now starting build of package")
+	if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to build package")
+		return err
+	}
+	notif.SetActivePID(0)
+
+	// Now we can stop dbus..
+	log.Debug("Stopping D-BUS")
+	if err := pman.StopDBUS(); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to stop d-bus")
+		return err
+	}
+	notif.SetActivePID(0)
+	return nil
+}
+
 // Build will attempt to build the package in the overlayfs system
 func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
@@ -334,125 +461,18 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		return err
 	}
 
+	// Call the relevant build function
 	if p.Type == PackageTypeYpkg {
-		wdir := p.GetWorkDirInternal()
-		ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
-		cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
-
-		// Install build dependencies
-		log.WithFields(log.Fields{
-			"buildFile": ymlFile,
-		}).Info("Installing build dependencies")
-
-		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
-			log.WithFields(log.Fields{
-				"buildFile": ymlFile,
-				"error":     err,
-			}).Error("Failed to install build dependencies")
+		if err := p.BuildYpkg(notif, pman, overlay); err != nil {
 			return err
 		}
-		notif.SetActivePID(0)
-
-		// Cleanup now
-		log.Debug("Stopping D-BUS")
-		if err := pman.StopDBUS(); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to stop d-bus")
-			return err
-		}
-
-		// Chwn the directory before bringing up sources
-		cmd = fmt.Sprintf("chown -R %s:%s %s", BuildUser, BuildUser, BuildUserHome)
-		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to set home directory permissions")
-			return err
-		}
-		notif.SetActivePID(0)
-
-		// Now kill networking
-		if err := DropNetworking(); err != nil {
-			return err
-		}
-
-		// Ensure the overlay can network on localhost only
-		if err := overlay.ConfigureNetworking(); err != nil {
-			return err
-		}
-
-		// Bring up sources
-		if err := p.BindSources(overlay); err != nil {
-			log.Error("Cannot continue without sources")
-			return err
-		}
-
-		// Reaffirm the layout
-		if err := EnsureEopkgLayout(overlay.MountPoint); err != nil {
-			return err
-		}
-
-		// Ensure we have ccache available
-		if err := p.BindCcache(overlay); err != nil {
-			return err
-		}
-
-		// Now build the package
-		cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
-		log.WithFields(log.Fields{
-			"package": p.Name,
-		}).Info("Now starting build of package")
-		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to build package")
-			return err
-		}
-		notif.SetActivePID(0)
 	} else {
-		// Just straight up build it with eopkg
-		log.Warning("Full sandboxing is not possible with legacy format")
-
-		wdir := p.GetWorkDirInternal()
-		xmlFile := filepath.Join(wdir, filepath.Base(p.Path))
-
-		// Bring up sources
-		if err := p.BindSources(overlay); err != nil {
-			log.Error("Cannot continue without sources")
+		if err := p.BuildXML(notif, pman, overlay); err != nil {
 			return err
 		}
-
-		// Ensure we have ccache available
-		if err := p.BindCcache(overlay); err != nil {
-			return err
-		}
-
-		// Now build the package, ignore-sandbox in case someone is stupid
-		// and activates it in eopkg.conf..
-		cmd := fmt.Sprintf("eopkg build --ignore-sandbox -O %s %s", wdir, xmlFile)
-		log.WithFields(log.Fields{
-			"package": p.Name,
-		}).Info("Now starting build of package")
-		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to build package")
-			return err
-		}
-		notif.SetActivePID(0)
-
-		// Now we can stop dbus..
-		log.Debug("Stopping D-BUS")
-		if err := pman.StopDBUS(); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to stop d-bus")
-			return err
-		}
-		notif.SetActivePID(0)
 	}
 
+	// TODO: Move the collection logic into a new function to reduce complexity.
 	// TODO: Change this to a dedicated collection directory..
 	collectionDir := p.GetWorkDir(overlay)
 	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
