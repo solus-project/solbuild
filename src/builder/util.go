@@ -23,7 +23,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"strconv"
 	"syscall"
@@ -128,39 +127,6 @@ func MurderDeathKill(root string) error {
 		}
 	}
 	return nil
-}
-
-// HandleInterrupt will call the specified reaper function when the terminal
-// is interrupted (i.e. ctrl+c)
-func HandleInterrupt(v func()) {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt)
-	go func() {
-		<-ch
-		log.Warning("CTRL+C interrupted, cleaning up")
-		v()
-		os.Exit(1)
-	}()
-}
-
-// Whether we've GrimReaper'd yet
-var overlayClaimed = false
-
-// GrimReaper will create a new cleanup handler for the given overlay & package
-// configuration
-func GrimReaper(o *Overlay, p *Package, pman *EopkgManager) func() {
-	return func() {
-		if overlayClaimed {
-			return
-		}
-		overlayClaimed = true
-		if pman != nil {
-			pman.Cleanup()
-		}
-		p.DeactivateRoot(o)
-		MurderDeathKill(o.MountPoint)
-		disk.GetMountManager().UnmountAll()
-	}
 }
 
 // TouchFile will create the file if it doesn't exist, enabling use of bind
