@@ -23,6 +23,7 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // CreateDirs creates any directories we may need later on
@@ -362,6 +363,31 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		"numFiles": len(collections),
 	}).Info("Collecting files")
 
+	sudoUID := os.Getenv("SUDO_UID")
+	sudoGID := os.Getenv("SUDO_GID")
+	uid := -1
+	gid := -1
+	var err error
+
+	if sudoGID == "" {
+		sudoGID = sudoUID
+	}
+
+	if sudoUID != "" {
+		if uid, err = strconv.Atoi(sudoUID); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"uid":   sudoUID,
+			}).Error("Malformed SUDO_UID in environment")
+		}
+		if gid, err = strconv.Atoi(sudoGID); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"gid":   sudoGID,
+			}).Error("Malformed SUDO_GID in environment")
+		}
+	}
+
 	for _, p := range collections {
 		tgt, err := filepath.Abs(filepath.Join(".", filepath.Base(p)))
 		if err != nil {
@@ -382,7 +408,21 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 			return err
 		}
 
-		// TODO: chown the file back to the user we're running as now (sudo_uid)
+		if uid < 0 || gid < 0 {
+			continue
+		}
+		log.WithFields(log.Fields{
+			"uid":  uid,
+			"gid":  gid,
+			"file": filepath.Base(p),
+		}).Info("Setting file ownership for current user")
+
+		if err = os.Chown(tgt, uid, gid); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"file":  filepath.Base(p),
+			}).Error("Error in restoring file ownership")
+		}
 	}
 
 	return nil
