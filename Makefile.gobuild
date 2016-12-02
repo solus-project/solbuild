@@ -8,7 +8,7 @@ clean:
 
 spellcheck:
 	@ ( \
-		misspell -error `find $(PROJECT_ROOT) -not -path '*/vendor/*' -name '*.go'`; \
+		misspell -error -i 'evolveos' `find $(PROJECT_ROOT) -not -path '*/vendor/*' -name '*.go'`; \
 	);
 
 %.compliant: spellcheck
