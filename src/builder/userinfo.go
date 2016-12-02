@@ -255,3 +255,17 @@ func GetUserInfo() *UserInfo {
 
 	return uinfo
 }
+
+// WritePackager will attempt to write the packager file to given path
+func (u *UserInfo) WritePackager(path string) error {
+	fi, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fi.Close()
+	contents := fmt.Sprintf("[Packager]\nName=%s\nEmail=%s\n", u.Name, u.Email)
+	if _, err := fi.WriteString(contents); err != nil {
+		return err
+	}
+	return nil
+}
