@@ -18,7 +18,6 @@ package builder
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -32,6 +31,12 @@ var (
 
 	// ErrNotImplemented is returned as a placeholder when developing functionality.
 	ErrNotImplemented = errors.New("Function not yet implemented")
+
+	// ErrProfileNotInstalled is returned when a profile is not yet installed
+	ErrProfileNotInstalled = errors.New("Profile is not installed")
+
+	// ErrInvalidProfile is returned when there is an invalid profile
+	ErrInvalidProfile = errors.New("Invalid profile")
 )
 
 // A Manager is responsible for cleanly managing the entire session within solbuild,
@@ -62,7 +67,7 @@ func (m *Manager) SetProfile(profile string) error {
 	defer m.lock.Unlock()
 
 	if !IsValidProfile(profile) {
-		return fmt.Errorf("Invalid profile: %v", profile)
+		return ErrInvalidProfile
 	}
 
 	if m.image != nil {
@@ -82,6 +87,11 @@ func (m *Manager) SetPackage(pkg *Package) error {
 	if m.pkg != nil {
 		return ErrManagerInitialised
 	}
+
+	if !m.image.IsInstalled() {
+		return ErrProfileNotInstalled
+	}
+
 	m.pkg = pkg
 	m.overlay = NewOverlay(m.image, m.pkg)
 	return nil
