@@ -19,6 +19,7 @@ package cmd
 import (
 	"builder"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -34,12 +35,17 @@ minimize the build times in future updates with this profile.`,
 
 func init() {
 	updateCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	updateCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(updateCmd)
 }
 
 func updateProfile(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		profile = strings.TrimSpace(args[0])
+	}
+
+	if CLIDebug {
+		log.SetLevel(log.DebugLevel)
 	}
 
 	// Initialise the build manager

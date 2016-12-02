@@ -36,12 +36,17 @@ builds`,
 
 func init() {
 	initCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	initCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(initCmd)
 }
 
 func initProfile(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		profile = strings.TrimSpace(args[0])
+	}
+
+	if CLIDebug {
+		log.SetLevel(log.DebugLevel)
 	}
 
 	if !builder.IsValidProfile(profile) {

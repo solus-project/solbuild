@@ -25,6 +25,9 @@ import (
 // Shared between most of the subcommands
 var profile string
 
+// CLIDebug determines whether to enable debug level logs or not.
+var CLIDebug bool
+
 // RootCmd is the main entry point into solbuild
 var RootCmd = &cobra.Command{
 	Use:   "solbuild",
@@ -33,6 +36,7 @@ var RootCmd = &cobra.Command{
 
 func init() {
 	RootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	RootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 }
 
 // FindLikelyArg will look in the current directory to see if common path names exist,

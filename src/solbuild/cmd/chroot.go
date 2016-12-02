@@ -37,11 +37,16 @@ dependencies.`,
 
 func init() {
 	chrootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	chrootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(chrootCmd)
 }
 
 func chrootPackage(cmd *cobra.Command, args []string) error {
 	pkgPath := ""
+
+	if CLIDebug {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	if len(args) == 1 {
 		pkgPath = args[0]

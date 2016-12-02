@@ -41,11 +41,16 @@ func init() {
 	buildCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
 	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
+	buildCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(buildCmd)
 }
 
 func buildPackage(cmd *cobra.Command, args []string) error {
 	pkgPath := ""
+
+	if CLIDebug {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	if len(args) == 1 {
 		pkgPath = args[0]
