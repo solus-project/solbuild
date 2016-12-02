@@ -163,6 +163,34 @@ func (p *Package) BindSources(o *Overlay) error {
 	return nil
 }
 
+// BindCcache will make the ccache directory available to the build
+func (p *Package) BindCcache(o *Overlay) error {
+	mountMan := disk.GetMountManager()
+	ccacheDir := p.GetCcacheDir(o)
+
+	var ccacheSource string
+	if p.Type == PackageTypeXML {
+		ccacheSource = LegacyCcacheDirectory
+	} else {
+		ccacheSource = CcacheDirectory
+	}
+
+	log.WithFields(log.Fields{
+		"dir": ccacheDir,
+	}).Info("Exposing ccache to build")
+
+	// Bind mount local ccache into chroot
+	if err := mountMan.BindMount(ccacheSource, ccacheDir); err != nil {
+		log.WithFields(log.Fields{
+			"target": ccacheDir,
+			"error":  err,
+		}).Error("Failed to bind mount ccache")
+		return err
+	}
+	o.ExtraMounts = append(o.ExtraMounts, ccacheDir)
+	return nil
+}
+
 // GetWorkDir will return the externally visible work directory for the
 // given build type.
 func (p *Package) GetWorkDir(o *Overlay) string {
@@ -365,6 +393,11 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 			return err
 		}
 
+		// Ensure we have ccache available
+		if err := p.BindCcache(overlay); err != nil {
+			return err
+		}
+
 		// Now build the package
 		cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 		log.WithFields(log.Fields{
@@ -387,6 +420,11 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		// Bring up sources
 		if err := p.BindSources(overlay); err != nil {
 			log.Error("Cannot continue without sources")
+			return err
+		}
+
+		// Ensure we have ccache available
+		if err := p.BindCcache(overlay); err != nil {
 			return err
 		}
 
