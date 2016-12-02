@@ -22,6 +22,7 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -268,4 +269,17 @@ func (m *Manager) Update() error {
 	m.SigIntCleanup()
 
 	return m.image.Update(m, m.pkgManager)
+}
+
+// SetTmpfs sets the manager tmpfs option
+func (m *Manager) SetTmpfs(enable bool, size string) {
+	if m.IsCancelled() {
+		return
+	}
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	if m.overlay != nil {
+		m.overlay.EnableTmpfs = enable
+		m.overlay.TmpfsSize = strings.TrimSpace(size)
+	}
 }

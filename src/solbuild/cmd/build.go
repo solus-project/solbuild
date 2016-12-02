@@ -34,8 +34,13 @@ store those packages in the current directory`,
 	RunE: buildPackage,
 }
 
+var tmpfs bool
+var tmpfsSize string
+
 func init() {
 	buildCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
+	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
 	RootCmd.AddCommand(buildCmd)
 }
 
@@ -86,6 +91,7 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	manager.SetTmpfs(tmpfs, tmpfsSize)
 	if err := manager.Build(); err != nil {
 		log.Error("Failed to build packages")
 		return nil
