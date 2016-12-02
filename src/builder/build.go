@@ -23,7 +23,6 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 // CreateDirs creates any directories we may need later on
@@ -406,7 +405,7 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 // CollectAssets will search for the build files and copy them back to the
 // users current directory. If solbuild was invoked via sudo, solbuild will
 // then attempt to set the owner as the original user.
-func (p *Package) CollectAssets(overlay *Overlay) error {
+func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
 	// TODO: Change this to a dedicated collection directory..
 	collectionDir := p.GetWorkDir(overlay)
 	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
@@ -423,31 +422,6 @@ func (p *Package) CollectAssets(overlay *Overlay) error {
 	log.WithFields(log.Fields{
 		"numFiles": len(collections),
 	}).Debug("Collecting files")
-
-	sudoUID := os.Getenv("SUDO_UID")
-	sudoGID := os.Getenv("SUDO_GID")
-	uid := -1
-	gid := -1
-	var err error
-
-	if sudoGID == "" {
-		sudoGID = sudoUID
-	}
-
-	if sudoUID != "" {
-		if uid, err = strconv.Atoi(sudoUID); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-				"uid":   sudoUID,
-			}).Error("Malformed SUDO_UID in environment")
-		}
-		if gid, err = strconv.Atoi(sudoGID); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-				"gid":   sudoGID,
-			}).Error("Malformed SUDO_GID in environment")
-		}
-	}
 
 	for _, p := range collections {
 		tgt, err := filepath.Abs(filepath.Join(".", filepath.Base(p)))
@@ -469,16 +443,13 @@ func (p *Package) CollectAssets(overlay *Overlay) error {
 			return err
 		}
 
-		if uid < 0 || gid < 0 {
-			continue
-		}
 		log.WithFields(log.Fields{
-			"uid":  uid,
-			"gid":  gid,
+			"uid":  usr.UID,
+			"gid":  usr.GID,
 			"file": filepath.Base(p),
 		}).Debug("Setting file ownership for current user")
 
-		if err = os.Chown(tgt, uid, gid); err != nil {
+		if err = os.Chown(tgt, usr.UID, usr.GID); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
 				"file":  filepath.Base(p),
@@ -497,6 +468,8 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		"type":    p.Type,
 		"release": p.Release,
 	}).Info("Building package")
+
+	usr := GetUserInfo()
 
 	// Set up environment
 	if err := overlay.CleanExisting(); err != nil {
@@ -567,5 +540,5 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		}
 	}
 
-	return p.CollectAssets(overlay)
+	return p.CollectAssets(overlay, usr)
 }
