@@ -393,6 +393,91 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 	return nil
 }
 
+// CollectAssets will search for the build files and copy them back to the
+// users current directory. If solbuild was invoked via sudo, solbuild will
+// then attempt to set the owner as the original user.
+func (p *Package) CollectAssets(overlay *Overlay) error {
+	// TODO: Change this to a dedicated collection directory..
+	collectionDir := p.GetWorkDir(overlay)
+	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
+	if len(collections) < 1 {
+		log.Error("Mysterious lack of eopkg files is mysterious")
+		return errors.New("Internal error: .eopkg files are missing")
+	}
+
+	if p.Type == PackageTypeYpkg {
+		pspecs, _ := filepath.Glob(filepath.Join(collectionDir, "pspec_*.xml"))
+		collections = append(collections, pspecs...)
+	}
+
+	log.WithFields(log.Fields{
+		"numFiles": len(collections),
+	}).Debug("Collecting files")
+
+	sudoUID := os.Getenv("SUDO_UID")
+	sudoGID := os.Getenv("SUDO_GID")
+	uid := -1
+	gid := -1
+	var err error
+
+	if sudoGID == "" {
+		sudoGID = sudoUID
+	}
+
+	if sudoUID != "" {
+		if uid, err = strconv.Atoi(sudoUID); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"uid":   sudoUID,
+			}).Error("Malformed SUDO_UID in environment")
+		}
+		if gid, err = strconv.Atoi(sudoGID); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"gid":   sudoGID,
+			}).Error("Malformed SUDO_GID in environment")
+		}
+	}
+
+	for _, p := range collections {
+		tgt, err := filepath.Abs(filepath.Join(".", filepath.Base(p)))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Unable to find working directory!")
+			return err
+		}
+
+		log.WithFields(log.Fields{
+			"file": filepath.Base(p),
+		}).Info("Collecting build artifact")
+
+		if err := disk.CopyFile(p, tgt); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Unable to collect build file")
+			return err
+		}
+
+		if uid < 0 || gid < 0 {
+			continue
+		}
+		log.WithFields(log.Fields{
+			"uid":  uid,
+			"gid":  gid,
+			"file": filepath.Base(p),
+		}).Debug("Setting file ownership for current user")
+
+		if err = os.Chown(tgt, uid, gid); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"file":  filepath.Base(p),
+			}).Error("Error in restoring file ownership")
+		}
+	}
+	return nil
+}
+
 // Build will attempt to build the package in the overlayfs system
 func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
@@ -472,85 +557,5 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		}
 	}
 
-	// TODO: Move the collection logic into a new function to reduce complexity.
-	// TODO: Change this to a dedicated collection directory..
-	collectionDir := p.GetWorkDir(overlay)
-	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
-	if len(collections) < 1 {
-		log.Error("Mysterious lack of eopkg files is mysterious")
-		return errors.New("Internal error: .eopkg files are missing")
-	}
-
-	if p.Type == PackageTypeYpkg {
-		pspecs, _ := filepath.Glob(filepath.Join(collectionDir, "pspec_*.xml"))
-		collections = append(collections, pspecs...)
-	}
-
-	log.WithFields(log.Fields{
-		"numFiles": len(collections),
-	}).Debug("Collecting files")
-
-	sudoUID := os.Getenv("SUDO_UID")
-	sudoGID := os.Getenv("SUDO_GID")
-	uid := -1
-	gid := -1
-	var err error
-
-	if sudoGID == "" {
-		sudoGID = sudoUID
-	}
-
-	if sudoUID != "" {
-		if uid, err = strconv.Atoi(sudoUID); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-				"uid":   sudoUID,
-			}).Error("Malformed SUDO_UID in environment")
-		}
-		if gid, err = strconv.Atoi(sudoGID); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-				"gid":   sudoGID,
-			}).Error("Malformed SUDO_GID in environment")
-		}
-	}
-
-	for _, p := range collections {
-		tgt, err := filepath.Abs(filepath.Join(".", filepath.Base(p)))
-		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Unable to find working directory!")
-			return err
-		}
-
-		log.WithFields(log.Fields{
-			"file": filepath.Base(p),
-		}).Info("Collecting build artifact")
-
-		if err := disk.CopyFile(p, tgt); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Unable to collect build file")
-			return err
-		}
-
-		if uid < 0 || gid < 0 {
-			continue
-		}
-		log.WithFields(log.Fields{
-			"uid":  uid,
-			"gid":  gid,
-			"file": filepath.Base(p),
-		}).Debug("Setting file ownership for current user")
-
-		if err = os.Chown(tgt, uid, gid); err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-				"file":  filepath.Base(p),
-			}).Error("Error in restoring file ownership")
-		}
-	}
-
-	return nil
+	return p.CollectAssets(overlay)
 }
