@@ -42,6 +42,35 @@ func (p *Package) CreateDirs(o *Overlay) error {
 			return err
 		}
 	}
+
+	// Fix up the ccache directories
+	if p.Type == PackageTypeXML {
+		// Ensure we have root owned ccache
+		if err := os.MkdirAll(LegacyCcacheDirectory, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"dir":   p,
+			}).Error("Failed to create ccache directory")
+			return err
+		}
+	} else {
+		// Ensure we have root owned ccache
+		if err := os.MkdirAll(CcacheDirectory, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"dir":   p,
+			}).Error("Failed to create ccache directory")
+			return err
+		}
+		if err := os.Chown(CcacheDirectory, BuildUserID, BuildUserGID); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"dir":   p,
+			}).Error("Failed to chown ccache directory")
+			return err
+		}
+	}
+
 	return nil
 }
 
