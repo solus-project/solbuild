@@ -304,3 +304,15 @@ func (e *EopkgManager) GetRepos() ([]*EopkgRepo, error) {
 	}
 	return repos, nil
 }
+
+// AddRepo will attempt to add a repo to the filesystem
+func (e *EopkgManager) AddRepo(id, source string) error {
+	e.notif.SetActivePID(0)
+	return ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg add-repo '%s' '%s'", id, source))
+}
+
+// RemoveRepo will attempt to remove a named repo from the filesystem
+func (e *EopkgManager) RemoveRepo(id string) error {
+	e.notif.SetActivePID(0)
+	return ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg remove-repo '%s'", id))
+}
