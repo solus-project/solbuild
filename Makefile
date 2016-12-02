@@ -36,7 +36,7 @@ ensure_modules:
 	);
 
 # See: https://github.com/meitar/git-archive-all.sh/blob/master/git-archive-all.sh
-release:
+release: ensure_modules
 	git-archive-all.sh --format tar.gz --prefix solbuild-$(VERSION)/ --verbose -t HEAD solbuild-$(VERSION).tar.gz
 
 all: $(BINS)
