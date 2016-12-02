@@ -170,7 +170,48 @@ func (u *UserInfo) SetFromPackager() bool {
 
 // SetFromGit will set the username/email fields from the git config file
 func (u *UserInfo) SetFromGit() bool {
-	return false
+	gitConfPath := filepath.Join(u.HomeDir, ".gitconfig")
+	if !PathExists(gitConfPath) {
+		return false
+	}
+
+	cfg, err := ini.Load(gitConfPath)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"path":  gitConfPath,
+		}).Error("Error loading gitconfig")
+		return false
+	}
+
+	section, err := cfg.GetSection("user")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"path": gitConfPath,
+		}).Error("Missing [user] section in gitconfig")
+		return false
+	}
+
+	uname, err := section.GetKey("name")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"path":  gitConfPath,
+		}).Error("gitconfig file has missing Name")
+		return false
+	}
+	email, err := section.GetKey("email")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"path":  gitConfPath,
+		}).Error("gitconfig file has missing Email")
+		return false
+	}
+	u.Name = uname.String()
+	u.Email = email.String()
+
+	return true
 }
 
 // GetUserInfo will always succeed, as it will use a fallback policy until it
