@@ -31,6 +31,7 @@ func (p *Package) CreateDirs(o *Overlay) error {
 	dirs := []string{
 		p.GetWorkDir(o),
 		p.GetSourceDir(o),
+		p.GetCcacheDir(o),
 	}
 	for _, p := range dirs {
 		if err := os.MkdirAll(p, 00755); err != nil {
@@ -159,6 +160,20 @@ func (p *Package) GetSourceDirInternal() string {
 		return "/var/cache/eopkg/archives"
 	}
 	return filepath.Join(BuildUserHome, "YPKG", "sources")
+}
+
+// GetCcacheDir will return the externally visible ccache directory
+func (p *Package) GetCcacheDir(o *Overlay) string {
+	return filepath.Join(o.MountPoint, p.GetCcacheDirInternal()[1:])
+}
+
+// GetCcacheDirInternal will return the chroot-internal ccache directory
+// for the given build type
+func (p *Package) GetCcacheDirInternal() string {
+	if p.Type == PackageTypeXML {
+		return "/root/.ccache"
+	}
+	return filepath.Join(BuildUserHome, ".ccache")
 }
 
 // CopyAssets will copy all of the required assets into the builder root

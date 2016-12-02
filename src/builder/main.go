@@ -46,6 +46,12 @@ const (
 const (
 	// PackageCacheDirectory is where we share packages between all builders
 	PackageCacheDirectory = "/var/lib/solbuild/packages"
+
+	// CcacheDirectory is the system wide ccache directory
+	CcacheDirectory = "/var/lib/solbuild/ccache/ypkg"
+
+	// LegacyCcacheDirectory is the root owned ccache directory for pspec.xml
+	LegacyCcacheDirectory = "/var/lib/solbuild/ccache/legacy"
 )
 
 const (
