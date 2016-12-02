@@ -332,7 +332,7 @@ func (o *Overlay) MountVFS() error {
 	// Bring up dev
 	log.WithFields(log.Fields{
 		"vfs": "/dev",
-	}).Info("Mounting vfs")
+	}).Debug("Mounting vfs")
 	if err := mountMan.Mount("devtmpfs", vfsPoints[0], "devtmpfs", "nosuid", "mode=755"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -344,7 +344,7 @@ func (o *Overlay) MountVFS() error {
 	// Bring up dev/pts
 	log.WithFields(log.Fields{
 		"vfs": "/dev/pts",
-	}).Info("Mounting vfs")
+	}).Debug("Mounting vfs")
 	if err := mountMan.Mount("devpts", vfsPoints[1], "devpts", "gid=5", "mode=620", "nosuid", "noexec"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -355,7 +355,7 @@ func (o *Overlay) MountVFS() error {
 	// Bring up proc
 	log.WithFields(log.Fields{
 		"vfs": "/proc",
-	}).Info("Mounting vfs")
+	}).Debug("Mounting vfs")
 	if err := mountMan.Mount("proc", vfsPoints[2], "proc", "nosuid", "noexec"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -366,7 +366,7 @@ func (o *Overlay) MountVFS() error {
 	// Bring up sys
 	log.WithFields(log.Fields{
 		"vfs": "/sys",
-	}).Info("Mounting vfs")
+	}).Debug("Mounting vfs")
 	if err := mountMan.Mount("sysfs", vfsPoints[3], "sysfs"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,

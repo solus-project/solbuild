@@ -23,7 +23,7 @@ import (
 
 // ConfigureNamespace will unshare() context, entering a new namespace
 func ConfigureNamespace() error {
-	log.Info("Configuring container namespace")
+	log.Debug("Configuring container namespace")
 	if err := syscall.Unshare(syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
