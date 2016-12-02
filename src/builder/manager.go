@@ -67,14 +67,18 @@ type Manager struct {
 }
 
 // NewManager will return a newly initialised manager instance
-func NewManager() *Manager {
+func NewManager() (*Manager, error) {
+	// First things first, setup the namespace
+	if err := ConfigureNamespace(); err != nil {
+		return nil, err
+	}
 	man := &Manager{
 		cancelled:  false,
 		activePID:  0,
 		updateMode: false,
 	}
 	man.lock = new(sync.Mutex)
-	return man
+	return man, nil
 }
 
 // SetActivePID will set the active task PID

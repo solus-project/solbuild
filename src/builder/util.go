@@ -38,11 +38,6 @@ type PidNotifier interface {
 // ActivateRoot will do the hard work of actually bring up the overlayfs
 // system to allow manipulation of the roots for builds, etc.
 func (p *Package) ActivateRoot(overlay *Overlay) error {
-	// First things first, setup the namespace
-	if err := ConfigureNamespace(); err != nil {
-		return err
-	}
-
 	log.Info("Configuring overlay storage")
 
 	// Set up environment

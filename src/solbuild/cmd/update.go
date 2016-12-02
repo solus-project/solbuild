@@ -43,7 +43,10 @@ func updateProfile(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialise the build manager
-	manager := builder.NewManager()
+	manager, err := builder.NewManager()
+	if err != nil {
+		return
+	}
 	if err := manager.SetProfile(profile); err != nil {
 		if err == builder.ErrInvalidProfile {
 			builder.EmitProfileError(profile)

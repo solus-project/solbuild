@@ -50,7 +50,10 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	}
 
 	// Initialise the build manager
-	manager := builder.NewManager()
+	manager, err := builder.NewManager()
+	if err != nil {
+		return nil
+	}
 	if err := manager.SetProfile(profile); err != nil {
 		if err == builder.ErrInvalidProfile {
 			builder.EmitProfileError(profile)
