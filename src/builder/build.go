@@ -70,6 +70,7 @@ func (p *Package) FetchSources(o *Overlay) error {
 				"error": err,
 				"uri":   source.URI,
 			}).Error("Failed to fetch source")
+			return err
 		}
 	}
 	return nil
@@ -320,7 +321,7 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 			return err
 		}
 
-		// Now build the package (This will fail currently with missing sources!
+		// Now build the package
 		cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 		log.WithFields(log.Fields{
 			"package": p.Name,
@@ -336,6 +337,29 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		// Just straight up build it with eopkg
 		log.Warning("Full sandboxing is not possible with legacy format")
 
+		wdir := p.GetWorkDirInternal()
+		xmlFile := filepath.Join(wdir, filepath.Base(p.Path))
+
+		// Bring up sources
+		if err := p.BindSources(overlay); err != nil {
+			log.Error("Cannot continue without sources")
+			return err
+		}
+
+		// Now build the package, ignore-sandbox in case someone is stupid
+		// and activates it in eopkg.conf..
+		cmd := fmt.Sprintf("eopkg build --ignore-sandbox -O %s %s", wdir, xmlFile)
+		log.WithFields(log.Fields{
+			"package": p.Name,
+		}).Info("Now starting build of package")
+		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to build package")
+			return err
+		}
+		notif.SetActivePID(0)
+
 		// Now we can stop dbus..
 		log.Debug("Stopping D-BUS")
 		if err := pman.StopDBUS(); err != nil {
@@ -344,6 +368,7 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 			}).Error("Failed to stop d-bus")
 			return err
 		}
+		notif.SetActivePID(0)
 	}
 
 	// TODO: Change this to a dedicated collection directory..
