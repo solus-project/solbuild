@@ -144,8 +144,7 @@ func (m *Manager) Cleanup() {
 	defer m.lock.Unlock()
 }
 
-// SigIntCleanup will take care of cleaning up the
-// build process.
+// SigIntCleanup will take care of cleaning up the build process.
 func (m *Manager) SigIntCleanup() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
