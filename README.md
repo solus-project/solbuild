@@ -58,12 +58,21 @@ package manager. For now we'll disable some steps when building old style packag
  - [x] Restore `eopkg build` support for legacy format.
  - [x] Restore `ccache` bind mount support
  - [x] Add `tmpfs` support for builds
+ - [ ] Restore `.solus/packager` support
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add profile concept *based on backing images*
  - [ ] Add config file support
  - [ ] Add documentation
  - [ ] Seal the deal, v1
+
+Note, for `.solus/packager` we should really try to phase this out completely
+on the host side. So if we fail to find `.solus/packager` or `.evolveos/packager`
+legacy files, from the `SUDO_UID` user, we should directly read their username
+and email from the `.gitconfig` file and use those instead. This will allow
+new users of `solbuild` to not require the packager files, and simply set their
+global git values. We'll still create the `.solus/packager` file inside the chroot
+so that we can pass the values to `ypkg`.
 
 License
 -------
