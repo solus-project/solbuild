@@ -51,15 +51,10 @@ func NewEopkgManager(notif PidNotifier, root string) *EopkgManager {
 	}
 }
 
-// Init will do some basic preparation of the chroot
-func (e *EopkgManager) Init() error {
-	// Ensure dbus pid is gone
-	if PathExists(e.dbusPid) {
-		if err := os.Remove(e.dbusPid); err != nil {
-			return err
-		}
-	}
-
+// CopyAssets will copy any required host-side assets into the system. This
+// function has to be reusable simply because performing an eopkg upgrade
+// or installing deps, prior to building, could clobber the files.
+func (e *EopkgManager) CopyAssets() error {
 	requiredAssets := map[string]string{
 		"/etc/resolv.conf":      filepath.Join(e.root, "etc/resolv.conf"),
 		"/etc/eopkg/eopkg.conf": filepath.Join(e.root, "etc/eopkg/eopkg.conf"),
@@ -92,6 +87,21 @@ func (e *EopkgManager) Init() error {
 			}).Error("Failed to copy host asset")
 			return err
 		}
+	}
+	return nil
+}
+
+// Init will do some basic preparation of the chroot
+func (e *EopkgManager) Init() error {
+	// Ensure dbus pid is gone
+	if PathExists(e.dbusPid) {
+		if err := os.Remove(e.dbusPid); err != nil {
+			return err
+		}
+	}
+
+	if err := e.CopyAssets(); err != nil {
+		return err
 	}
 
 	// Ensure system wide cache exists
