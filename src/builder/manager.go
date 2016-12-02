@@ -18,6 +18,9 @@ package builder
 
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
+	"os"
+	"os/signal"
 	"sync"
 )
 
@@ -107,4 +110,21 @@ func (m *Manager) Build() error {
 	}
 	m.lock.Unlock()
 	return ErrNotImplemented
+}
+
+// Cleanup will take care of any teardown operations
+func (m *Manager) Cleanup() {
+}
+
+// SigIntCleanup will take care of cleaning up the
+// build process.
+func (m *Manager) SigIntCleanup() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt)
+	go func() {
+		<-ch
+		log.Warning("CTRL+C interrupted, cleaning up")
+		m.Cleanup()
+		os.Exit(1)
+	}()
 }
