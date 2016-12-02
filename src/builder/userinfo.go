@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/go-ini/ini"
 	"os"
@@ -92,6 +93,8 @@ func (u *UserInfo) SetFromSudo() bool {
 	// Now store the home directory for that user
 	u.HomeDir = usr.HomeDir
 	u.Username = usr.Username
+	// In case of future fails
+	u.Name = usr.Name
 
 	return true
 }
@@ -104,12 +107,14 @@ func (u *UserInfo) SetFromCurrent() {
 	if usr, err := user.Current(); err != nil {
 		u.HomeDir = usr.HomeDir
 		u.Username = usr.Username
+		u.Name = usr.Name
 	} else {
 		log.WithFields(log.Fields{
 			"error": err,
 			"uid":   u.UID,
 		}).Error("Failed to lookup current user")
 		u.Username = os.Getenv("USERNAME")
+		u.Name = u.Username
 		u.HomeDir = filepath.Join("/home", u.Username)
 	}
 }
@@ -162,6 +167,7 @@ func (u *UserInfo) SetFromPackager() bool {
 		}
 		u.Name = uname.String()
 		u.Email = email.String()
+		log.Info("Setting packager details from packager INI file")
 		return true
 	}
 
@@ -210,6 +216,7 @@ func (u *UserInfo) SetFromGit() bool {
 	}
 	u.Name = uname.String()
 	u.Email = email.String()
+	log.Info("Setting packager details from git config")
 
 	return true
 }
@@ -235,8 +242,16 @@ func GetUserInfo() *UserInfo {
 		}
 	}
 
-	uinfo.Name = FallbackUserName
-	uinfo.Email = FallbackUserEmail
+	if uinfo.Name == "" {
+		uinfo.Name = FallbackUserName
+	}
+	if uinfo.Email == "" {
+		if ho, err := os.Hostname(); err != nil {
+			uinfo.Email = fmt.Sprintf("%s@%s", uinfo.Username, ho)
+		} else {
+			uinfo.Email = FallbackUserEmail
+		}
+	}
 
 	return uinfo
 }
