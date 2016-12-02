@@ -17,7 +17,15 @@
 package builder
 
 import (
+	"errors"
+	"fmt"
 	"sync"
+)
+
+var (
+	// ErrManagerInitialised is returned when the library user attempts to set
+	// a core part of the Manager after it's already been initialised
+	ErrManagerInitialised = errors.New("The manager has already been initialised")
 )
 
 // A Manager is responsible for cleanly managing the entire session within solbuild,
@@ -38,4 +46,36 @@ func NewManager() *Manager {
 	man := &Manager{}
 	man.lock = new(sync.Mutex)
 	return man
+}
+
+// SetProfile will attempt to initialise the manager with a given profile
+// Currently this is locked to a backing image specification, but in future
+// will be expanded to support profiles *based* on backing images.
+func (m *Manager) SetProfile(profile string) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	if !IsValidProfile(profile) {
+		return fmt.Errorf("Invalid profile: %v", profile)
+	}
+
+	if m.image != nil {
+		return ErrManagerInitialised
+	}
+
+	m.image = NewBackingImage(profile)
+	return nil
+}
+
+// SetPackage will set the package associated with this manager.
+// This package will be used in build & chroot operations only.
+func (m *Manager) SetPackage(pkg *Package) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	if m.pkg != nil {
+		return ErrManagerInitialised
+	}
+	m.pkg = pkg
+	return nil
 }
