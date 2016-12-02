@@ -16,15 +16,115 @@
 
 package builder
 
+import (
+	log "github.com/Sirupsen/logrus"
+	"os"
+	"os/user"
+	"path/filepath"
+	"strconv"
+)
+
 // UserInfo is required for ypkg builds, to set the .solus/package internally
 // and propagate the author details.
 type UserInfo struct {
-	Name  string
-	Email string
+	Name     string // Actual name
+	Email    string // Actual email
+	UID      int    // Unix User Id
+	GID      int    // Unix Group ID
+	HomeDir  string // Home directory of the user
+	Username string // Textual username
+}
+
+const (
+	// FallbackUserName is what we fallback to if everything else fails
+	FallbackUserName = "Automated Package Build"
+
+	// FallbackUserEmail is what we fallback to if everything else fails
+	FallbackUserEmail = "no.email.set.in.config"
+)
+
+// SetFromSudo will attempt to set our details from sudo user environment
+func (u *UserInfo) SetFromSudo() bool {
+	sudoUID := os.Getenv("SUDO_UID")
+	sudoGID := os.Getenv("SUDO_GID")
+	uid := -1
+	gid := -1
+	var err error
+
+	if sudoGID == "" {
+		sudoGID = sudoUID
+	}
+
+	if sudoUID == "" {
+		return false
+	}
+
+	if uid, err = strconv.Atoi(sudoUID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"uid":   sudoUID,
+		}).Error("Malformed SUDO_UID in environment")
+		return false
+	}
+
+	if gid, err = strconv.Atoi(sudoGID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"gid":   sudoGID,
+		}).Error("Malformed SUDO_GID in environment")
+		return false
+	}
+
+	u.UID = uid
+	u.GID = gid
+
+	// Try to set the home directory
+	usr, err := user.LookupId(sudoUID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"uid":   uid,
+		}).Error("Failed to lookup SUDO_USER entry")
+		return false
+	}
+
+	// Now store the home directory for that user
+	u.HomeDir = usr.HomeDir
+	u.Username = usr.Username
+
+	return true
+}
+
+// SetFromCurrent will set the UserInfo details from the current user
+func (u *UserInfo) SetFromCurrent() {
+	u.UID = os.Getuid()
+	u.GID = os.Getgid()
+
+	if usr, err := user.Current(); err != nil {
+		u.HomeDir = usr.HomeDir
+		u.Username = usr.Username
+	} else {
+		log.WithFields(log.Fields{
+			"error": err,
+			"uid":   u.UID,
+		}).Error("Failed to lookup current user")
+		u.Username = os.Getenv("USERNAME")
+		u.HomeDir = filepath.Join("/home", u.Username)
+	}
 }
 
 // GetUserInfo will always succeed, as it will use a fallback policy until it
 // finally comes up with a valid combination of name/email to use.
 func GetUserInfo() *UserInfo {
-	return nil
+	uinfo := &UserInfo{
+		Name:  FallbackUserName,
+		Email: FallbackUserEmail,
+	}
+
+	// First up try to set the uid/gid
+	if !uinfo.SetFromSudo() {
+		uinfo.SetFromCurrent()
+	}
+
+	return uinfo
 }
