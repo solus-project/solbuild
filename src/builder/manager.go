@@ -23,6 +23,8 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 )
 
 var (
@@ -59,15 +61,25 @@ type Manager struct {
 	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
 
 	cancelled bool // Whether or not we've been cancelled
+
+	activePID int // Active PID
 }
 
 // NewManager will return a newly initialised manager instance
 func NewManager() *Manager {
 	man := &Manager{
 		cancelled: false,
+		activePID: 0,
 	}
 	man.lock = new(sync.Mutex)
 	return man
+}
+
+// SetActivePID will set the active task PID
+func (m *Manager) SetActivePID(pid int) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.activePID = pid
 }
 
 // SetProfile will attempt to initialise the manager with a given profile
@@ -142,6 +154,14 @@ func (m *Manager) Cleanup() {
 		m.pkgManager.Cleanup()
 	}
 
+	// Try to kill the active root PID first
+	if m.activePID > 0 {
+		syscall.Kill(m.activePID, syscall.SIGTERM)
+		time.Sleep(2 * time.Second)
+		syscall.Kill(m.activePID, syscall.SIGKILL)
+		m.activePID = 0
+	}
+
 	// Still might have *something* alive in there, kill it with fire.
 	MurderDeathKill(m.overlay.MountPoint)
 	if m.pkg != nil {
@@ -185,5 +205,5 @@ func (m *Manager) Build() error {
 	defer m.Cleanup()
 	m.SigIntCleanup()
 
-	return m.pkg.Build(m.pkgManager, m.overlay)
+	return m.pkg.Build(m, m.pkgManager, m.overlay)
 }

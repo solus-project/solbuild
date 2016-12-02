@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
@@ -194,7 +193,7 @@ func (p *Package) CopyAssets(o *Overlay) error {
 }
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build(pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
 		"profile": overlay.Back.Name,
 		"version": p.Version,
@@ -271,13 +270,14 @@ func (p *Package) Build(pman *EopkgManager, overlay *Overlay) error {
 			"buildFile": ymlFile,
 		}).Info("Installing build dependencies")
 
-		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
 			log.WithFields(log.Fields{
 				"buildFile": ymlFile,
 				"error":     err,
 			}).Error("Failed to install build dependencies")
 			return err
 		}
+		notif.SetActivePID(0)
 
 		// Cleanup now
 		log.Debug("Stopping D-BUS")
@@ -290,12 +290,13 @@ func (p *Package) Build(pman *EopkgManager, overlay *Overlay) error {
 
 		// Chwn the directory before bringing up sources
 		cmd = fmt.Sprintf("chown -R %s:%s %s", BuildUser, BuildUser, BuildUserHome)
-		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
 			}).Error("Failed to set home directory permissions")
 			return err
 		}
+		notif.SetActivePID(0)
 
 		// Now kill networking
 		if err := DropNetworking(); err != nil {
@@ -323,12 +324,13 @@ func (p *Package) Build(pman *EopkgManager, overlay *Overlay) error {
 		log.WithFields(log.Fields{
 			"package": p.Name,
 		}).Info("Now starting build of package")
-		if err := commands.ChrootExec(overlay.MountPoint, cmd); err != nil {
+		if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
 			}).Error("Failed to build package")
 			return err
 		}
+		notif.SetActivePID(0)
 	} else {
 		// Just straight up build it with eopkg
 		log.Warning("Full sandboxing is not possible with legacy format")
