@@ -64,6 +64,7 @@ package manager. For now we'll disable some steps when building old style packag
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add profile concept *based on backing images*
  - [ ] Add config file support
+ - [ ] Add locking of `Overlay` and `BackingImage` storage
  - [ ] Add documentation
  - [ ] Seal the deal, v1
 
