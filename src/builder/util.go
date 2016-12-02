@@ -30,6 +30,11 @@ import (
 	"time"
 )
 
+// PidNotifier provides a simple way to set the PID on a blocking process
+type PidNotifier interface {
+	SetActivePID(int)
+}
+
 // ActivateRoot will do the hard work of actually bring up the overlayfs
 // system to allow manipulation of the roots for builds, etc.
 func (p *Package) ActivateRoot(overlay *Overlay) error {
@@ -176,7 +181,7 @@ func TouchFile(path string) error {
 
 // ChrootExec is a simple wrapper to return a correctly set up chroot command,
 // so that we can store the PID, for long running tasks
-func ChrootExec(dir, command string) (int, error) {
+func ChrootExec(notif PidNotifier, dir, command string) error {
 	args := []string{dir, "/bin/sh", "-c", command}
 	c := exec.Command("chroot", args...)
 	c.Stdout = os.Stdout
@@ -184,14 +189,15 @@ func ChrootExec(dir, command string) (int, error) {
 	c.Stdin = nil
 
 	if err := c.Start(); err != nil {
-		return -1, err
+		return err
 	}
-	return c.Process.Pid, c.Wait()
+	notif.SetActivePID(c.Process.Pid)
+	return c.Wait()
 }
 
 // ChrootExecStdin is almost identical to ChrootExec, except it permits a stdin
 // to be associated with the command
-func ChrootExecStdin(dir, command string) (int, error) {
+func ChrootExecStdin(notif PidNotifier, dir, command string) error {
 	args := []string{dir, "/bin/sh", "-c", command}
 	c := exec.Command("chroot", args...)
 	c.Stdout = os.Stdout
@@ -199,7 +205,8 @@ func ChrootExecStdin(dir, command string) (int, error) {
 	c.Stdin = os.Stdin
 
 	if err := c.Start(); err != nil {
-		return -1, err
+		return err
 	}
-	return c.Process.Pid, c.Wait()
+	notif.SetActivePID(c.Process.Pid)
+	return c.Wait()
 }
