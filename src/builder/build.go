@@ -332,6 +332,11 @@ func (p *Package) BuildYpkg(notif PidNotifier, pman *EopkgManager, overlay *Over
 		return err
 	}
 
+	// Now recopy the assets prior to build
+	if err := pman.CopyAssets(); err != nil {
+		return err
+	}
+
 	// Now build the package
 	cmd = fmt.Sprintf("/bin/su - %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 	log.WithFields(log.Fields{
@@ -364,6 +369,11 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 
 	// Ensure we have ccache available
 	if err := p.BindCcache(overlay); err != nil {
+		return err
+	}
+
+	// Now recopy the assets prior to build
+	if err := pman.CopyAssets(); err != nil {
 		return err
 	}
 
