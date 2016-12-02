@@ -163,7 +163,10 @@ func (m *Manager) Cleanup() {
 	}
 
 	// Still might have *something* alive in there, kill it with fire.
-	MurderDeathKill(m.overlay.MountPoint)
+	for i := 0; i < 10; i++ {
+		MurderDeathKill(m.overlay.MountPoint)
+	}
+
 	if m.pkg != nil {
 		m.pkg.DeactivateRoot(m.overlay)
 	}
