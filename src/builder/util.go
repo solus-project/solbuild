@@ -39,11 +39,6 @@ type PidNotifier interface {
 func (p *Package) ActivateRoot(overlay *Overlay) error {
 	log.Info("Configuring overlay storage")
 
-	// Set up environment
-	if err := overlay.EnsureDirs(); err != nil {
-		return err
-	}
-
 	// Now mount the overlayfs
 	if err := overlay.Mount(); err != nil {
 		return err

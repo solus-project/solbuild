@@ -44,11 +44,15 @@ type Overlay struct {
 	ImgDir     string // Where the profile is mounted (ro)
 	MountPoint string // The actual mount point for the union'd directories
 
+	EnableTmpfs bool   // Whether to use tmpfs for the upperdir or not
+	TmpfsSize   string // Size of the tmpfs to pass to mount, string form
+
 	ExtraMounts []string // Any extra mounts to take care of when cleaning up
 
 	mountedImg     bool // Whether we mounted the image or not
 	mountedOverlay bool // Whether we mounted the overlay or not
 	mountedVFS     bool // Whether we mounted vfs or not
+	mountedTmpfs   bool // Whether we mounted tmpfs or not
 }
 
 // NewOverlay creates a new Overlay for us in builds, etc.
@@ -71,6 +75,9 @@ func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
 		mountedImg:     false,
 		mountedOverlay: false,
 		mountedVFS:     false,
+		EnableTmpfs:    false,
+		TmpfsSize:      "",
+		mountedTmpfs:   false,
 	}
 }
 
@@ -128,11 +135,48 @@ func (o *Overlay) Mount() error {
 
 	mountMan := disk.GetMountManager()
 
+	// Mount tmpfs as the root of all other mounts if requested
+	if o.EnableTmpfs {
+		if err := os.MkdirAll(o.BaseDir, 00755); err != nil {
+			log.WithFields(log.Fields{
+				"dir":   o.BaseDir,
+				"error": err,
+			}).Error("Failed to create tmpfs directory")
+			return nil
+		}
+
+		log.WithFields(log.Fields{
+			"point": o.BaseDir,
+			"size":  o.TmpfsSize,
+		}).Info("Mounting root tmpfs")
+
+		var tmpfsOptions []string
+		if o.TmpfsSize != "" {
+			tmpfsOptions = append(tmpfsOptions, fmt.Sprintf("size=%s", o.TmpfsSize))
+		}
+		tmpfsOptions = append(tmpfsOptions, []string{
+			"rw",
+			"relatime",
+		}...)
+		if err := mountMan.Mount("tmpfs-root", o.BaseDir, "tmpfs", tmpfsOptions...); err != nil {
+			log.WithFields(log.Fields{
+				"point": o.BaseDir,
+				"size":  o.TmpfsSize,
+			}).Error("Failed to mount root tmpfs")
+			return err
+		}
+	}
+
+	// Set up environment
+	if err := o.EnsureDirs(); err != nil {
+		return err
+	}
+
 	// First up, mount the backing image
 	log.WithFields(log.Fields{
 		"point": o.Back.ImagePath,
 	}).Debug("Mounting backing image")
-	if err := mountMan.Mount(o.Back.ImagePath, o.ImgDir, "auto", "loop", "ro"); err != nil {
+	if err := mountMan.Mount(o.Back.ImagePath, o.ImgDir, "auto", "ro", "loop"); err != nil {
 		log.WithFields(log.Fields{
 			"point": o.Back.ImagePath,
 			"error": err,
@@ -140,8 +184,6 @@ func (o *Overlay) Mount() error {
 		return err
 	}
 	o.mountedImg = true
-
-	// TODO: Mount tmpfs at upperdir if requested!
 
 	// Now mount the overlayfs
 	log.WithFields(log.Fields{
@@ -208,6 +250,12 @@ func (o *Overlay) Unmount() error {
 			return err
 		}
 		o.mountedOverlay = false
+	}
+	if o.mountedTmpfs {
+		if err := mountMan.Unmount(o.UpperDir); err != nil {
+			return err
+		}
+		o.mountedTmpfs = false
 	}
 	return nil
 }
