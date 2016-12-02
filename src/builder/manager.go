@@ -90,5 +90,11 @@ func (m *Manager) SetPackage(pkg *Package) error {
 // Build will attempt to build the package associated with this manager,
 // automatically handling any required cleanups.
 func (m *Manager) Build() error {
+	m.lock.Lock()
+	if m.pkg == nil {
+		m.lock.Unlock()
+		return ErrNoPackage
+	}
+	m.lock.Unlock()
 	return ErrNotImplemented
 }
