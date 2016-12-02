@@ -54,7 +54,7 @@ package manager. For now we'll disable some steps when building old style packag
 
 **TODO**:
 
- - [ ] Port `update` and `chroot` to manager interface
+ - [x] Port `update` and `chroot` to manager interface
  - [ ] Add config file support
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
