@@ -78,8 +78,6 @@ func NewManager() (*Manager, error) {
 		activePID:  0,
 		updateMode: false,
 	}
-	// We require private mounts within solbuild
-	disk.GetMountManager().SetPrivateMounts(true)
 	man.lock = new(sync.Mutex)
 	return man, nil
 }
