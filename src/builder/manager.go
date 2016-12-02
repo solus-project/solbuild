@@ -128,7 +128,7 @@ func (m *Manager) SetCancelled() {
 // at which point error propagation and the IsCancelled() function should be enough
 // logic to go on.
 func (m *Manager) Cleanup() {
-	log.Info("Acquiring global lock")
+	log.Debug("Acquiring global lock")
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	log.Info("Cleaning up")
@@ -150,11 +150,20 @@ func (m *Manager) SigIntCleanup() {
 // Build will attempt to build the package associated with this manager,
 // automatically handling any required cleanups.
 func (m *Manager) Build() error {
+	if m.IsCancelled() {
+		return ErrInterrupted
+	}
+
 	m.lock.Lock()
 	if m.pkg == nil {
 		m.lock.Unlock()
 		return ErrNoPackage
 	}
 	m.lock.Unlock()
+
+	// Now get on with the real work!
+	defer m.Cleanup()
+	m.SigIntCleanup()
+
 	return ErrNotImplemented
 }
