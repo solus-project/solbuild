@@ -35,7 +35,8 @@ ensure_modules:
 		git submodule update; \
 	);
 
+# See: https://github.com/meitar/git-archive-all.sh/blob/master/git-archive-all.sh
 release:
-	git archive --format=tar.gz --verbose -o solbuild-$(VERSION).tar.gz HEAD --prefix=solbuild-$(VERSION)/
+	git-archive-all.sh --format tar.gz --prefix solbuild-$(VERSION)/ --verbose -t HEAD solbuild-$(VERSION).tar.gz
 
 all: $(BINS)
