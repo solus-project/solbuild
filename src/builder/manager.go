@@ -26,11 +26,11 @@ import (
 // The consumer should create a new manager instance and only use these methods,
 // not bypass and use API methods.
 type Manager struct {
-	overlay    *Overlay
-	pkg        *Package
-	pkgManager *EopkgManager
-
-	lock *sync.Mutex
+	image      *BackingImage // Storage for the overlay
+	overlay    *Overlay      // OverlayFS configuration
+	pkg        *Package      // Current package, if any
+	pkgManager *EopkgManager // Package manager, if any
+	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
 }
 
 // NewManager will return a newly initialised manager instance
