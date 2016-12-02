@@ -27,6 +27,13 @@ import (
 	"strings"
 )
 
+// An EopkgRepo is a simplistic representation of a repo found in any given
+// chroot.
+type EopkgRepo struct {
+	ID  string
+	URI string
+}
+
 // EopkgManager is our own very shorted version of libosdev EopkgManager, to
 // enable very very simple operations
 type EopkgManager struct {
@@ -251,4 +258,49 @@ func EnsureEopkgLayout(root string) error {
 	}
 
 	return nil
+}
+
+// Read the given plaintext URI file to find the target
+func readURIFile(path string) (string, error) {
+	fi, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer fi.Close()
+	contents, err := ioutil.ReadAll(fi)
+	if err != nil {
+		return "", err
+	}
+	return string(contents), nil
+}
+
+// GetRepos will attempt to discover all the repos on the target filesystem
+func (e *EopkgManager) GetRepos() ([]*EopkgRepo, error) {
+	globPat := filepath.Join(e.root, "var", "lib", "eopkg", "index", "*", "uri")
+	var repoFiles []string
+
+	repoFiles, _ = filepath.Glob(globPat)
+	// No repos
+	if len(repoFiles) < 1 {
+		return nil, nil
+	}
+
+	var repos []*EopkgRepo
+
+	for _, repo := range repoFiles {
+		uri, err := readURIFile(repo)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"path":  repo,
+			}).Error("Unable to read repository file")
+			return nil, err
+		}
+		repoName := filepath.Base(filepath.Dir(repo))
+		repos = append(repos, &EopkgRepo{
+			ID:  repoName,
+			URI: uri,
+		})
+	}
+	return repos, nil
 }
