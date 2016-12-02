@@ -67,8 +67,8 @@ type XMLUpdate struct {
 
 // XMLArchive is an <Archive> line in Source section
 type XMLArchive struct {
-	Type    string `xml:"type,href"`
-	SHA1Sum string `xml:"sha1sum,href"`
+	Type    string `xml:"type,attr"`
+	SHA1Sum string `xml:"sha1sum,attr"`
 	URI     string `xml:",chardata"`
 }
 
