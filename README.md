@@ -56,7 +56,7 @@ package manager. For now we'll disable some steps when building old style packag
 
  - [x] Port `update` and `chroot` to manager interface
  - [x] Restore `eopkg build` support for legacy format.
- - [ ] Restore `ccache` bind mount support
+ - [x] Restore `ccache` bind mount support
  - [ ] Add `tmpfs` support for builds
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
