@@ -58,7 +58,7 @@ package manager. For now we'll disable some steps when building old style packag
  - [x] Restore `eopkg build` support for legacy format.
  - [x] Restore `ccache` bind mount support
  - [x] Add `tmpfs` support for builds
- - [ ] Restore `.solus/packager` support
+ - [x] Restore `.solus/packager` support
  - [x] Add an `--update,-u` flag to `init` to automatically update it
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
