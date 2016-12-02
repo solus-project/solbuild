@@ -77,7 +77,10 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 
 	// Set the package
 	if err := manager.SetPackage(pkg); err != nil {
-		return err
+		if err == builder.ErrProfileNotInstalled {
+			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
+		}
+		return nil
 	}
 
 	if err := manager.Build(); err != nil {
