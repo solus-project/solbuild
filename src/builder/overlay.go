@@ -270,7 +270,7 @@ func (o *Overlay) MountVFS() error {
 		}
 
 		log.WithFields(log.Fields{
-			"dir": o,
+			"dir": p,
 		}).Debug("Creating VFS directory")
 
 		if err := os.MkdirAll(p, 00755); err != nil {
