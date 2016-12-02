@@ -345,7 +345,45 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		}
 	}
 
-	// TODO: Collect build results
+	// TODO: Change this to a dedicated collection directory..
+	collectionDir := p.GetWorkDir(overlay)
+	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
+	if len(collections) < 1 {
+		log.Error("Mysterious lack of eopkg files is mysterious")
+		return errors.New("Internal error: .eopkg files are missing")
+	}
 
-	return errors.New("Not yet implemented")
+	if p.Type == PackageTypeYpkg {
+		pspecs, _ := filepath.Glob(filepath.Join(collectionDir, "pspec_*.xml"))
+		collections = append(collections, pspecs...)
+	}
+
+	log.WithFields(log.Fields{
+		"numFiles": len(collections),
+	}).Info("Collecting files")
+
+	for _, p := range collections {
+		tgt, err := filepath.Abs(filepath.Join(".", filepath.Base(p)))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Unable to find working directory!")
+			return err
+		}
+
+		log.WithFields(log.Fields{
+			"file": filepath.Base(p),
+		}).Info("Collecting build artifact")
+
+		if err := disk.CopyFile(p, tgt); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Unable to collect build file")
+			return err
+		}
+
+		// TODO: chown the file back to the user we're running as now (sudo_uid)
+	}
+
+	return nil
 }
