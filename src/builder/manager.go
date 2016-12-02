@@ -217,5 +217,20 @@ func (m *Manager) Build() error {
 
 // Chroot will enter the build environment to allow users to introspect it
 func (m *Manager) Chroot() error {
-	return ErrNotImplemented
+	if m.IsCancelled() {
+		return ErrInterrupted
+	}
+
+	m.lock.Lock()
+	if m.pkg == nil {
+		m.lock.Unlock()
+		return ErrNoPackage
+	}
+	m.lock.Unlock()
+
+	// Now get on with the real work!
+	defer m.Cleanup()
+	m.SigIntCleanup()
+
+	return m.pkg.Chroot(m, m.pkgManager, m.overlay)
 }

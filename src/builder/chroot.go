@@ -24,21 +24,14 @@ import (
 )
 
 // Chroot will attempt to spawn a chroot in the overlayfs system
-func (p *Package) Chroot(img *BackingImage) error {
+func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
-		"profile": img.Name,
+		"profile": overlay.Back.Name,
 		"version": p.Version,
 		"package": p.Name,
 		"type":    p.Type,
 		"release": p.Release,
 	}).Info("Beginning chroot")
-
-	overlay := NewOverlay(img, p)
-
-	// Ensure we clean up after ourselves
-	reaper := GrimReaper(overlay, p, nil)
-	defer reaper()
-	HandleInterrupt(reaper)
 
 	if err := p.ActivateRoot(overlay); err != nil {
 		return err
@@ -65,7 +58,8 @@ func (p *Package) Chroot(img *BackingImage) error {
 	}
 
 	loginCommand := fmt.Sprintf("/bin/su - %s -s %s", user, BuildUserShell)
-	err := commands.ChrootExec(overlay.MountPoint, loginCommand)
+	err := ChrootExecStdin(notif, overlay.MountPoint, loginCommand)
 	commands.SetStdin(nil)
+	notif.SetActivePID(0)
 	return err
 }
