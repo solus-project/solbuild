@@ -40,6 +40,9 @@ var (
 
 	// ErrInvalidProfile is returned when there is an invalid profile
 	ErrInvalidProfile = errors.New("Invalid profile")
+
+	// ErrInterrupted is returned when the build is interrupted
+	ErrInterrupted = errors.New("The operation was cancelled by the user")
 )
 
 // A Manager is responsible for cleanly managing the entire session within solbuild,
@@ -53,11 +56,15 @@ type Manager struct {
 	pkg        *Package      // Current package, if any
 	pkgManager *EopkgManager // Package manager, if any
 	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
+
+	cancelled bool // Whether or not we've been cancelled
 }
 
 // NewManager will return a newly initialised manager instance
 func NewManager() *Manager {
-	man := &Manager{}
+	man := &Manager{
+		cancelled: false,
+	}
 	man.lock = new(sync.Mutex)
 	return man
 }
@@ -112,6 +119,22 @@ func (m *Manager) Build() error {
 	return ErrNotImplemented
 }
 
+// IsCancelled will determine if the build has been cancelled, this will result
+// in a lot of locking between all operations
+func (m *Manager) IsCancelled() bool {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	return m.cancelled
+}
+
+// SetCancelled will mark the build manager as cancelled, so it should not attempt
+// to start any new operations whatsoever.
+func (m *Manager) SetCancelled() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.cancelled = true
+}
+
 // Cleanup will take care of any teardown operations
 func (m *Manager) Cleanup() {
 }
@@ -124,6 +147,7 @@ func (m *Manager) SigIntCleanup() {
 	go func() {
 		<-ch
 		log.Warning("CTRL+C interrupted, cleaning up")
+		m.SetCancelled()
 		m.Cleanup()
 		os.Exit(1)
 	}()
