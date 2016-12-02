@@ -49,8 +49,12 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		pkgPath = FindLikelyArg()
 	}
 
-	if !builder.IsValidProfile(profile) {
-		builder.EmitProfileError(profile)
+	// Initialise the build manager
+	manager := builder.NewManager()
+	if err := manager.SetProfile(profile); err != nil {
+		if err == builder.ErrManagerInitialised {
+			builder.EmitProfileError(profile)
+		}
 		return nil
 	}
 
@@ -58,13 +62,6 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 
 	if pkgPath == "" {
 		return errors.New("Require a filename to build")
-	}
-
-	// Complain about missing profile
-	bk := builder.NewBackingImage(profile)
-	if !bk.IsInstalled() {
-		fmt.Fprintf(os.Stderr, "Cannot find profile '%s'. Did you forget to run init?\n", profile)
-		return nil
 	}
 
 	pkg, err := builder.NewPackage(pkgPath)
@@ -78,10 +75,17 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	if err := pkg.Build(bk); err != nil {
-		log.Error("Building failed")
-	} else {
-		log.Info("Building succeeded")
+	// Set the package
+	if err := manager.SetPackage(pkg); err != nil {
+		return err
 	}
+
+	log.Debug("Building is being reimplemented :)")
+
+	//if err := pkg.Build(bk); err != nil {
+	//	log.Error("Building failed")
+	//} else {
+	//	log.Info("Building succeeded")
+	//}
 	return nil
 }
