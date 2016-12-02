@@ -19,6 +19,7 @@ package builder
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/disk"
 	"os"
 	"os/signal"
 	"sync"
@@ -104,6 +105,7 @@ func (m *Manager) SetPackage(pkg *Package) error {
 
 	m.pkg = pkg
 	m.overlay = NewOverlay(m.image, m.pkg)
+	m.pkgManager = NewEopkgManager(m.overlay.MountPoint)
 	return nil
 }
 
@@ -132,6 +134,24 @@ func (m *Manager) Cleanup() {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	log.Info("Cleaning up")
+
+	if m.pkgManager != nil {
+		// Potentially unnecessary but meh
+		m.pkgManager.StopDBUS()
+		// Always needed
+		m.pkgManager.Cleanup()
+	}
+
+	// Still might have *something* alive in there, kill it with fire.
+	MurderDeathKill(m.overlay.MountPoint)
+	if m.pkg != nil {
+		m.pkg.DeactivateRoot(m.overlay)
+	}
+	// Deactivation may have started something off, kill them too
+	MurderDeathKill(m.overlay.MountPoint)
+
+	// Unmount anything we may have mounted
+	disk.GetMountManager().UnmountAll()
 }
 
 // SigIntCleanup will take care of cleaning up the build process.
@@ -165,5 +185,5 @@ func (m *Manager) Build() error {
 	defer m.Cleanup()
 	m.SigIntCleanup()
 
-	return ErrNotImplemented
+	return m.pkg.Build(m.pkgManager, m.overlay)
 }

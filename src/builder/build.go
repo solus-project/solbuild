@@ -194,28 +194,19 @@ func (p *Package) CopyAssets(o *Overlay) error {
 }
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build(img *BackingImage) error {
+func (p *Package) Build(pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
-		"profile": img.Name,
+		"profile": overlay.Back.Name,
 		"version": p.Version,
 		"package": p.Name,
 		"type":    p.Type,
 		"release": p.Release,
 	}).Info("Building package")
 
-	overlay := NewOverlay(img, p)
-
 	// Set up environment
 	if err := overlay.CleanExisting(); err != nil {
 		return err
 	}
-
-	pman := NewEopkgManager(overlay.MountPoint)
-
-	// Ensure we clean up after ourselves
-	reaper := GrimReaper(overlay, p, pman)
-	defer reaper()
-	HandleInterrupt(reaper)
 
 	// Bring up the root
 	if err := p.ActivateRoot(overlay); err != nil {
