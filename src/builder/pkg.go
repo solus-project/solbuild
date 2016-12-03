@@ -165,6 +165,18 @@ func NewYmlPackage(path string) (*Package, error) {
 	if err != nil {
 		return nil, err
 	}
+	ret, err := NewYmlPackageFromBytes(by)
+	if err != nil {
+		return nil, err
+	}
+	ret.Path = path
+	return ret, nil
+}
+
+// NewYmlPackageFromBytes will attempt to parse the ypkg package.yml in memory
+func NewYmlPackageFromBytes(by []byte) (*Package, error) {
+	var err error
+
 	ypkg := &YmlPackage{Networking: false}
 	if err = yaml.Unmarshal(by, ypkg); err != nil {
 		return nil, err
@@ -175,7 +187,6 @@ func NewYmlPackage(path string) (*Package, error) {
 		Version:    strings.TrimSpace(ypkg.Version),
 		Release:    ypkg.Release,
 		Type:       PackageTypeYpkg,
-		Path:       path,
 		CanNetwork: ypkg.Networking,
 	}
 
