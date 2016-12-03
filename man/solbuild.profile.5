@@ -1,0 +1,147 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "SOLBUILD\.PROFILE" "5" "December 2016" "" ""
+.
+.SH "NAME"
+\fBsolbuild\.profile\fR \- solbuild profiles
+.
+.SH "NAME"
+.
+.nf
+
+solbuild\.profile \- Profile definition for solbuild
+.
+.fi
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+/usr/share/solbuild/*\.profile
+
+/etc/solbuild/*\.profile
+.
+.fi
+.
+.SH "DESCRIPTION"
+\fBsolbuild(1)\fR uses configuration files from the above mentioned directories to define profiles used for builds\. A \fBsolbuild\fR profile is automatically named to the basename of the file, without the \fB\.profile\fR suffix\.
+.
+.P
+As an example, if we have the file \fB/etc/solbuild/test\.profile\fR, the name of the profile in \fBsolbuild(1)\fR would be \fBtest\fR\. With the layered stateless approach in solbuild, any named profile in the system config directory \fB/etc/\fR will take priority over the named profiles in the vendor directory\. These profiles are not merged, the one in \fB/etc/\fR will "replace" the one in the vendor directory, \fB/usr/share/solbuild\fR\.
+.
+.SH "CONFIGURATION FORMAT"
+\fBsolbuild\fR uses the \fBTOML\fR configuration format for all of it\'s own configuration files\. This is a strongly typed configuration format, whereby strict validation occurs against expected key types\.
+.
+.IP "\(bu" 4
+\fBimage\fR
+.
+.IP
+Set the backing image to one of the (currently Solus) provided backing images\. Valid values include:
+.
+.IP "" 4
+.
+.nf
+
+  * `main\-x86_64`
+  * `unstable\-x86_64`
+.
+.fi
+.
+.IP "" 0
+.
+.IP
+A string value is expected for this key\.
+.
+.IP "\(bu" 4
+\fBremove_repos\fR
+.
+.IP
+This key expects an array of strings for the repo names to remove from the existing base image during builds\. Currently the Solus provided images all use the name \fBSolus\fR for the repo they ship with\.
+.
+.IP
+Setting this to a value of \fB[\'*\']\fR will indicate removal of all repos\.
+.
+.IP "\(bu" 4
+\fBadd_repos\fR
+.
+.IP
+This key expects an array of strings for the repo names defined in this profile to add to the image\. The default unset value, i\.e\. an absence of this key, or the special value \fB[\'*\']\fR will enable all of the repos in the profile\.
+.
+.IP
+This option may be useful for testing repos and conditionally disabling them for testing, without having to remove them from the file\.
+.
+.IP "\(bu" 4
+\fB[repo\.$Name]\fR
+.
+.IP
+A repository is defined with this key, where \fB$Name\fR is replaced with the name you intend to assign to the repository\. By default, a repo definition is configured for a remote repository\.
+.
+.IP "\(bu" 4
+\fB[repo\.$Name]\fR \fBuri\fR
+.
+.IP
+Set this to the remote repository URL, including the \fBeopkg\-index\.xml\.xz\fR If the repository is a \fBlocal\fR one, you must include the path to the directory, with no suffix\.
+.
+.IP "\(bu" 4
+\fB[repo\.$Name]\fR \fBlocal\fR
+.
+.IP
+Set this to true to configure \fBsolbuild(1)\fR to add a local repository to the build\. The build process will bind\-mount the \fBuri\fR configured directory into the build and make it available\.
+.
+.IP "\(bu" 4
+\fB[repo\.$Name]\fR \fBautoindex\fR
+.
+.IP
+Set this to true to instruct \fBsolbuild(1)\fR to automatically reindex this local repository while in the container\. This may be useful if you do not have the appropriate host side tools\.
+.
+.IP
+\fBsolbuild(1)\fR will only index the files once, at startup, before it has performed the upgrade and component validation\. Once your build has completed, and your \fB*\.eopkg\fR files are deposited in your current directory, you can simply copy them to your local repository directory, and then \fBsolbuild\fR will be able to use them immediately in your next build\.
+.
+.IP "" 0
+
+.
+.IP "" 0
+.
+.SH "EXAMPLE"
+.
+.nf
+
+# Use the unstable backing image for this profile
+image = "unstable\-x86_64"
+
+# Restrict adding the repos to the Solus repo only
+add_repos = [\'Solus\']
+
+# Example of adding a remote repo
+[repo\.Solus]
+uri = "http://packages\.solus\-project\.com/unstable/eopkg\-index\.xml\.xz"
+
+# Add a local repository by bind mounting it into chroot on each build
+[repo\.Local]
+uri = "/var/lib/myrepo"
+local = true
+.
+.fi
+.
+.SH "COPYRIGHT"
+.
+.IP "\(bu" 4
+Copyright © 2016 Ikey Doherty, License: CC\-BY\-SA\-3\.0
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+\fBsolbuild(1)\fR, \fBsolbuild\.conf(5)\fR
+.
+.P
+https://github\.com/toml\-lang/toml
+.
+.SH "NOTES"
+Creative Commons Attribution\-ShareAlike 3\.0 Unported
+.
+.IP "\(bu" 4
+http://creativecommons\.org/licenses/by\-sa/3\.0/
+.
+.IP "" 0
+

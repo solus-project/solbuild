@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>solbuild.profile(5) - solbuild profiles</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#CONFIGURATION-FORMAT">CONFIGURATION FORMAT</a>
+    <a href="#EXAMPLE">EXAMPLE</a>
+    <a href="#COPYRIGHT">COPYRIGHT</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+    <a href="#NOTES">NOTES</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>solbuild.profile(5)</li>
+    <li class='tc'></li>
+    <li class='tr'>solbuild.profile(5)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>solbuild.profile</code> - <span class="man-whatis">solbuild profiles</span>
+</p>
+
+<h2 id="NAME">NAME</h2>
+
+<pre><code>solbuild.profile - Profile definition for solbuild
+</code></pre>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<pre><code>/usr/share/solbuild/*.profile
+
+/etc/solbuild/*.profile
+</code></pre>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p><code>solbuild(1)</code> uses configuration files from the above mentioned directories to
+define profiles used for builds. A <code>solbuild</code> profile is automatically named
+to the basename of the file, without the <code>.profile</code> suffix.</p>
+
+<p>As an example, if we have the file <code>/etc/solbuild/test.profile</code>, the name of
+the profile in <code>solbuild(1)</code> would be <strong>test</strong>. With the layered stateless
+approach in solbuild, any named profile in the system config directory <code>/etc/</code>
+will take priority over the named profiles in the vendor directory. These
+profiles are not merged, the one in <code>/etc/</code> will "replace" the one in the
+vendor directory, <code>/usr/share/solbuild</code>.</p>
+
+<h2 id="CONFIGURATION-FORMAT">CONFIGURATION FORMAT</h2>
+
+<p><code>solbuild</code> uses the <code>TOML</code> configuration format for all of it's own
+configuration files. This is a strongly typed configuration format, whereby
+strict validation occurs against expected key types.</p>
+
+<ul>
+<li><p><code>image</code></p>
+
+<p>  Set the backing image to one of the (currently Solus) provided backing
+  images. Valid values include:</p>
+
+<pre><code>  * `main-x86_64`
+  * `unstable-x86_64`
+</code></pre>
+
+<p>  A string value is expected for this key.</p></li>
+<li><p><code>remove_repos</code></p>
+
+<p>  This key expects an array of strings for the repo names to remove from the
+  existing base image during builds. Currently the Solus provided images all
+  use the name <strong>Solus</strong> for the repo they ship with.</p>
+
+<p>  Setting this to a value of <code>['*']</code> will indicate removal of all repos.</p></li>
+<li><p><code>add_repos</code></p>
+
+<p>  This key expects an array of strings for the repo names defined in this
+  profile to add to the image. The default unset value, i.e. an absence
+  of this key, or the special value <code>['*']</code> will enable all of the repos
+  in the profile.</p>
+
+<p>  This option may be useful for testing repos and conditionally disabling
+  them for testing, without having to remove them from the file.</p></li>
+<li><p><code>[repo.$Name]</code></p>
+
+<p>  A repository is defined with this key, where <code>$Name</code> is replaced with the
+  name you intend to assign to the repository. By default, a repo definition
+  is configured for a remote repository.</p>
+
+<ul>
+<li><p><code>[repo.$Name]</code> <code>uri</code></p>
+
+<p>  Set this to the remote repository URL, including the <code>eopkg-index.xml.xz</code>
+  If the repository is a <strong>local</strong> one, you must include the path to the
+  directory, with no suffix.</p></li>
+<li><p><code>[repo.$Name]</code> <code>local</code></p>
+
+<p>  Set this to true to configure <code>solbuild(1)</code> to add a local repository
+  to the build. The build process will bind-mount the <code>uri</code> configured
+  directory into the build and make it available.</p></li>
+<li><p><code>[repo.$Name]</code> <code>autoindex</code></p>
+
+<p>  Set this to true to instruct <code>solbuild(1)</code> to automatically reindex this
+  local repository while in the container. This may be useful if you do
+  not have the appropriate host side tools.</p>
+
+<p>  <code>solbuild(1)</code> will only index the files once, at startup, before it has
+  performed the upgrade and component validation. Once your build has
+  completed, and your <code>*.eopkg</code> files are deposited in your current directory,
+  you can simply copy them to your local repository directory, and then
+  <code>solbuild</code> will be able to use them immediately in your next build.</p></li>
+</ul>
+</li>
+</ul>
+
+
+<h2 id="EXAMPLE">EXAMPLE</h2>
+
+<pre><code># Use the unstable backing image for this profile
+image = "unstable-x86_64"
+
+# Restrict adding the repos to the Solus repo only
+add_repos = ['Solus']
+
+# Example of adding a remote repo
+[repo.Solus]
+uri = "http://packages.solus-project.com/unstable/eopkg-index.xml.xz"
+
+# Add a local repository by bind mounting it into chroot on each build
+[repo.Local]
+uri = "/var/lib/myrepo"
+local = true
+</code></pre>
+
+<h2 id="COPYRIGHT">COPYRIGHT</h2>
+
+<ul>
+<li>Copyright © 2016 Ikey Doherty, License: CC-BY-SA-3.0</li>
+</ul>
+
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><code>solbuild(1)</code>, <code>solbuild.conf(5)</code></p>
+
+<p>https://github.com/toml-lang/toml</p>
+
+<h2 id="NOTES">NOTES</h2>
+
+<p>Creative Commons Attribution-ShareAlike 3.0 Unported</p>
+
+<ul>
+<li>http://creativecommons.org/licenses/by-sa/3.0/</li>
+</ul>
+
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>December 2016</li>
+    <li class='tr'>solbuild.profile(5)</li>
+  </ol>
+
+  </div>
+</body>
+</html>
