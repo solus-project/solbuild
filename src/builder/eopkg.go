@@ -373,7 +373,7 @@ func (e *EopkgManager) ConfigureRepos(p *Profile) error {
 
 	var addRepos []*Repo
 
-	if len(p.AddRepos) == 1 && p.AddRepos[0] == "*" {
+	if (len(p.AddRepos) == 1 && p.AddRepos[0] == "*") || len(p.AddRepos) == 0 {
 		for _, repo := range p.Repos {
 			addRepos = append(addRepos, repo)
 		}
