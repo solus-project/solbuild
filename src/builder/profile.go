@@ -28,6 +28,7 @@ import (
 // A Repo is a definition of a repository to add to the eopkg root during
 // the build process.
 type Repo struct {
+	Name      string `toml:"-"`         // Name of the repo, set by implementation not yoml
 	URI       string `toml:"uri"`       // URI of the repository
 	Local     bool   `toml:"local"`     // Local repository for bindmounting
 	AutoIndex bool   `toml:"autoindex"` // Enable automatic indexing of the repo
@@ -105,6 +106,11 @@ func NewProfileFromPath(path string) (*Profile, error) {
 
 	if _, err = toml.Decode(string(b), profile); err != nil {
 		return nil, err
+	}
+
+	// Ensure all repos have a valid name
+	for name, repo := range profile.Repos {
+		repo.Name = name
 	}
 
 	// Ignore a wildcard add
