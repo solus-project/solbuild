@@ -20,3 +20,28 @@ import (
 	// Right now this is just to force git2go into the build
 	_ "github.com/libgit2/git2go"
 )
+
+// PackageHistory is an automatic changelog generated from the changes to
+// the package.yml file during the history of the package.
+//
+// Through this system, we provide a `history.xml` file to `ypkg-build`
+// inside the container, which allows it to export the changelog back to
+// the user.
+//
+// This provides a much more natural system than having dedicated changelog
+// files in package gits, as it reduces any and all duplication.
+// We also have the opportunity to parse natural elements from the git history
+// to make determinations as to the update *type*, such as a security update,
+// or an update that requires a reboot to the users system.
+//
+// Currently we're only scoping for security update notification, though
+// more features will come in time.
+type PackageHistory struct {
+}
+
+// NewPackageHistory will attempt to analyze the git history at the given
+// repository path, and return a usable instance of PackageHistory for writing
+// to the container history.xml file.
+func NewPackageHistory(path string) (*PackageHistory, error) {
+	return nil, ErrNotImplemented
+}
