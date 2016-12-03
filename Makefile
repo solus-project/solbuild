@@ -31,6 +31,9 @@ install: $(BINS)
 	test -d $(DESTDIR)/usr/share/solbuild || install -D -d -m 00755 $(DESTDIR)/usr/share/solbuild; \
 	install -m 00644 data/*.profile $(DESTDIR)/usr/share/solbuild/.;
 	install -m 00644 data/00_solbuild.conf $(DESTDIR)/usr/share/solbuild/.;
+	test -d $(DESTDIR)/usr/share/man/man1 || install -D -d -m 00755 $(DESTDIR)/usr/share/man/man1; \
+	install -m 00644 man/*.1 $(DESTDIR)/usr/share/man/man1/.;
+
 
 ensure_modules:
 	@ ( \
