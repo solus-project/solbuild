@@ -18,6 +18,8 @@ package builder
 
 import (
 	"fmt"
+	"github.com/BurntSushi/toml"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,6 +70,20 @@ func NewProfileFromPath(path string) (*Profile, error) {
 
 	profileName := basename[:len(ProfileSuffix)]
 	fmt.Fprintf(os.Stderr, "Profile: %v\n", profileName)
+
+	var b []byte
+	profile := &Profile{Name: profileName}
+
+	// Read the config file
+	if b, err = ioutil.ReadAll(fi); err != nil {
+		return nil, err
+	}
+
+	if _, err = toml.Decode(string(b), profile); err != nil {
+		return nil, err
+	}
+
+	fmt.Fprintf(os.Stderr, "Profile: %v\n", profile.Name)
 
 	return nil, ErrNotImplemented
 }
