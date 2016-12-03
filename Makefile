@@ -27,7 +27,9 @@ BINS = $(addsuffix .statbin,$(BINARIES))
 compliant: $(_CHECK_COMPLIANCE)
 install: $(BINS)
 	test -d $(DESTDIR)/usr/bin || install -D -d -m 00755 $(DESTDIR)/usr/bin; \
-	install -m 00755 bin/* $(DESTDIR)/usr/bin/.
+	install -m 00755 bin/* $(DESTDIR)/usr/bin/.; \
+	test -d $(DESTDIR)/usr/share/solbuild || install -D -d -m 00755 $(DESTDIR)/usr/share/solbuild; \
+	install -m 00644 data/*.profile $(DESTDIR)/usr/share/solbuild/.;
 
 ensure_modules:
 	@ ( \
