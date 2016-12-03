@@ -10,7 +10,7 @@ solbuild
  - **main-x86_64**: Built using the stable Solus repositories, suitable for production deployments for `shannon` users.
  - **unstable-x86_64**: Built using the unstable Solus repositories, ideal for developers, and the Solus build machinery for the repo waterfall prior to `shannon` inclusion.
 
-When building `package.yml` files (`ypkg`), the tool will also disable all networking within the environment, apart from the loopback device. This is intended to prevent uncontrolled build environments in which a package may be fetching external, unverified sources, during the build.
+When building `package.yml` files ([ypkg](https://github.com/solus-project/ypkg)), the tool will also disable all networking within the environment, apart from the loopback device. This is intended to prevent uncontrolled build environments in which a package may be fetching external, unverified sources, during the build.
 
 `solbuild` also allows developers to control the repositories used by configuring the profiles:
 
