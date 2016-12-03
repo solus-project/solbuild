@@ -66,5 +66,8 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	}
 	defer fi.Close()
 
+	profileName := basename[:len(ProfileSuffix)]
+	fmt.Fprintf(os.Stderr, "Profile: %v\n", profileName)
+
 	return nil, ErrNotImplemented
 }
