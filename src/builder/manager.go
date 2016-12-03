@@ -273,8 +273,9 @@ func (m *Manager) doLock(path, opType string) error {
 	if err = m.lockfile.Lock(); err != nil {
 		if err == ErrOwnedLockFile {
 			log.WithFields(log.Fields{
-				"err": err,
-				"pid": m.lockfile.GetOwnerPID(),
+				"err":     err,
+				"pid":     m.lockfile.GetOwnerPID(),
+				"process": m.lockfile.GetOwnerProcess(),
 			}).Error("Failed to lock root - another process is using it")
 		} else {
 			log.WithFields(log.Fields{

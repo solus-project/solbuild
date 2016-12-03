@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"syscall"
 )
@@ -68,6 +69,16 @@ func NewLockFile(path string) (*LockFile, error) {
 // GetOwnerPID will return the owner PID, if it exists
 func (l *LockFile) GetOwnerPID() int {
 	return l.owningPID
+}
+
+// GetOwnerProcess will return the executable name if possible
+func (l *LockFile) GetOwnerProcess() string {
+	fp := fmt.Sprintf("/proc/%d/exe", l.owningPID)
+	str, err := filepath.EvalSymlinks(fp)
+	if err != nil {
+		return "unknown process"
+	}
+	return str
 }
 
 // Lock will attempt to lock the file, or return an error if this fails
