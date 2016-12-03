@@ -1,3 +1,19 @@
+#
+# unstable-x86_64 configuration
+#
+# Build Solus packages using the unstable repository image.
+# This is the default profile for the Solus build server and developers.
+#
+# Do not make changes to this file. solbuild is implemented in a stateless
+# fashion, and will load files in a layered mechanism. If you wish to edit
+# this profile, copy to /etc/solbuild/.
+#
+# It is generally advisable to create a *new* profile name in /etc, because
+# we will load /etc/ before /usr/share. Thus, profiles with the same name
+# in /etc/ are loaded *first* and will override this profile.
+#
+# Of course, if that's what you intended to do, then by all means, do so.
+
 image = "unstable-x86_64"
 
 # Remove all the repos from the base image
