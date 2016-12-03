@@ -279,6 +279,8 @@ func (e *EopkgManager) GetRepos() ([]*EopkgRepo, error) {
 	globPat := filepath.Join(e.root, "var", "lib", "eopkg", "index", "*", "uri")
 	var repoFiles []string
 
+	log.Debug("Discovering repos in rootfs")
+
 	repoFiles, _ = filepath.Glob(globPat)
 	// No repos
 	if len(repoFiles) < 1 {
@@ -315,4 +317,50 @@ func (e *EopkgManager) AddRepo(id, source string) error {
 func (e *EopkgManager) RemoveRepo(id string) error {
 	e.notif.SetActivePID(0)
 	return ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg remove-repo '%s'", id))
+}
+
+func (e *EopkgManager) removeRepos(repos []string) error {
+	if len(repos) < 1 {
+		return nil
+	}
+	for _, id := range repos {
+		log.WithFields(log.Fields{
+			"name": id,
+		}).Info("Removing repository")
+		if err := e.RemoveRepo(id); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"name":  id,
+			}).Error("Failed to remove repository")
+			return err
+		}
+	}
+	return nil
+}
+
+// ConfigureRepos will attempt to configure the repos according to the configuration
+// of the manager.
+func (e *EopkgManager) ConfigureRepos(p *Profile) error {
+	repos, err := e.GetRepos()
+	if err != nil {
+		return err
+	}
+
+	var removals []string
+
+	// Find out which repos to remove
+	if len(p.RemoveRepos) == 1 && p.RemoveRepos[0] == "*" {
+		for _, r := range repos {
+			removals = append(removals, r.ID)
+		}
+	} else {
+		for _, r := range p.RemoveRepos {
+			removals = append(removals, r)
+		}
+	}
+
+	if err := e.removeRepos(removals); err != nil {
+		return err
+	}
+	return nil
 }
