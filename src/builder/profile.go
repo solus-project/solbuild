@@ -99,7 +99,7 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	}
 	defer fi.Close()
 
-	profileName := basename[:len(ProfileSuffix)]
+	profileName := basename[:len(basename)-len(ProfileSuffix)]
 
 	var b []byte
 	profile := &Profile{Name: profileName}
