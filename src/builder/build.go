@@ -497,6 +497,14 @@ func (p *Package) Build(notif PidNotifier, profile *Profile, pman *EopkgManager,
 
 	usr := GetUserInfo()
 
+	var env []string
+	if p.Type == PackageTypeXML {
+		env = SaneEnvironment("root", "/root")
+	} else {
+		env = SaneEnvironment(BuildUser, BuildUserHome)
+	}
+	ChrootEnvironment = env
+
 	// Set up environment
 	if err := overlay.CleanExisting(); err != nil {
 		return err

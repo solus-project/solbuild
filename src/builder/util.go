@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/solus-project/libosdev/disk"
@@ -25,9 +26,19 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
+
+var (
+	// ChrootEnvironment is the env used by ChrootExec calls
+	ChrootEnvironment []string
+)
+
+func init() {
+	ChrootEnvironment = nil
+}
 
 // PidNotifier provides a simple way to set the PID on a blocking process
 type PidNotifier interface {
@@ -135,6 +146,38 @@ func TouchFile(path string) error {
 	return nil
 }
 
+// SaneEnvironment will generate a clean environment for the chroot'd
+// processes to use
+func SaneEnvironment(username, home string) []string {
+	environment := []string{
+		"PATH=/usr/bin:/usr/sbin:/bin/:/sbin",
+		fmt.Sprintf("HOME=%s", home),
+		fmt.Sprintf("USER=%s", username),
+		fmt.Sprintf("USERNAME=%s", username),
+	}
+	// Consider an option to even filter these out
+	permitted := []string{
+		"http_proxy",
+		"https_proxy",
+		"no_proxy",
+		"ftp_proxy",
+		"LANG",
+	}
+	for _, p := range permitted {
+		env := os.Getenv(p)
+		if env == "" {
+			p = strings.ToUpper(p)
+			env = os.Getenv(p)
+		}
+		if env == "" {
+			continue
+		}
+		environment = append(environment,
+			fmt.Sprintf("%s=%s", p, env))
+	}
+	return environment
+}
+
 // ChrootExec is a simple wrapper to return a correctly set up chroot command,
 // so that we can store the PID, for long running tasks
 func ChrootExec(notif PidNotifier, dir, command string) error {
@@ -143,6 +186,7 @@ func ChrootExec(notif PidNotifier, dir, command string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = nil
+	c.Env = ChrootEnvironment
 	c.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 
 	if err := c.Start(); err != nil {
@@ -160,6 +204,7 @@ func ChrootExecStdin(notif PidNotifier, dir, command string) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
+	c.Env = ChrootEnvironment
 
 	if err := c.Start(); err != nil {
 		return err

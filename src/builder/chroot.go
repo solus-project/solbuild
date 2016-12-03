@@ -33,6 +33,14 @@ func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay
 		"release": p.Release,
 	}).Info("Beginning chroot")
 
+	var env []string
+	if p.Type == PackageTypeXML {
+		env = SaneEnvironment("root", "/root")
+	} else {
+		env = SaneEnvironment(BuildUser, BuildUserHome)
+	}
+	ChrootEnvironment = env
+
 	if err := p.ActivateRoot(overlay); err != nil {
 		return err
 	}
