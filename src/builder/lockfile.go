@@ -171,5 +171,8 @@ func (l *LockFile) Clean() error {
 	}
 
 	l.fd.Close()
-	return os.Remove(l.path)
+	if l.owner {
+		return os.Remove(l.path)
+	}
+	return nil
 }
