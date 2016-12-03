@@ -252,6 +252,36 @@ func (m *Manager) Cleanup() {
 	}
 }
 
+// doLock will handle the relevant locking operation for the given path
+func (m *Manager) doLock(path, opType string) error {
+	// Handle file locking
+	lock, err := NewLockFile(path)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"file":  path,
+		}).Error("Failed to lock root for " + opType)
+		return err
+	}
+	m.lockfile = lock
+
+	if err = m.lockfile.Lock(); err != nil {
+		if err == ErrOwnedLockFile {
+			log.WithFields(log.Fields{
+				"err": err,
+				"pid": m.lockfile.GetOwnerPID(),
+			}).Error("Failed to lock root - another process is using it")
+		} else {
+			log.WithFields(log.Fields{
+				"err": err,
+				"pid": m.lockfile.GetOwnerPID(),
+			}).Error("Failed to lock root")
+		}
+		return err
+	}
+	return nil
+}
+
 // SigIntCleanup will take care of cleaning up the build process.
 func (m *Manager) SigIntCleanup() {
 	ch := make(chan os.Signal, 1)
@@ -288,6 +318,10 @@ func (m *Manager) Build() error {
 	m.overlay.EnableTmpfs = m.config.EnableTmpfs
 	m.overlay.TmpfsSize = m.config.TmpfsSize
 
+	if err := m.doLock(m.overlay.MountPoint, "building"); err != nil {
+		return err
+	}
+
 	return m.pkg.Build(m, m.GetProfile(), m.pkgManager, m.overlay)
 }
 
@@ -307,6 +341,10 @@ func (m *Manager) Chroot() error {
 	// Now get on with the real work!
 	defer m.Cleanup()
 	m.SigIntCleanup()
+
+	if err := m.doLock(m.overlay.MountPoint, "chroot"); err != nil {
+		return err
+	}
 
 	return m.pkg.Chroot(m, m.pkgManager, m.overlay)
 }
@@ -331,6 +369,10 @@ func (m *Manager) Update() error {
 
 	defer m.Cleanup()
 	m.SigIntCleanup()
+
+	if err := m.doLock(m.image.RootDir, "updating"); err != nil {
+		return err
+	}
 
 	return m.image.Update(m, m.pkgManager)
 }
