@@ -14,11 +14,23 @@ solbuild.conf(5) -- solbuild configuration
 
 ## DESCRIPTION
 
-    `solbuild` uses configuration files from the above mentioned directories
-    to configure various aspects of the `solbuild` defaults.
+`solbuild(1)` uses configuration files from the above mentioned directories to
+configure various aspects of the `solbuild` defaults.
+
+All configuration files must be valid prior to `solbuild(1)` launching, as it
+will load and validate them all into a merged configuration. Using a layered
+approach, `solbuild` will first read from the global vendor directory,
+`/usr/share/solbuild`, before finally loading from the system directory,
+`/etc/solbuild`.
+
+`solbuild(1)` is capable of running without configuration, and this method
+permits a stateless implementation whereby vendor & system administrator
+configurations are respected in the correct order.
 
 ## CONFIGURATION FORMAT
 
+`solbuild` uses the `TOML` configuration format for all of it's own
+configuration files. 
 
 ## EXAMPLE
 
@@ -33,6 +45,7 @@ solbuild.conf(5) -- solbuild configuration
 
 `solbuild(1)`
 
+https://github.com/toml-lang/toml
 
 ## NOTES
 

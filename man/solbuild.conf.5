@@ -25,15 +25,16 @@ solbuild\.conf \- configuration for solbuild
 .fi
 .
 .SH "DESCRIPTION"
+\fBsolbuild(1)\fR uses configuration files from the above mentioned directories to configure various aspects of the \fBsolbuild\fR defaults\.
 .
-.nf
-
-`solbuild` uses configuration files from the above mentioned directories
-to configure various aspects of the `solbuild` defaults\.
+.P
+All configuration files must be valid prior to \fBsolbuild(1)\fR launching, as it will load and validate them all into a merged configuration\. Using a layered approach, \fBsolbuild\fR will first read from the global vendor directory, \fB/usr/share/solbuild\fR, before finally loading from the system directory, \fB/etc/solbuild\fR\.
 .
-.fi
+.P
+\fBsolbuild(1)\fR is capable of running without configuration, and this method permits a stateless implementation whereby vendor & system administrator configurations are respected in the correct order\.
 .
 .SH "CONFIGURATION FORMAT"
+\fBsolbuild\fR uses the \fBTOML\fR configuration format for all of it\'s own configuration files\.
 .
 .SH "EXAMPLE"
 .
@@ -46,6 +47,9 @@ Copyright © 2016 Ikey Doherty, License: CC\-BY\-SA\-3\.0
 .
 .SH "SEE ALSO"
 \fBsolbuild(1)\fR
+.
+.P
+https://github\.com/toml\-lang/toml
 .
 .SH "NOTES"
 Creative Commons Attribution\-ShareAlike 3\.0 Unported

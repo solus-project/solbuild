@@ -89,11 +89,23 @@
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
-<pre><code>`solbuild` uses configuration files from the above mentioned directories
-to configure various aspects of the `solbuild` defaults.
-</code></pre>
+<p><code>solbuild(1)</code> uses configuration files from the above mentioned directories to
+configure various aspects of the <code>solbuild</code> defaults.</p>
+
+<p>All configuration files must be valid prior to <code>solbuild(1)</code> launching, as it
+will load and validate them all into a merged configuration. Using a layered
+approach, <code>solbuild</code> will first read from the global vendor directory,
+<code>/usr/share/solbuild</code>, before finally loading from the system directory,
+<code>/etc/solbuild</code>.</p>
+
+<p><code>solbuild(1)</code> is capable of running without configuration, and this method
+permits a stateless implementation whereby vendor &amp; system administrator
+configurations are respected in the correct order.</p>
 
 <h2 id="CONFIGURATION-FORMAT">CONFIGURATION FORMAT</h2>
+
+<p><code>solbuild</code> uses the <code>TOML</code> configuration format for all of it's own
+configuration files.</p>
 
 <h2 id="EXAMPLE">EXAMPLE</h2>
 
@@ -107,6 +119,8 @@ to configure various aspects of the `solbuild` defaults.
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
 <p><code>solbuild(1)</code></p>
+
+<p>https://github.com/toml-lang/toml</p>
 
 <h2 id="NOTES">NOTES</h2>
 
