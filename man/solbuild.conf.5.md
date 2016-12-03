@@ -72,7 +72,7 @@ strict validation occurs against expected key types.
 ## SEE ALSO
 
 
-`solbuild(1)`
+`solbuild(1)`, `solbuild.profile(5)`
 
 https://github.com/toml-lang/toml
 

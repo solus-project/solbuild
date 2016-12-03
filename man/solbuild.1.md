@@ -119,7 +119,7 @@ On success, 0 is returned. A non-zero return code signals a failure.
 
 ## SEE ALSO
 
-`solbuild.conf(5)`
+`solbuild.conf(5)`, `solbuild.profile(5)`
 
 https://github.com/solus-project/solbuild
 
