@@ -343,7 +343,26 @@ func (e *EopkgManager) addRepos(repos []*Repo) error {
 	if len(repos) < 1 {
 		return nil
 	}
-	return ErrNotImplemented
+	for _, repo := range repos {
+		if repo.Local {
+			log.WithFields(log.Fields{
+				"name": repo.Name,
+			}).Error("No idea on how to handle local repos yet")
+			return ErrNotImplemented
+		}
+		log.WithFields(log.Fields{
+			"name": repo.Name,
+			"url":  repo.URI,
+		}).Info("Adding repo to system")
+		if err := e.AddRepo(repo.Name, repo.URI); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"name":  repo.Name,
+			}).Error("Failed to add repo to system")
+			return err
+		}
+	}
+	return nil
 }
 
 // ConfigureRepos will attempt to configure the repos according to the configuration
