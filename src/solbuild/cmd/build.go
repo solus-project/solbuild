@@ -64,10 +64,8 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return nil
 	}
-	if err := manager.SetProfile(profile); err != nil {
-		if err == builder.ErrInvalidProfile {
-			builder.EmitProfileError(profile)
-		}
+	// Safety first..
+	if err = manager.SetProfile(profile); err != nil {
 		return nil
 	}
 

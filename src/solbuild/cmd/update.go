@@ -53,10 +53,8 @@ func updateProfile(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	if err := manager.SetProfile(profile); err != nil {
-		if err == builder.ErrInvalidProfile {
-			builder.EmitProfileError(profile)
-		}
+	// Safety first..
+	if err = manager.SetProfile(profile); err != nil {
 		return
 	}
 

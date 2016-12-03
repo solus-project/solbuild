@@ -44,20 +44,12 @@ func init() {
 	RootCmd.AddCommand(initCmd)
 }
 
-func doInit() {
-	if !builder.IsValidProfile(profile) {
-		builder.EmitProfileError(profile)
-		return
-	}
-
-	bk := builder.NewBackingImage(profile)
+func doInit(manager *builder.Manager) {
+	prof := manager.GetProfile()
+	bk := builder.NewBackingImage(prof.Image)
 	if bk.IsInstalled() {
 		fmt.Printf("'%v' has already been initialised\n", profile)
 		return
-	}
-	if os.Geteuid() != 0 {
-		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
-		os.Exit(1)
 	}
 
 	imgDir := builder.ImagesDir
@@ -109,20 +101,7 @@ func doInit() {
 }
 
 // doUpdate will perform an update to the image after the initial init stage
-func doUpdate() {
-	// Now we'll update the newly initialised image
-	manager, err := builder.NewManager()
-	if err != nil {
-		return
-	}
-	// Safety first..
-	if err := manager.SetProfile(profile); err != nil {
-		if err == builder.ErrInvalidProfile {
-			builder.EmitProfileError(profile)
-		}
-		return
-	}
-
+func doUpdate(manager *builder.Manager) {
 	if err := manager.Update(); err != nil {
 		os.Exit(1)
 	}
@@ -137,9 +116,25 @@ func initProfile(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	doInit()
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
+		os.Exit(1)
+	}
+
+	// Now we'll update the newly initialised image
+	manager, err := builder.NewManager()
+	if err != nil {
+		return
+	}
+
+	// Safety first..
+	if err = manager.SetProfile(profile); err != nil {
+		return
+	}
+
+	doInit(manager)
 
 	if autoUpdate {
-		doUpdate()
+		doUpdate(manager)
 	}
 }

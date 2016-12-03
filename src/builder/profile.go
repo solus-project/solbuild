@@ -63,7 +63,27 @@ func NewProfile(name string) (*Profile, error) {
 		}
 		return NewProfileFromPath(fp)
 	}
-	return nil, fmt.Errorf("Profile doesn't exist: %s", name)
+	return nil, ErrInvalidProfile
+}
+
+// GetAllProfiles will locate all available profiles for solbuild
+func GetAllProfiles() (map[string]*Profile, error) {
+	ret := make(map[string]*Profile)
+
+	for _, p := range ProfilePaths {
+		gl := filepath.Join(p, "*.profile")
+
+		profiles, _ := filepath.Glob(gl)
+
+		for _, o := range profiles {
+			if profile, err := NewProfileFromPath(o); err == nil {
+				ret[profile.Name] = profile
+			} else {
+				return nil, err
+			}
+		}
+	}
+	return ret, nil
 }
 
 // NewProfileFromPath will attempt to load a profile from the given file name

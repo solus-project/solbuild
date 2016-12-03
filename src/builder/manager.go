@@ -45,6 +45,9 @@ var (
 	// ErrInvalidProfile is returned when there is an invalid profile
 	ErrInvalidProfile = errors.New("Invalid profile")
 
+	// ErrInvalidImage is returned when the backing image is unknown
+	ErrInvalidImage = errors.New("Invalid image")
+
 	// ErrInterrupted is returned when the build is interrupted
 	ErrInterrupted = errors.New("The operation was cancelled by the user")
 )
@@ -60,6 +63,7 @@ type Manager struct {
 	pkg        *Package      // Current package, if any
 	pkgManager *EopkgManager // Package manager, if any
 	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
+	profile    *Profile      // The profile we've been requested to use
 
 	cancelled  bool // Whether or not we've been cancelled
 	updateMode bool // Whether we're just updating an image
@@ -96,16 +100,31 @@ func (m *Manager) SetProfile(profile string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	if !IsValidProfile(profile) {
-		return ErrInvalidProfile
+	prof, err := NewProfile(profile)
+	if err != nil {
+		EmitProfileError(profile)
+		return err
+	}
+
+	if !IsValidImage(prof.Image) {
+		EmitImageError(prof.Image)
+		return ErrInvalidImage
 	}
 
 	if m.image != nil {
 		return ErrManagerInitialised
 	}
 
-	m.image = NewBackingImage(profile)
+	m.profile = prof
+	m.image = NewBackingImage(m.profile.Image)
 	return nil
+}
+
+// GetProfile will return the profile associated with this builder
+func (m *Manager) GetProfile() *Profile {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	return m.profile
 }
 
 // SetPackage will set the package associated with this manager.

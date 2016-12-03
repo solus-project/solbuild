@@ -75,8 +75,8 @@ const (
 )
 
 var (
-	// ValidProfiles is a set of known, Solus-published, base profiles
-	ValidProfiles = []string{
+	// ValidImages is a set of known, Solus-published, base profiles
+	ValidImages = []string{
 		"main-x86_64",
 		"unstable-x86_64",
 	}
@@ -90,9 +90,9 @@ func PathExists(path string) bool {
 	return false
 }
 
-// IsValidProfile will check if the specified profile is a valid one.
-func IsValidProfile(profile string) bool {
-	for _, p := range ValidProfiles {
+// IsValidImage will check if the specified profile is a valid one.
+func IsValidImage(profile string) bool {
+	for _, p := range ValidImages {
 		if p == profile {
 			return true
 		}
@@ -100,14 +100,33 @@ func IsValidProfile(profile string) bool {
 	return false
 }
 
-// EmitProfileError emits the stock response to requesting an invalid profile
-func EmitProfileError(profile string) {
-	fmt.Fprintf(os.Stderr, "Error: '%v' is not a known profile\n", profile)
-	fmt.Fprintf(os.Stderr, "Valid profiles include:\n\n")
-	for _, p := range ValidProfiles {
+// EmitImageError emits the stock response to requesting an invalid image
+func EmitImageError(image string) {
+	fmt.Fprintf(os.Stderr, "Error: '%v' is not a known image\n", image)
+	fmt.Fprintf(os.Stderr, "Valid images include:\n\n")
+	for _, p := range ValidImages {
 		fmt.Fprintf(os.Stderr, " * %v\n", p)
 	}
-	fmt.Fprintf(os.Stderr, "\nThe default profile is: %v\n", DefaultProfile)
+}
+
+// EmitProfileError emits a stock response for an invalid profile
+func EmitProfileError(p string) {
+	fmt.Fprintf(os.Stderr, "Error: '%v' is not a known profile\n", p)
+	fmt.Fprintf(os.Stderr, "Valid profiles include:\n\n")
+
+	profiles, err := GetAllProfiles()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading profiles: %v\n", err)
+		return
+	}
+	if len(profiles) < 1 {
+		fmt.Fprintf(os.Stderr, "Fatal: No profiles installed. Reinstall solbuild\n")
+		return
+	}
+
+	for key := range profiles {
+		fmt.Fprintf(os.Stderr, " * %v\n", key)
+	}
 }
 
 // A BackingImage is the core of any given profile
