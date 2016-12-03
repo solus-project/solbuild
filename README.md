@@ -43,6 +43,13 @@ solbuild is a [Solus project](https://solus-project.com/).
  - [ ] Add documentation
  - [ ] Seal the deal, v1
 
+**Future considerations**:
+
+ - Abstract the package manager stuff, port it back into [libosdev](https://github.com/solus-project/libosdev)
+ - Add `sol` support when the time is right..
+ - When `sol` support has landed, always mount `overlayfs` with `nosuid`
+ - Generate the builder base images using [USpin](https://github.com/solus-project/uspin)
+
 
 License
 -------
