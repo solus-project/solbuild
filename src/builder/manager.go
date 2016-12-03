@@ -65,6 +65,8 @@ type Manager struct {
 	lock       *sync.Mutex   // Lock on all operations to prevent.. damage.
 	profile    *Profile      // The profile we've been requested to use
 
+	lockfile *LockFile // We track the global lock for each operation
+
 	cancelled  bool // Whether or not we've been cancelled
 	updateMode bool // Whether we're just updating an image
 
@@ -83,6 +85,7 @@ func NewManager() (*Manager, error) {
 		cancelled:  false,
 		activePID:  0,
 		updateMode: false,
+		lockfile:   nil,
 	}
 
 	// Now load the configuration in
@@ -233,6 +236,20 @@ func (m *Manager) Cleanup() {
 
 	// Unmount anything we may have mounted
 	disk.GetMountManager().UnmountAll()
+
+	// Finally clean out the lock files
+	if m.lockfile != nil {
+		if err := m.lockfile.Unlock(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failure in unlocking root")
+		}
+		if err := m.lockfile.Clean(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failure in cleaning lockfile")
+		}
+	}
 }
 
 // SigIntCleanup will take care of cleaning up the build process.
