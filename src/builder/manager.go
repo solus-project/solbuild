@@ -66,6 +66,7 @@ type Manager struct {
 	profile    *Profile      // The profile we've been requested to use
 
 	lockfile *LockFile // We track the global lock for each operation
+	didStart bool      // Whether we got anything done.
 
 	cancelled  bool // Whether or not we've been cancelled
 	updateMode bool // Whether we're just updating an image
@@ -86,6 +87,7 @@ func NewManager() (*Manager, error) {
 		activePID:  0,
 		updateMode: false,
 		lockfile:   nil,
+		didStart:   false,
 	}
 
 	// Now load the configuration in
@@ -190,6 +192,9 @@ func (m *Manager) SetCancelled() {
 // at which point error propagation and the IsCancelled() function should be enough
 // logic to go on.
 func (m *Manager) Cleanup() {
+	if !m.didStart {
+		return
+	}
 	log.Debug("Acquiring global lock")
 	m.lock.Lock()
 	defer m.lock.Unlock()
@@ -279,6 +284,7 @@ func (m *Manager) doLock(path, opType string) error {
 		}
 		return err
 	}
+	m.didStart = true
 	return nil
 }
 
