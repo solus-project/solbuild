@@ -31,6 +31,6 @@ func TestLoadProfile(t *testing.T) {
 
 	_, err := NewProfileFromPath(ProfileTestFile)
 	if err != nil {
-		t.Fatalf("Failed to load configuration from valid path")
+		t.Fatalf("Failed to load configuration from valid path: %v", err)
 	}
 }
