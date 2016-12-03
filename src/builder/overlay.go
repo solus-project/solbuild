@@ -73,7 +73,7 @@ func NewOverlay(profile *Profile, back *BackingImage, pkg *Package) *Overlay {
 		UpperDir:       filepath.Join(basedir, "tmp"),
 		ImgDir:         filepath.Join(basedir, "img"),
 		MountPoint:     filepath.Join(basedir, "union"),
-		LockPath:       fmt.Sprintf(basedir, ".lock"),
+		LockPath:       fmt.Sprintf("%s.lock", basedir),
 		mountedImg:     false,
 		mountedOverlay: false,
 		mountedVFS:     false,

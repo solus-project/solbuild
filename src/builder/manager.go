@@ -318,7 +318,7 @@ func (m *Manager) Build() error {
 	m.overlay.EnableTmpfs = m.config.EnableTmpfs
 	m.overlay.TmpfsSize = m.config.TmpfsSize
 
-	if err := m.doLock(m.overlay.MountPoint, "building"); err != nil {
+	if err := m.doLock(m.overlay.LockPath, "building"); err != nil {
 		return err
 	}
 
@@ -342,7 +342,7 @@ func (m *Manager) Chroot() error {
 	defer m.Cleanup()
 	m.SigIntCleanup()
 
-	if err := m.doLock(m.overlay.MountPoint, "chroot"); err != nil {
+	if err := m.doLock(m.overlay.LockPath, "chroot"); err != nil {
 		return err
 	}
 
@@ -370,7 +370,7 @@ func (m *Manager) Update() error {
 	defer m.Cleanup()
 	m.SigIntCleanup()
 
-	if err := m.doLock(m.image.RootDir, "updating"); err != nil {
+	if err := m.doLock(m.image.LockPath, "updating"); err != nil {
 		return err
 	}
 
