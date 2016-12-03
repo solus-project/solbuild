@@ -40,6 +40,7 @@ type LockFile struct {
 	ourPID    int           // Our own process ID
 	conlock   *sync.RWMutex // Concurrency lock for library use
 	fd        *os.File      // Actual file being locked
+	owner     bool          // Whether we're the owner..
 }
 
 // NewLockFile will return a new lockfile for the given path
@@ -50,6 +51,7 @@ func NewLockFile(path string) (*LockFile, error) {
 		ourPID:    os.Getpid(),
 		conlock:   new(sync.RWMutex),
 		fd:        nil,
+		owner:     false,
 	}
 
 	// We can consider setting the permissions to 0600
@@ -63,21 +65,33 @@ func NewLockFile(path string) (*LockFile, error) {
 	return lock, nil
 }
 
+// GetOwnerPID will return the owner PID, if it exists
+func (l *LockFile) GetOwnerPID() int {
+	return l.owningPID
+}
+
 // Lock will attempt to lock the file, or return an error if this fails
 func (l *LockFile) Lock() error {
-	if pid, err := l.readPID(); err == nil {
+	pid, err := l.readPID()
+
+	// Bail now.
+	if err != ErrDeadLockFile && err != ErrOwnedLockFile && err != nil {
+		return err
+	}
+
+	// Not gonna test our *own* PID
+	if pid > 0 && pid != l.ourPID {
+		// Process is still active
 		// Unix this always works
 		p, _ := os.FindProcess(pid)
-		// Process is still active
-		if err2 := p.Signal(syscall.Signal(0)); err2 != nil {
+		if err2 := p.Signal(syscall.Signal(0)); err2 == nil {
 			if p.Pid != l.ourPID {
 				l.owningPID = p.Pid
 				return ErrOwnedLockFile
 			}
 		}
-	} else if err != ErrDeadLockFile {
-		return err
 	}
+
 	l.conlock.Lock()
 
 	// Finally lock it.
@@ -85,6 +99,8 @@ func (l *LockFile) Lock() error {
 		l.conlock.Unlock()
 		return err
 	}
+
+	l.owner = true
 
 	l.conlock.Unlock()
 
@@ -98,7 +114,7 @@ func (l *LockFile) Lock() error {
 
 // Unlock will attempt to unlock the file, or return an error if this fails
 func (l *LockFile) Unlock() error {
-	if l.fd == nil {
+	if l.fd == nil || !l.owner {
 		return errors.New("Cannot unlock that which we don't own!")
 	}
 
@@ -150,12 +166,7 @@ func (l *LockFile) writePID() error {
 func (l *LockFile) Clean() error {
 	l.conlock.Lock()
 	defer l.conlock.Unlock()
-	if l.fd == nil {
-		return nil
-	}
-
-	// We don't own it
-	if l.ourPID != l.owningPID {
+	if l.fd == nil || !l.owner {
 		return nil
 	}
 
