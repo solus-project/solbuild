@@ -261,6 +261,10 @@ func (m *Manager) Build() error {
 	defer m.Cleanup()
 	m.SigIntCleanup()
 
+	// Now set our options according to the config
+	m.overlay.EnableTmpfs = m.config.EnableTmpfs
+	m.overlay.TmpfsSize = m.config.TmpfsSize
+
 	return m.pkg.Build(m, m.pkgManager, m.overlay)
 }
 
