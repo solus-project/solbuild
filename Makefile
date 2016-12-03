@@ -43,7 +43,8 @@ ensure_modules:
 
 # Credit to swupd developers: https://github.com/clearlinux/swupd-client
 MANPAGES = \
-	man/solbuild.1
+	man/solbuild.1 \
+	man/solbuild.conf.5
 
 gen_docs:
 	for MANPAGE in $(MANPAGES); do \
