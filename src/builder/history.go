@@ -17,6 +17,7 @@
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"github.com/libgit2/git2go"
 	"sort"
@@ -40,6 +41,20 @@ import (
 type PackageHistory struct {
 }
 
+// A PackageUpdate is a point in history in the git changes, which is parsed
+// from a git.Commit
+type PackageUpdate struct {
+	Tag         string // The associated git tag
+	Author      string // The author name of the change
+	AuthorEmail string // The author email of the change
+}
+
+// NewPackageUpdate will attempt to parse the given commit and provide a usable
+// entry for the PackageHistory
+func NewPackageUpdate(tag string, commit *git.Commit) (*PackageUpdate, error) {
+	return nil, errors.New("Update not implemented")
+}
+
 // NewPackageHistory will attempt to analyze the git history at the given
 // repository path, and return a usable instance of PackageHistory for writing
 // to the container history.xml file.
@@ -55,11 +70,15 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		return nil, err
 	}
 
+	updates := make(map[string]*PackageUpdate)
+
 	// Iterate all of the tags
 	err = repo.Tags.Foreach(func(name string, id *git.Oid) error {
 		if name == "" || id == nil {
 			return nil
 		}
+
+		var commit *git.Commit
 
 		obj, err := repo.Lookup(id)
 		if err != nil {
@@ -69,7 +88,7 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		switch obj.Type() {
 		// Unannotated tag
 		case git.ObjectCommit:
-			_, err := obj.AsCommit()
+			commit, err = obj.AsCommit()
 			if err != nil {
 				return err
 			}
@@ -80,7 +99,7 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 			if err != nil {
 				return err
 			}
-			_, err = repo.LookupCommit(tag.TargetId())
+			commit, err = repo.LookupCommit(tag.TargetId())
 			if err != nil {
 				return err
 			}
@@ -88,6 +107,14 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		default:
 			return fmt.Errorf("Internal git error, found %s", obj.Type().String())
 		}
+		if commit == nil {
+			return nil
+		}
+		pkg, err := NewPackageUpdate(name, commit)
+		if err != nil {
+			return err
+		}
+		updates[name] = pkg
 		return nil
 	})
 	// Foreach went bork
