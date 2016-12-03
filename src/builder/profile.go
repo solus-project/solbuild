@@ -18,6 +18,7 @@ package builder
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -58,5 +59,12 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	if !strings.HasSuffix(basename, ProfileSuffix) {
 		return nil, fmt.Errorf("Not a .profile file: %v", path)
 	}
+
+	fi, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer fi.Close()
+
 	return nil, ErrNotImplemented
 }
