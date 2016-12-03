@@ -63,7 +63,7 @@ package manager. For now we'll disable some steps when building old style packag
  - [x] Add profile concept *based on backing images*
  - [x] Add config file support
  - [x] Add custom repo support
- - [ ] Add new `networking` key to `ypkg` files to disable network isolation
+ - [x] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add locking of `Overlay` and `BackingImage` storage
  - [ ] Add documentation
  - [ ] Seal the deal, v1
