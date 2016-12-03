@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/libgit2/git2go"
+	"sort"
 )
 
 // PackageHistory is an automatic changelog generated from the changes to
@@ -47,7 +48,59 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(repo)
+	// Get all the tags
+	var tags []string
+	tags, err = repo.Tags.List()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate all of the tags
+	err = repo.Tags.Foreach(func(name string, id *git.Oid) error {
+		if name == "" || id == nil {
+			return nil
+		}
+
+		obj, err := repo.Lookup(id)
+		if err != nil {
+			return err
+		}
+
+		switch obj.Type() {
+		// Unannotated tag
+		case git.ObjectCommit:
+			_, err := obj.AsCommit()
+			if err != nil {
+				return err
+			}
+			tags = append(tags, name)
+		// Annotated tag with commit target
+		case git.ObjectTag:
+			tag, err := obj.AsTag()
+			if err != nil {
+				return err
+			}
+			_, err = repo.LookupCommit(tag.TargetId())
+			if err != nil {
+				return err
+			}
+			tags = append(tags, name)
+		default:
+			return fmt.Errorf("Internal git error, found %s", obj.Type().String())
+		}
+		return nil
+	})
+	// Foreach went bork
+	if err != nil {
+		return nil, err
+	}
+	// Sort the tags by -refname
+	sort.Sort(sort.Reverse(sort.StringSlice(tags)))
+
+	// Iterate the commit set in order
+	for _, tagID := range tags {
+		fmt.Println(tagID)
+	}
 
 	return nil, ErrNotImplemented
 }
