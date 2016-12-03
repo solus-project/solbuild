@@ -133,6 +133,7 @@ type BackingImage struct {
 	ImagePathXZ string // Absolute path to the .img.xz file
 	ImageURI    string // URI of the image origin
 	RootDir     string // Where to mount the backing image for updates
+	LockPath    string // Our lock path for update operations
 }
 
 // IsInstalled will determine whether the given backing image has been installed
@@ -154,6 +155,7 @@ func NewBackingImage(name string) *BackingImage {
 		ImagePath:   filepath.Join(ImagesDir, name+ImageSuffix),
 		ImagePathXZ: filepath.Join(ImagesDir, name+ImageCompressedSuffix),
 		ImageURI:    fmt.Sprintf("%s/%s%s", ImageBaseURI, name, ImageCompressedSuffix),
+		LockPath:    filepath.Join(ImagesDir, name+".lock"),
 		RootDir:     filepath.Join(ImageRootsDir, name),
 	}
 }
