@@ -17,7 +17,6 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
@@ -53,8 +52,6 @@ func NewConfig() (*Config, error) {
 		TmpfsSize:      "",
 	}
 
-	hit := false
-
 	// Reverse because /etc takes precedence in stateless
 	for i := len(ConfigPaths) - 1; i >= 0; i-- {
 		globPat := filepath.Join(ConfigPaths[i], fmt.Sprintf("*%s", ConfigSuffix))
@@ -65,7 +62,6 @@ func NewConfig() (*Config, error) {
 		// setting the new flags/etc/
 		for _, p := range configs {
 			// Read the config file
-
 			fi, err := os.Open(p)
 			if err != nil {
 				return nil, err
@@ -84,12 +80,7 @@ func NewConfig() (*Config, error) {
 			if _, err = toml.Decode(string(b), config); err != nil {
 				return nil, err
 			}
-			hit = true
 		}
-	}
-	// This is purely for testing
-	if !hit {
-		return nil, errors.New("No configuration found")
 	}
 	return config, nil
 }
