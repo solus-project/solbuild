@@ -30,7 +30,7 @@ var (
 
 	// ErrOwnedLockFile is returned when the lockfile is already owned by
 	// another active process.
-	ErrOwnedLockFile = errors.New("File is locked by someone else")
+	ErrOwnedLockFile = errors.New("File is locked")
 )
 
 // A LockFile encapsulates locking functionality
