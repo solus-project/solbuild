@@ -122,6 +122,8 @@ On success, 0 is returned. A non-zero return code signals a failure.
 
 https://github.com/solus-project/solbuild
 
+https://github.com/solus-project/ypkg
+
 
 ## NOTES
 
