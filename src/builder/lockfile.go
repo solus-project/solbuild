@@ -135,7 +135,15 @@ func (l *LockFile) readPID() (int, error) {
 
 // writePID will store our PID in the lockfile
 func (l *LockFile) writePID() error {
-	return errors.New("Not yet implemented")
+	if l.fd == nil {
+		panic(errors.New("Cannot write PID for no file!"))
+	}
+	l.conlock.Lock()
+	defer l.conlock.Unlock()
+	if _, err := fmt.Fprintf(l.fd, "%d", l.ourPID); err != nil {
+		return err
+	}
+	return l.fd.Sync()
 }
 
 // Clean will dispose of the lock file and hopefully the lockfile itself
