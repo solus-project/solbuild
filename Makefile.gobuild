@@ -2,7 +2,7 @@ CUR_DIR = $(shell pwd)
 
 # "Normal" static binary
 %.statbin:
-	GOPATH=$(CUR_DIR) go install $(subst .statbin,,$@)
+	GOPATH=$(CUR_DIR) go install -v $(subst .statbin,,$@)
 
 clean:
 	test ! -d $(CUR_DIR)/pkg || rm -rvf $(CUR_DIR)/pkg; \
