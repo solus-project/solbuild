@@ -55,6 +55,9 @@ func updateProfile(cmd *cobra.Command, args []string) {
 	}
 	// Safety first..
 	if err = manager.SetProfile(profile); err != nil {
+		if err == builder.ErrProfileNotInstalled {
+			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
+		}
 		return
 	}
 
@@ -64,6 +67,9 @@ func updateProfile(cmd *cobra.Command, args []string) {
 	}
 
 	if err := manager.Update(); err != nil {
+		if err == builder.ErrProfileNotInstalled {
+			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
+		}
 		os.Exit(1)
 	}
 }

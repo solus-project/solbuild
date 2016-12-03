@@ -304,6 +304,10 @@ func (m *Manager) Update() error {
 		m.lock.Unlock()
 		return ErrInvalidProfile
 	}
+	if !m.image.IsInstalled() {
+		m.lock.Unlock()
+		return ErrProfileNotInstalled
+	}
 	m.updateMode = true
 	m.pkgManager = NewEopkgManager(m, m.image.RootDir)
 	m.lock.Unlock()
