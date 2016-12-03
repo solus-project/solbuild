@@ -63,7 +63,7 @@ func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay
 		user = "root"
 	}
 
-	loginCommand := fmt.Sprintf("/bin/su - %s -s %s", user, BuildUserShell)
+	loginCommand := fmt.Sprintf("/bin/su %s -s %s", user, BuildUserShell)
 	err := ChrootExecStdin(notif, overlay.MountPoint, loginCommand)
 	commands.SetStdin(nil)
 	notif.SetActivePID(0)
