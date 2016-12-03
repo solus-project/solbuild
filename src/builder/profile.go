@@ -17,7 +17,8 @@
 package builder
 
 import (
-	"errors"
+	"fmt"
+	"path/filepath"
 )
 
 // A Profile is a configuration defining what backing image to use, what repos
@@ -33,9 +34,24 @@ var (
 		"/etc/solbuild",
 		"/usr/share/solbuild",
 	}
+
+	// ProfileSuffix is the fixed extension for solbuild profile files
+	ProfileSuffix = ".profile"
 )
 
-// NewProfile will attempt to load the profile from the system paths
+// NewProfile will attempt to load the named profile from the system paths
 func NewProfile(name string) (*Profile, error) {
-	return nil, errors.New("Not yet implemented")
+	for _, p := range ProfilePaths {
+		fp := filepath.Join(p, fmt.Sprintf("%s%s", name, ProfileSuffix))
+		if !PathExists(fp) {
+			continue
+		}
+		return NewProfileFromPath(fp)
+	}
+	return nil, fmt.Errorf("Profile doesn't exist: %s", name)
+}
+
+// NewProfileFromPath will attempt to load a profile from the given file name
+func NewProfileFromPath(path string) (*Profile, error) {
+	return nil, ErrNotImplemented
 }
