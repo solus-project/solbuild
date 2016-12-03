@@ -23,6 +23,12 @@ import (
 	"time"
 )
 
+const (
+	// MaxChangelogEntries is the absolute maximum number of entries we'll
+	// parse and provide changelog entries for.
+	MaxChangelogEntries = 10
+)
+
 // PackageHistory is an automatic changelog generated from the changes to
 // the package.yml file during the history of the package.
 //
@@ -174,8 +180,13 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 	// Sort the tags by -refname
 	sort.Sort(sort.Reverse(sort.StringSlice(tags)))
 
+	numEntries := 0
+
 	// Iterate the commit set in order
 	for _, tagID := range tags {
+		if numEntries > MaxChangelogEntries {
+			break
+		}
 		update := updates[tagID]
 		if update == nil {
 			continue
@@ -187,6 +198,7 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 			return nil, err
 		}
 		fmt.Println(string(b))
+		numEntries++
 	}
 
 	return nil, ErrNotImplemented
