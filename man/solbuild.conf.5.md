@@ -33,19 +33,19 @@ configurations are respected in the correct order.
 configuration files. This is a strongly typed configuration format, whereby
 strict validation occurs against expected key types.
 
-* `default_profile`
+ * `default_profile`
 
     Set the default profile used by `solbuild(1)`. This must have a string value,
     and will be used by `solbuild(1)` in the absence of the `-p`,`--profile`
     flag.
 
-* `enable_tmpfs`
+ * `enable_tmpfs`
 
     Instruct `solbuild(1)` to use tmpfs mounts by default for all builds. Note
     that even if this is disabled, as it is by default, you may still override
     this at runtime with the `-t`,`--tmpfs` flag.
 
-* `tmpfs_size`
+ * `tmpfs_size`
 
     Set the default tmpfs size used by `solbuild(1)` when tmpfs builds are
     enabled. An empty value, the default, will mean an unbounded size to
