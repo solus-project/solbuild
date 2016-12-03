@@ -19,3 +19,6 @@
 [submodule "src/vendor/github.com/BurntSushi/toml"]
 	path = src/vendor/github.com/BurntSushi/toml
 	url = https://github.com/BurntSushi/toml.git
+[submodule "src/vendor/github.com/libgit2/git2go"]
+	path = src/vendor/github.com/libgit2/git2go
+	url = https://github.com/libgit2/git2go.git
