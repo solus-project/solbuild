@@ -17,10 +17,10 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	"github.com/libgit2/git2go"
 	"sort"
+	"time"
 )
 
 // PackageHistory is an automatic changelog generated from the changes to
@@ -44,15 +44,26 @@ type PackageHistory struct {
 // A PackageUpdate is a point in history in the git changes, which is parsed
 // from a git.Commit
 type PackageUpdate struct {
-	Tag         string // The associated git tag
-	Author      string // The author name of the change
-	AuthorEmail string // The author email of the change
+	Tag         string    // The associated git tag
+	Author      string    // The author name of the change
+	AuthorEmail string    // The author email of the change
+	Body        string    // The associated message of the commit
+	Time        time.Time // When the update took place
 }
 
 // NewPackageUpdate will attempt to parse the given commit and provide a usable
 // entry for the PackageHistory
-func NewPackageUpdate(tag string, commit *git.Commit) (*PackageUpdate, error) {
-	return nil, errors.New("Update not implemented")
+func NewPackageUpdate(tag string, commit *git.Commit) *PackageUpdate {
+	signature := commit.Author()
+	update := &PackageUpdate{Tag: tag}
+
+	// We duplicate. cgo makes life difficult.
+	update.Author = signature.Name
+	update.AuthorEmail = signature.Email
+	update.Body = commit.Message()
+	update.Time = signature.When
+
+	return update
 }
 
 // NewPackageHistory will attempt to analyze the git history at the given
@@ -110,11 +121,8 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		if commit == nil {
 			return nil
 		}
-		pkg, err := NewPackageUpdate(name, commit)
-		if err != nil {
-			return err
-		}
-		updates[name] = pkg
+		commitObj := NewPackageUpdate(name, commit)
+		updates[name] = commitObj
 		return nil
 	})
 	// Foreach went bork
@@ -126,7 +134,11 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 
 	// Iterate the commit set in order
 	for _, tagID := range tags {
-		fmt.Println(tagID)
+		update := updates[tagID]
+		if update == nil {
+			continue
+		}
+		fmt.Println(update)
 	}
 
 	return nil, ErrNotImplemented
