@@ -61,7 +61,7 @@ package manager. For now we'll disable some steps when building old style packag
  - [x] Restore `.solus/packager` support
  - [x] Add an `--update,-u` flag to `init` to automatically update it
  - [x] Add profile concept *based on backing images*
- - [ ] Add config file support
+ - [x] Add config file support
  - [ ] Add custom repo support
  - [ ] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add locking of `Overlay` and `BackingImage` storage
