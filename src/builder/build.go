@@ -328,13 +328,17 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 	notif.SetActivePID(0)
 
 	// Now kill networking
-	if err := DropNetworking(); err != nil {
-		return err
-	}
+	if !p.CanNetwork {
+		if err := DropNetworking(); err != nil {
+			return err
+		}
 
-	// Ensure the overlay can network on localhost only
-	if err := overlay.ConfigureNetworking(); err != nil {
-		return err
+		// Ensure the overlay can network on localhost only
+		if err := overlay.ConfigureNetworking(); err != nil {
+			return err
+		}
+	} else {
+		log.Warning("Package has explicitly requested networking, sandboxing disabled")
 	}
 
 	// Bring up sources

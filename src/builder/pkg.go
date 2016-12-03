@@ -39,20 +39,22 @@ const (
 
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
-	Name    string      // Name of the package
-	Version string      // Version of this package
-	Release int         // Solus upgrades are based entirely on relno
-	Type    PackageType // ypkg or pspec.xml legacy
-	Path    string      // Path to the build spec
-	Sources []*Source   // Each package has 0 or more sources that we fetch
+	Name       string      // Name of the package
+	Version    string      // Version of this package
+	Release    int         // Solus upgrades are based entirely on relno
+	Type       PackageType // ypkg or pspec.xml legacy
+	Path       string      // Path to the build spec
+	Sources    []*Source   // Each package has 0 or more sources that we fetch
+	CanNetwork bool        // Only applicable to ypkg builds
 }
 
 // YmlPackage is a parsed ypkg build file
 type YmlPackage struct {
-	Name    string
-	Version string
-	Release int
-	Source  []map[string]string
+	Name       string
+	Version    string
+	Release    int
+	Networking bool // If set to false (default) we disable networking in the build
+	Source     []map[string]string
 }
 
 // XMLUpdate represents an update in the package history
@@ -121,11 +123,12 @@ func NewXMLPackage(path string) (*Package, error) {
 
 	upd := xpkg.History[0]
 	ret := &Package{
-		Name:    strings.TrimSpace(xpkg.Source.Name),
-		Version: strings.TrimSpace(upd.Version),
-		Release: upd.Release,
-		Type:    PackageTypeXML,
-		Path:    path,
+		Name:       strings.TrimSpace(xpkg.Source.Name),
+		Version:    strings.TrimSpace(upd.Version),
+		Release:    upd.Release,
+		Type:       PackageTypeXML,
+		Path:       path,
+		CanNetwork: true,
 	}
 
 	for _, archive := range xpkg.Source.Archive {
@@ -162,17 +165,18 @@ func NewYmlPackage(path string) (*Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	ypkg := &YmlPackage{}
+	ypkg := &YmlPackage{Networking: false}
 	if err = yaml.Unmarshal(by, ypkg); err != nil {
 		return nil, err
 	}
 
 	ret := &Package{
-		Name:    strings.TrimSpace(ypkg.Name),
-		Version: strings.TrimSpace(ypkg.Version),
-		Release: ypkg.Release,
-		Type:    PackageTypeYpkg,
-		Path:    path,
+		Name:       strings.TrimSpace(ypkg.Name),
+		Version:    strings.TrimSpace(ypkg.Version),
+		Release:    ypkg.Release,
+		Type:       PackageTypeYpkg,
+		Path:       path,
+		CanNetwork: ypkg.Networking,
 	}
 
 	// TODO: Add git detection!!
