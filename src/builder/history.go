@@ -68,6 +68,19 @@ func NewPackageUpdate(tag string, commit *git.Commit, objectID string) *PackageU
 	return update
 }
 
+// CatGitBlob will return the contents of the given entry
+func CatGitBlob(repo *git.Repository, entry *git.TreeEntry) ([]byte, error) {
+	obj, err := repo.Lookup(entry.Id)
+	if err != nil {
+		return nil, err
+	}
+	blob, err := obj.AsBlob()
+	if err != nil {
+		return nil, err
+	}
+	return blob.Contents(), nil
+}
+
 // GetFileContents will attempt to read the entire object at path from
 // the given tag, within that repo.
 func GetFileContents(repo *git.Repository, tag, path string) ([]byte, error) {
@@ -87,13 +100,12 @@ func GetFileContents(repo *git.Repository, tag, path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = tree.EntryByPath(path)
+	entry, err := tree.EntryByPath(path)
 	if err != nil {
 		return nil, err
 	}
 
-	// Now do something with the entry..
-	return nil, ErrNotImplemented
+	return CatGitBlob(repo, entry)
 }
 
 // NewPackageHistory will attempt to analyze the git history at the given
@@ -174,7 +186,7 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(b)
+		fmt.Println(string(b))
 	}
 
 	return nil, ErrNotImplemented
