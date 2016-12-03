@@ -25,12 +25,22 @@ import (
 	"strings"
 )
 
+// A Repo is a definition of a repository to add to the eopkg root during
+// the build process.
+type Repo struct {
+	URI       string `toml:"uri"`       // URI of the repository
+	Local     bool   `toml:"local"`     // Local repository for bindmounting
+	AutoIndex bool   `toml:"autoindex"` // Enable automatic indexing of the repo
+}
+
 // A Profile is a configuration defining what backing image to use, what repos
 // to add, etc.
 type Profile struct {
-	Name        string   `toml:"-"`            // Name of this profile, set by file name not toml
-	Image       string   `toml:"image"`        // The backing image for this profile
-	RemoveRepos []string `toml:"remove_repos"` // A set of repos to remove. ["*"] is valid here.
+	Name        string          `toml:"-"`            // Name of this profile, set by file name not toml
+	Image       string          `toml:"image"`        // The backing image for this profile
+	RemoveRepos []string        `toml:"remove_repos"` // A set of repos to remove. ["*"] is valid here.
+	Repos       map[string]Repo `toml:"repo"`         // Allow defining custom repos
+	AddRepos    []string        `toml:"add_repos"`    // Allow locking to a single set of repos
 }
 
 var (
@@ -70,7 +80,6 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	defer fi.Close()
 
 	profileName := basename[:len(ProfileSuffix)]
-	fmt.Fprintf(os.Stderr, "Profile: %v\n", profileName)
 
 	var b []byte
 	profile := &Profile{Name: profileName}
@@ -83,9 +92,6 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	if _, err = toml.Decode(string(b), profile); err != nil {
 		return nil, err
 	}
-
-	fmt.Fprintf(os.Stderr, "Profile: %v\n", profile.Name)
-	fmt.Fprintf(os.Stderr, "RemoveRepos: %v\n", profile.RemoveRepos)
 
 	return nil, ErrNotImplemented
 }
