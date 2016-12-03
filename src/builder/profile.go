@@ -93,5 +93,17 @@ func NewProfileFromPath(path string) (*Profile, error) {
 		return nil, err
 	}
 
+	// Ignore a wildcard add
+	if len(profile.AddRepos) == 1 && profile.AddRepos[0] == "*" {
+		return profile, nil
+	}
+
+	// Check all repo names are valid
+	for _, r := range profile.AddRepos {
+		if _, ok := profile.Repos[r]; !ok {
+			return nil, fmt.Errorf("Cannot enable unknown repo %v", r)
+		}
+	}
+
 	return nil, ErrNotImplemented
 }
