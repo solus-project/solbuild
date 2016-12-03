@@ -3,54 +3,27 @@ solbuild
 
 [![Report](https://goreportcard.com/badge/github.com/solus-project/solbuild)](https://goreportcard.com/report/github.com/solus-project/solbuild) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Solus package builder. This is still a **Work In Progress**.
+`solbuild` is a `chroot` based package build system, used to safely and efficiently build Solus packages from source, in a highly controlled and isolated environment. This tool succeeds the `evobuild` tool, originally in Evolve OS, which is now known as Solus. The very core concept of the layered builder has always remained the same, this is the next .. evolution.. of the tool.
+
+`solbuild` makes use of `OverlayFS` to provide a simple caching system, whereby a base image (provided by the Solus project) is used as the bottom-most, read-only layer, and changes are made in temporary upper layers. Currently the project provides two base images for the default profiles shipped with `solbuild`:
+
+ - **main-x86_64**: Built using the stable Solus repositories, suitable for production deployments for `shannon` users.
+ - **unstable-x86_64**: Built using the unstable Solus repositories, ideal for developers, and the Solus build machinery for the repo waterfall prior to `shannon` inclusion.
+
+When building `package.yml` files (`ypkg`), the tool will also disable all networking within the environment, apart from the loopback device. This is intended to prevent uncontrolled build environments in which a package may be fetching external, unverified sources, during the build.
+
+`solbuild` also allows developers to control the repositories used by configuring the profiles:
+
+ - Remove any base image repo
+ - Add any given repo, remote or local. Local repos are bind mounted and can be automatically indexed by `solbuild`.
+
+`solbuild` performs heavy caching throughout, with source archives being stored in unique hash based directories globally, and the `ccache` being retained after each build through bind mounts. A single package cache is retained to speed up subsequent builds, and users may speed this up further by updating their base images.
+
+As a last speed booster, `solbuild` allows you to perform builds in memory via the `--tmpfs` option.
 
 solbuild is a [Solus project](https://solus-project.com/).
 
 ![logo](https://build.solus-project.com/logo.png)
-
-**evobuild (legacy) workflow**:
-
- - Mount overlayfs with profile directory as lower node
- - Copy aux files into root
- - Bring up dbus/eopkg/etc
- - Upgrade & install `system.devel`
- - Bind mount system wide cache directory
- - Chroot, run build as root
- - If successful, copy newly built files out of chroot into current directory
-
-**Issues with the `evobuild` approach**:
-
-The build process is delicate and very much a simple script. We allow the chroot'd
-process to download and install both build dependencies and the sources themselves.
-We continue to allow networking within this chroot, which in turn allows any package
-to download it's own additional tarballs without warning (`LibreOffice`, anyone?)
-
-On top of this, all builds are performed as root. This allows the process within
-the chroot to break the chroot itself quite badly. While it's not the worst problem
-in the world (this is why we `chroot` after all) it's not **good**. Instead, we'll
-operate with "normal" permissions, and allow `ypkg` to utilise `fakeroot` to complete
-it's tasks.
-
-**Note**:
-
-For legacy `pspec.xml` format builds, not all of these steps are possible, however
-this format will no longer be supported within Solus with the advent of the `sol`
-package manager. For now we'll disable some steps when building old style packages.
-
-**solbuild proposed workflow**:
-
- - Enter new namespace (`unshare`) - preserve networking here
- - Mount overlayfs from *configuration-based* profile
- - Bring up services
- - Add any required repositories
- - Upgrade & install `system.devel`
- - Copy aux files
- - Fetch sources & cache in system, bind mount **individual sources**
- - Request installation of build dependencies
- - Now `unshare` networking
- - Begin build in chroot namespace as unprivileged user
- - If successful, copy newly built files out of chroot into current directory
 
 **TODO**:
 
