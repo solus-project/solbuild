@@ -338,6 +338,11 @@ func (e *EopkgManager) removeRepos(repos []string) error {
 	return nil
 }
 
+// addRepos will add the specified filtered set of repos to the rootfs
+func (e *EopkgManager) addRepos(repos []*Repo) error {
+	return ErrNotImplemented
+}
+
 // ConfigureRepos will attempt to configure the repos according to the configuration
 // of the manager.
 func (e *EopkgManager) ConfigureRepos(p *Profile) error {
@@ -362,5 +367,18 @@ func (e *EopkgManager) ConfigureRepos(p *Profile) error {
 	if err := e.removeRepos(removals); err != nil {
 		return err
 	}
-	return nil
+
+	var addRepos []*Repo
+
+	if len(p.AddRepos) == 1 && p.AddRepos[0] == "*" {
+		for _, repo := range p.Repos {
+			addRepos = append(addRepos, repo)
+		}
+	} else {
+		for _, id := range p.AddRepos {
+			addRepos = append(addRepos, p.Repos[id])
+		}
+	}
+
+	return e.addRepos(addRepos)
 }
