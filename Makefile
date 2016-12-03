@@ -38,6 +38,16 @@ ensure_modules:
 		git submodule update; \
 	);
 
+# Credit to swupd developers: https://github.com/clearlinux/swupd-client
+MANPAGES = \
+	man/solbuild.1
+
+gen_docs:
+	for MANPAGE in $(MANPAGES); do \
+		ronn --roff < $${MANPAGE}.md > $${MANPAGE}; \
+		ronn --html < $${MANPAGE}.md > $${MANPAGE}.html; \
+	done
+
 # See: https://github.com/meitar/git-archive-all.sh/blob/master/git-archive-all.sh
 release: ensure_modules
 	git-archive-all.sh --format tar.gz --prefix solbuild-$(VERSION)/ --verbose -t HEAD solbuild-$(VERSION).tar.gz
