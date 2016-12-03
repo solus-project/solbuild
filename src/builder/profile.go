@@ -44,19 +44,13 @@ type Profile struct {
 }
 
 var (
-	// ProfilePaths is a set of locations for valid solbuild configuration files
-	ProfilePaths = []string{
-		"/etc/solbuild",
-		"/usr/share/solbuild",
-	}
-
 	// ProfileSuffix is the fixed extension for solbuild profile files
 	ProfileSuffix = ".profile"
 )
 
 // NewProfile will attempt to load the named profile from the system paths
 func NewProfile(name string) (*Profile, error) {
-	for _, p := range ProfilePaths {
+	for _, p := range ConfigPaths {
 		fp := filepath.Join(p, fmt.Sprintf("%s%s", name, ProfileSuffix))
 		if !PathExists(fp) {
 			continue
@@ -70,7 +64,7 @@ func NewProfile(name string) (*Profile, error) {
 func GetAllProfiles() (map[string]*Profile, error) {
 	ret := make(map[string]*Profile)
 
-	for _, p := range ProfilePaths {
+	for _, p := range ConfigPaths {
 		gl := filepath.Join(p, "*.profile")
 
 		profiles, _ := filepath.Glob(gl)
