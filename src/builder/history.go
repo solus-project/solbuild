@@ -49,11 +49,12 @@ type PackageUpdate struct {
 	AuthorEmail string    // The author email of the change
 	Body        string    // The associated message of the commit
 	Time        time.Time // When the update took place
+	ObjectID    string    // OID stored in string form
 }
 
 // NewPackageUpdate will attempt to parse the given commit and provide a usable
 // entry for the PackageHistory
-func NewPackageUpdate(tag string, commit *git.Commit) *PackageUpdate {
+func NewPackageUpdate(tag string, commit *git.Commit, objectID string) *PackageUpdate {
 	signature := commit.Author()
 	update := &PackageUpdate{Tag: tag}
 
@@ -62,8 +63,37 @@ func NewPackageUpdate(tag string, commit *git.Commit) *PackageUpdate {
 	update.AuthorEmail = signature.Email
 	update.Body = commit.Message()
 	update.Time = signature.When
+	update.ObjectID = objectID
 
 	return update
+}
+
+// GetFileContents will attempt to read the entire object at path from
+// the given tag, within that repo.
+func GetFileContents(repo *git.Repository, tag, path string) ([]byte, error) {
+	oid, err := git.NewOid(tag)
+	if err != nil {
+		return nil, err
+	}
+	commit, err := repo.Lookup(oid)
+	if err != nil {
+		return nil, err
+	}
+	treeObj, err := commit.Peel(git.ObjectTree)
+	if err != nil {
+		return nil, err
+	}
+	tree, err := treeObj.AsTree()
+	if err != nil {
+		return nil, err
+	}
+	_, err = tree.EntryByPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Now do something with the entry..
+	return nil, ErrNotImplemented
 }
 
 // NewPackageHistory will attempt to analyze the git history at the given
@@ -121,7 +151,7 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		if commit == nil {
 			return nil
 		}
-		commitObj := NewPackageUpdate(name, commit)
+		commitObj := NewPackageUpdate(name, commit, id.String())
 		updates[name] = commitObj
 		return nil
 	})
@@ -139,6 +169,12 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 			continue
 		}
 		fmt.Println(update)
+
+		b, err := GetFileContents(repo, update.ObjectID, "package.yml")
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(b)
 	}
 
 	return nil, ErrNotImplemented
