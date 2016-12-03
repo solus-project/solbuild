@@ -38,13 +38,19 @@ func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay
 	}
 
 	// Now kill networking
-	if err := DropNetworking(); err != nil {
-		return nil
-	}
+	if p.Type == PackageTypeYpkg {
+		if !p.CanNetwork {
+			if err := DropNetworking(); err != nil {
+				return err
+			}
 
-	// Ensure the overlay can network on localhost only
-	if err := overlay.ConfigureNetworking(); err != nil {
-		return nil
+			// Ensure the overlay can network on localhost only
+			if err := overlay.ConfigureNetworking(); err != nil {
+				return err
+			}
+		} else {
+			log.Warning("Package has explicitly requested networking, sandboxing disabled")
+		}
 	}
 
 	log.Info("Spawning login shell")
