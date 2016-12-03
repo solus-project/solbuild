@@ -28,8 +28,9 @@ import (
 // A Profile is a configuration defining what backing image to use, what repos
 // to add, etc.
 type Profile struct {
-	Name  string `toml:"-"`     // Name of this profile, set by file name not toml
-	Image string `toml:"image"` // The backing image for this profile
+	Name        string   `toml:"-"`            // Name of this profile, set by file name not toml
+	Image       string   `toml:"image"`        // The backing image for this profile
+	RemoveRepos []string `toml:"remove_repos"` // A set of repos to remove. ["*"] is valid here.
 }
 
 var (
@@ -84,6 +85,7 @@ func NewProfileFromPath(path string) (*Profile, error) {
 	}
 
 	fmt.Fprintf(os.Stderr, "Profile: %v\n", profile.Name)
+	fmt.Fprintf(os.Stderr, "RemoveRepos: %v\n", profile.RemoveRepos)
 
 	return nil, ErrNotImplemented
 }
