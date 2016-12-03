@@ -17,8 +17,37 @@
 package builder
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"os"
+	"path/filepath"
 )
+
+const (
+	// BindRepoDir is where we make repos available from the host side
+	BindRepoDir = "/hostRepos"
+)
+
+// addLocalRepo will try to add the repo and bind mount it into the target
+func (p *Package) addLocalRepo(o *Overlay, pkgManager *EopkgManager, repo *Repo) error {
+	// Ensure the source exists too. Sorta helpful like that.
+	if !PathExists(repo.URI) {
+		return fmt.Errorf("Local repo does not exist!")
+	}
+
+	// Ensure the target mountpoint actually exists ...
+	tgt := filepath.Join(o.MountPoint, BindRepoDir, repo.Name)
+	if !PathExists(tgt) {
+		if err := os.MkdirAll(tgt, 00755); err != nil {
+			return err
+		}
+	}
+
+	// for eopkg the repo index is eopkg-index.xml.xz..
+	// tgtIndex := filepath.Join(tgt, "eopkg-index.xml.xz")
+
+	return ErrNotImplemented
+}
 
 func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
 	if len(repos) < 1 {
@@ -40,7 +69,7 @@ func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
 }
 
 // addRepos will add the specified filtered set of repos to the rootfs
-func (p *Package) addRepos(pkgManager *EopkgManager, repos []*Repo) error {
+func (p *Package) addRepos(o *Overlay, pkgManager *EopkgManager, repos []*Repo) error {
 	if len(repos) < 1 {
 		return nil
 	}
@@ -48,8 +77,17 @@ func (p *Package) addRepos(pkgManager *EopkgManager, repos []*Repo) error {
 		if repo.Local {
 			log.WithFields(log.Fields{
 				"name": repo.Name,
-			}).Error("No idea on how to handle local repos yet")
-			return ErrNotImplemented
+				"path": repo.URI,
+			}).Info("Adding local repo to system")
+
+			if err := p.addLocalRepo(o, pkgManager, repo); err != nil {
+				log.WithFields(log.Fields{
+					"name":  repo.Name,
+					"error": err,
+				}).Error("Failed to add local repo to system")
+				return err
+			}
+			continue
 		}
 		log.WithFields(log.Fields{
 			"name": repo.Name,
@@ -68,7 +106,7 @@ func (p *Package) addRepos(pkgManager *EopkgManager, repos []*Repo) error {
 
 // ConfigureRepos will attempt to configure the repos according to the configuration
 // of the manager.
-func (p *Package) ConfigureRepos(pkgManager *EopkgManager, profile *Profile) error {
+func (p *Package) ConfigureRepos(o *Overlay, pkgManager *EopkgManager, profile *Profile) error {
 	repos, err := pkgManager.GetRepos()
 	if err != nil {
 		return err
@@ -103,5 +141,5 @@ func (p *Package) ConfigureRepos(pkgManager *EopkgManager, profile *Profile) err
 		}
 	}
 
-	return p.addRepos(pkgManager, addRepos)
+	return p.addRepos(o, pkgManager, addRepos)
 }
