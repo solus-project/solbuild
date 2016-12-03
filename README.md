@@ -65,6 +65,7 @@ package manager. For now we'll disable some steps when building old style packag
  - [x] Add custom repo support
  - [x] Add new `networking` key to `ypkg` files to disable network isolation
  - [ ] Add locking of `Overlay` and `BackingImage` storage
+ - [ ] Restore `history.xml` generation for `ypkg` builds in git
  - [ ] Add documentation
  - [ ] Seal the deal, v1
 
