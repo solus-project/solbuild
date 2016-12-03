@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/solus-project/libosdev/disk"
 	"os"
 	"path/filepath"
 )
@@ -29,24 +30,56 @@ const (
 )
 
 // addLocalRepo will try to add the repo and bind mount it into the target
-func (p *Package) addLocalRepo(o *Overlay, pkgManager *EopkgManager, repo *Repo) error {
+func (p *Package) addLocalRepo(notif PidNotifier, o *Overlay, pkgManager *EopkgManager, repo *Repo) error {
 	// Ensure the source exists too. Sorta helpful like that.
 	if !PathExists(repo.URI) {
 		return fmt.Errorf("Local repo does not exist!")
 	}
 
+	mman := disk.GetMountManager()
+
 	// Ensure the target mountpoint actually exists ...
-	tgt := filepath.Join(o.MountPoint, BindRepoDir, repo.Name)
+	tgt := filepath.Join(o.MountPoint, BindRepoDir[1:], repo.Name)
 	if !PathExists(tgt) {
 		if err := os.MkdirAll(tgt, 00755); err != nil {
 			return err
 		}
 	}
 
-	// for eopkg the repo index is eopkg-index.xml.xz..
-	// tgtIndex := filepath.Join(tgt, "eopkg-index.xml.xz")
+	// BindMount the directory into place
+	if err := mman.BindMount(repo.URI, tgt); err != nil {
+		return err
+	}
+	o.ExtraMounts = append(o.ExtraMounts, tgt)
 
-	return ErrNotImplemented
+	// Attempt to autoindex the repo
+	if repo.AutoIndex {
+		log.WithFields(log.Fields{
+			"name": repo.Name,
+		}).Info("Reindexing repository")
+
+		command := fmt.Sprintf("cd %s/%s; eopkg index --skip-signing .", BindRepoDir, repo.Name)
+		err := ChrootExec(notif, o.MountPoint, command)
+		notif.SetActivePID(0)
+		if err != nil {
+			return err
+		}
+	} else {
+		tgtIndex := filepath.Join(tgt, "eopkg-index.xml.xz")
+		if !PathExists(tgtIndex) {
+			log.WithFields(log.Fields{
+				"name": repo.Name,
+			}).Warning("Repository index doesn't exist. Please index it to use it")
+		}
+	}
+
+	// Now add the local repo
+	chrootLocal := filepath.Join(BindRepoDir, repo.Name, "eopkg-index.xml.xz")
+	if err := pkgManager.AddRepo(repo.Name, chrootLocal); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
@@ -69,7 +102,7 @@ func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
 }
 
 // addRepos will add the specified filtered set of repos to the rootfs
-func (p *Package) addRepos(o *Overlay, pkgManager *EopkgManager, repos []*Repo) error {
+func (p *Package) addRepos(notif PidNotifier, o *Overlay, pkgManager *EopkgManager, repos []*Repo) error {
 	if len(repos) < 1 {
 		return nil
 	}
@@ -80,7 +113,7 @@ func (p *Package) addRepos(o *Overlay, pkgManager *EopkgManager, repos []*Repo) 
 				"path": repo.URI,
 			}).Info("Adding local repo to system")
 
-			if err := p.addLocalRepo(o, pkgManager, repo); err != nil {
+			if err := p.addLocalRepo(notif, o, pkgManager, repo); err != nil {
 				log.WithFields(log.Fields{
 					"name":  repo.Name,
 					"error": err,
@@ -106,7 +139,7 @@ func (p *Package) addRepos(o *Overlay, pkgManager *EopkgManager, repos []*Repo) 
 
 // ConfigureRepos will attempt to configure the repos according to the configuration
 // of the manager.
-func (p *Package) ConfigureRepos(o *Overlay, pkgManager *EopkgManager, profile *Profile) error {
+func (p *Package) ConfigureRepos(notif PidNotifier, o *Overlay, pkgManager *EopkgManager, profile *Profile) error {
 	repos, err := pkgManager.GetRepos()
 	if err != nil {
 		return err
@@ -141,5 +174,5 @@ func (p *Package) ConfigureRepos(o *Overlay, pkgManager *EopkgManager, profile *
 		}
 	}
 
-	return p.addRepos(o, pkgManager, addRepos)
+	return p.addRepos(notif, o, pkgManager, addRepos)
 }

@@ -531,7 +531,7 @@ func (p *Package) Build(notif PidNotifier, profile *Profile, pman *EopkgManager,
 	}
 
 	// Get the repos in place before asserting anything
-	if err := p.ConfigureRepos(overlay, pman, profile); err != nil {
+	if err := p.ConfigureRepos(notif, overlay, pman, profile); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Configuring repositories failed")
