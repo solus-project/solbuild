@@ -30,9 +30,38 @@ configurations are respected in the correct order.
 ## CONFIGURATION FORMAT
 
 `solbuild` uses the `TOML` configuration format for all of it's own
-configuration files. 
+configuration files. This is a strongly typed configuration format, whereby
+strict validation occurs against expected key types.
+
+* `default_profile`
+
+    Set the default profile used by `solbuild(1)`. This must have a string value,
+    and will be used by `solbuild(1)` in the absence of the `-p`,`--profile`
+    flag.
+
+* `enable_tmpfs`
+
+    Instruct `solbuild(1)` to use tmpfs mounts by default for all builds. Note
+    that even if this is disabled, as it is by default, you may still override
+    this at runtime with the `-t`,`--tmpfs` flag.
+
+* `tmpfs_size`
+
+    Set the default tmpfs size used by `solbuild(1)` when tmpfs builds are
+    enabled. An empty value, the default, will mean an unbounded size to
+    the tmpfs. This value should be a string value, with the same syntax
+    that one would pass to `mount(8)`.
+
+    See `solbuild(1)` for more details on the `-t`,`--tmpfs` option behaviour.
+
 
 ## EXAMPLE
+
+    # Set the default profile, a string value assignment
+    default_profile = "main-x86_64"
+
+    # Set tmpfs enabled by default, a boolean value assignment
+    enable_tmpfs = true
 
 
 ## COPYRIGHT

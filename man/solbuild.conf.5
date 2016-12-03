@@ -34,9 +34,42 @@ All configuration files must be valid prior to \fBsolbuild(1)\fR launching, as i
 \fBsolbuild(1)\fR is capable of running without configuration, and this method permits a stateless implementation whereby vendor & system administrator configurations are respected in the correct order\.
 .
 .SH "CONFIGURATION FORMAT"
-\fBsolbuild\fR uses the \fBTOML\fR configuration format for all of it\'s own configuration files\.
+\fBsolbuild\fR uses the \fBTOML\fR configuration format for all of it\'s own configuration files\. This is a strongly typed configuration format, whereby strict validation occurs against expected key types\.
+.
+.IP "\(bu" 4
+\fBdefault_profile\fR
+.
+.IP
+Set the default profile used by \fBsolbuild(1)\fR\. This must have a string value, and will be used by \fBsolbuild(1)\fR in the absence of the \fB\-p\fR,\fB\-\-profile\fR flag\.
+.
+.IP "\(bu" 4
+\fBenable_tmpfs\fR
+.
+.IP
+Instruct \fBsolbuild(1)\fR to use tmpfs mounts by default for all builds\. Note that even if this is disabled, as it is by default, you may still override this at runtime with the \fB\-t\fR,\fB\-\-tmpfs\fR flag\.
+.
+.IP "\(bu" 4
+\fBtmpfs_size\fR
+.
+.IP
+Set the default tmpfs size used by \fBsolbuild(1)\fR when tmpfs builds are enabled\. An empty value, the default, will mean an unbounded size to the tmpfs\. This value should be a string value, with the same syntax that one would pass to \fBmount(8)\fR\.
+.
+.IP
+See \fBsolbuild(1)\fR for more details on the \fB\-t\fR,\fB\-\-tmpfs\fR option behaviour\.
+.
+.IP "" 0
 .
 .SH "EXAMPLE"
+.
+.nf
+
+# Set the default profile, a string value assignment
+default_profile = "main\-x86_64"
+
+# Set tmpfs enabled by default, a boolean value assignment
+enable_tmpfs = true
+.
+.fi
 .
 .SH "COPYRIGHT"
 .
