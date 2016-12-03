@@ -22,6 +22,7 @@ import (
 	"github.com/solus-project/libosdev/disk"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -72,6 +73,8 @@ type Manager struct {
 	updateMode bool // Whether we're just updating an image
 
 	config *Config // Our config from the merged system/vendor configs
+
+	history *PackageHistory // Given package history, if any
 
 	activePID int // Active PID
 }
@@ -163,6 +166,21 @@ func (m *Manager) SetPackage(pkg *Package) error {
 
 	if !m.image.IsInstalled() {
 		return ErrProfileNotInstalled
+	}
+
+	// Obtain package history.
+	// TODO: Only do so if .git exists!
+	if pkg.Type == PackageTypeYpkg {
+		repoDir := filepath.Dir(pkg.Path)
+		if history, err := NewPackageHistory(repoDir); err == nil {
+			log.Info("Obtained package history")
+			m.history = history
+		} else {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Error("Failed to obtain package history")
+			return err
+		}
 	}
 
 	m.pkg = pkg

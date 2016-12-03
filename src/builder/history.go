@@ -17,8 +17,8 @@
 package builder
 
 import (
-	// Right now this is just to force git2go into the build
-	_ "github.com/libgit2/git2go"
+	"fmt"
+	"github.com/libgit2/git2go"
 )
 
 // PackageHistory is an automatic changelog generated from the changes to
@@ -43,5 +43,11 @@ type PackageHistory struct {
 // repository path, and return a usable instance of PackageHistory for writing
 // to the container history.xml file.
 func NewPackageHistory(path string) (*PackageHistory, error) {
+	repo, err := git.OpenRepository(path)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(repo)
+
 	return nil, ErrNotImplemented
 }
