@@ -113,6 +113,12 @@ func (m *Manager) SetProfile(profile string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
+	// Passed an empty profile from the CLI flags, so set our default profile
+	// as the one to use.
+	if profile == "" {
+		profile = m.config.DefaultProfile
+	}
+
 	prof, err := NewProfile(profile)
 	if err != nil {
 		EmitProfileError(profile)
