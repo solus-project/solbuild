@@ -482,7 +482,7 @@ func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
 }
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) Build(notif PidNotifier, profile *Profile, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
 		"profile": overlay.Back.Name,
 		"version": p.Version,
@@ -527,6 +527,14 @@ func (p *Package) Build(notif PidNotifier, pman *EopkgManager, overlay *Overlay)
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to start d-bus")
+		return err
+	}
+
+	// Get the repos in place before asserting anything
+	if err := pman.ConfigureRepos(profile); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Configuring repositories failed")
 		return err
 	}
 

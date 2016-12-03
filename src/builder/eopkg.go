@@ -340,6 +340,9 @@ func (e *EopkgManager) removeRepos(repos []string) error {
 
 // addRepos will add the specified filtered set of repos to the rootfs
 func (e *EopkgManager) addRepos(repos []*Repo) error {
+	if len(repos) < 1 {
+		return nil
+	}
 	return ErrNotImplemented
 }
 
