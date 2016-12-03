@@ -59,11 +59,11 @@ type Overlay struct {
 //
 // Unlike evobuild, we use fixed names within the more dynamic profile name,
 // as opposed to a single dir with "unstable-x86_64" inside it, etc.
-func NewOverlay(back *BackingImage, pkg *Package) *Overlay {
+func NewOverlay(profile *Profile, back *BackingImage, pkg *Package) *Overlay {
 	// Ideally we could make this better..
 	dirname := pkg.Name
 	// i.e. /var/cache/solbuild/unstable-x86_64/nano
-	basedir := filepath.Join(OverlayRootDir, back.Name, dirname)
+	basedir := filepath.Join(OverlayRootDir, profile.Name, dirname)
 	return &Overlay{
 		Back:           back,
 		Package:        pkg,
