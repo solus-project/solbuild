@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 // A Profile is a configuration defining what backing image to use, what repos
@@ -53,5 +54,9 @@ func NewProfile(name string) (*Profile, error) {
 
 // NewProfileFromPath will attempt to load a profile from the given file name
 func NewProfileFromPath(path string) (*Profile, error) {
+	basename := filepath.Base(path)
+	if !strings.HasSuffix(basename, ProfileSuffix) {
+		return nil, fmt.Errorf("Not a .profile file: %v", path)
+	}
 	return nil, ErrNotImplemented
 }
