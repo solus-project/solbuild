@@ -125,5 +125,5 @@ func NewProfileFromPath(path string) (*Profile, error) {
 		}
 	}
 
-	return nil, ErrNotImplemented
+	return profile, nil
 }
