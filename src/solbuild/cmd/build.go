@@ -38,7 +38,7 @@ var tmpfs bool
 var tmpfsSize string
 
 func init() {
-	buildCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	buildCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
 	buildCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
@@ -64,6 +64,7 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return nil
 	}
+
 	// Safety first..
 	if err = manager.SetProfile(profile); err != nil {
 		return nil

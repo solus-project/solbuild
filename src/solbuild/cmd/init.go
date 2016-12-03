@@ -38,7 +38,7 @@ builds`,
 var autoUpdate bool
 
 func init() {
-	initCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	initCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	initCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	initCmd.Flags().BoolVarP(&autoUpdate, "update", "u", false, "Automatically update the new image")
 	RootCmd.AddCommand(initCmd)

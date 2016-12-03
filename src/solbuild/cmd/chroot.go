@@ -36,7 +36,7 @@ dependencies.`,
 }
 
 func init() {
-	chrootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	chrootCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	chrootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(chrootCmd)
 }

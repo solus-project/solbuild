@@ -17,7 +17,6 @@
 package cmd
 
 import (
-	"builder"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -35,7 +34,7 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	RootCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	RootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 }
 

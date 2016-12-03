@@ -36,9 +36,6 @@ const (
 	// ImageBaseURI is the storage area for base images
 	ImageBaseURI = "https://solus-project.com/image_root"
 
-	// DefaultProfile is the profile solbuild will use when none are specified
-	DefaultProfile = "main-x86_64"
-
 	// ImageRootsDir is where updates are performed on base images
 	ImageRootsDir = "/var/lib/solbuild/roots"
 )

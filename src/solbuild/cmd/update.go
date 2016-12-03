@@ -34,7 +34,7 @@ minimize the build times in future updates with this profile.`,
 }
 
 func init() {
-	updateCmd.Flags().StringVarP(&profile, "profile", "p", builder.DefaultProfile, "Build profile to use")
+	updateCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	updateCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	RootCmd.AddCommand(updateCmd)
 }

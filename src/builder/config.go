@@ -48,7 +48,7 @@ var (
 func NewConfig() (*Config, error) {
 	// Set up some sane defaults just in case someone mangles the configs
 	config := &Config{
-		DefaultProfile: DefaultProfile,
+		DefaultProfile: "main-x86_64",
 		EnableTmpfs:    false,
 		TmpfsSize:      "",
 	}
