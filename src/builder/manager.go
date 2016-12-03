@@ -68,6 +68,8 @@ type Manager struct {
 	cancelled  bool // Whether or not we've been cancelled
 	updateMode bool // Whether we're just updating an image
 
+	config *Config // Our config from the merged system/vendor configs
+
 	activePID int // Active PID
 }
 
@@ -82,6 +84,17 @@ func NewManager() (*Manager, error) {
 		activePID:  0,
 		updateMode: false,
 	}
+
+	// Now load the configuration in
+	if config, err := NewConfig(); err == nil {
+		man.config = config
+	} else {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to load solbuild configuration")
+		return nil, err
+	}
+
 	man.lock = new(sync.Mutex)
 	return man, nil
 }
