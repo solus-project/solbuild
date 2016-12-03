@@ -43,6 +43,7 @@ type Overlay struct {
 	UpperDir   string // UpperDir is where real inode changes happen (tmp)
 	ImgDir     string // Where the profile is mounted (ro)
 	MountPoint string // The actual mount point for the union'd directories
+	LockPath   string // Path to the lockfile for this overlay
 
 	EnableTmpfs bool   // Whether to use tmpfs for the upperdir or not
 	TmpfsSize   string // Size of the tmpfs to pass to mount, string form
@@ -72,6 +73,7 @@ func NewOverlay(profile *Profile, back *BackingImage, pkg *Package) *Overlay {
 		UpperDir:       filepath.Join(basedir, "tmp"),
 		ImgDir:         filepath.Join(basedir, "img"),
 		MountPoint:     filepath.Join(basedir, "union"),
+		LockPath:       fmt.Sprintf(basedir, ".lock"),
 		mountedImg:     false,
 		mountedOverlay: false,
 		mountedVFS:     false,
