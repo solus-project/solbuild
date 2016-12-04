@@ -43,8 +43,13 @@ Getting started
 
     git clone https://github.com/solus-project/solbuild.git
     cd solbuild
+    make ensure_modules
     make
     sudo make install
+
+You may wish to use the provided tarballs, which include vendored dependencies.
+Distributions are free to nuke the src/vendor directory from the distributed
+tarball and use their own golang dependencies if appropriate.
 
 **Initialising the root**
 
@@ -78,10 +83,9 @@ See the `solbuild help` command for more details, or `solbuild(1)` manpage.
 Requirements
 ------------
 
-**Build Requirements**
-
  - golang (tested with 1.7.4)
  - `libgit2` (Also require `git` at runtime for submodules)
+ - `curl` command
 
 Your kernel must support the `overlayfs` filesystem.
 
