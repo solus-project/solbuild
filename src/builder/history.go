@@ -17,10 +17,13 @@
 package builder
 
 import (
+	"encoding/xml"
 	"fmt"
 	"github.com/libgit2/git2go"
+	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -28,6 +31,10 @@ const (
 	// MaxChangelogEntries is the absolute maximum number of entries we'll
 	// parse and provide changelog entries for.
 	MaxChangelogEntries = 10
+
+	// UpdateDateFormat is the time format we emit in the history.xml, i.e.
+	// 2016-09-24
+	UpdateDateFormat = "2006-01-02"
 )
 
 var (
@@ -229,6 +236,66 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		numEntries++
 	}
 
+	// !!TESTING!! //
+	if err := ret.WriteXML("history.xml"); err != nil {
+		return nil, err
+	}
+
 	// All done!
 	return ret, ErrNotImplemented
+}
+
+// YPKG provides ypkg-gen-history history.xml compatibility
+type YPKG struct {
+	History []*YPKGUpdate `xml:">Update"`
+}
+
+// YPKGUpdate represents an update in the package history
+type YPKGUpdate struct {
+	Release int    `xml:"release,attr"`
+	Type    string `xml:"type,attr,omitempty"`
+	Date    string
+	Version string
+	Comment string
+	Name    string
+	Email   string
+}
+
+// WriteXML will attempt to dump the update history to an XML file
+// in order for ypkg to merge it into the package build.
+func (p *PackageHistory) WriteXML(path string) error {
+	var ypkgUpdates []*YPKGUpdate
+
+	fi, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer fi.Close()
+
+	for _, update := range p.Updates {
+		yUpdate := &YPKGUpdate{
+			Release: update.Package.Release,
+			Version: update.Package.Version,
+			Comment: update.Body,
+			Name:    update.Author,
+			Email:   update.AuthorEmail,
+			Date:    update.Time.Format(UpdateDateFormat),
+		}
+		if update.IsSecurity {
+			yUpdate.Type = "security"
+		}
+		ypkgUpdates = append(ypkgUpdates, yUpdate)
+	}
+
+	ypkg := &YPKG{History: ypkgUpdates}
+	bytes, err := xml.MarshalIndent(ypkg, "", "    ")
+	if err != nil {
+		return err
+	}
+	// My version of go is incorrectly replacing newlines, fix it.
+	s := strings.Replace(string(bytes), "&#xA;", "\n", -1)
+
+	// Dump it to the file
+	_, err = fi.WriteString(s)
+	return err
 }
