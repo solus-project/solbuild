@@ -106,6 +106,7 @@ func (g *GitSource) Fetch() error {
 		Bare:         true,
 		FetchOptions: fetchOpts,
 	})
+
 	if err != nil {
 		return err
 	}
