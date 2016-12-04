@@ -348,7 +348,7 @@ func (m *Manager) Build() error {
 		return err
 	}
 
-	return m.pkg.Build(m, m.GetProfile(), m.pkgManager, m.overlay)
+	return m.pkg.Build(m, m.history, m.GetProfile(), m.pkgManager, m.overlay)
 }
 
 // Chroot will enter the build environment to allow users to introspect it

@@ -233,7 +233,7 @@ func (p *Package) GetCcacheDirInternal() string {
 }
 
 // CopyAssets will copy all of the required assets into the builder root
-func (p *Package) CopyAssets(o *Overlay) error {
+func (p *Package) CopyAssets(h *PackageHistory, o *Overlay) error {
 	baseDir := filepath.Dir(p.Path)
 
 	if abs, err := filepath.Abs(baseDir); err == nil {
@@ -262,7 +262,13 @@ func (p *Package) CopyAssets(o *Overlay) error {
 			return err
 		}
 	}
-	return nil
+
+	if h == nil {
+		return nil
+	}
+	// Write the history file out
+	histPath := filepath.Join(destdir, "history.xml")
+	return h.WriteXML(histPath)
 }
 
 // BuildYpkg will take care of the ypkg specific build process and is called only
@@ -486,7 +492,7 @@ func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
 }
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build(notif PidNotifier, profile *Profile, pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Profile, pman *EopkgManager, overlay *Overlay) error {
 	log.WithFields(log.Fields{
 		"profile": overlay.Back.Name,
 		"version": p.Version,
@@ -516,7 +522,7 @@ func (p *Package) Build(notif PidNotifier, profile *Profile, pman *EopkgManager,
 	}
 
 	// Ensure source assets are in place
-	if err := p.CopyAssets(overlay); err != nil {
+	if err := p.CopyAssets(history, overlay); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to copy required source assets")
