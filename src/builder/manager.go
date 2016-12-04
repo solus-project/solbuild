@@ -178,8 +178,7 @@ func (m *Manager) SetPackage(pkg *Package) error {
 			} else {
 				log.WithFields(log.Fields{
 					"error": err,
-				}).Error("Failed to obtain package history")
-				return err
+				}).Warning("Failed to obtain package git history")
 			}
 		}
 	}
