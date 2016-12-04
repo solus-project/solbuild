@@ -19,11 +19,12 @@ package source
 import (
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
+	"github.com/libgit2/git2go"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
-	// We'll need this quite a bit =P
-	_ "github.com/libgit2/git2go"
 )
 
 const (
@@ -66,9 +67,48 @@ func NewGit(uri, ref string) (*GitSource, error) {
 	return g, nil
 }
 
+// completed is called when the fetch is done
+func (g *GitSource) completed(r git.RemoteCompletion) git.ErrorCode {
+	log.WithFields(log.Fields{
+		"source": g.BaseName,
+	}).Info("Completed fetch of git source")
+	return 0
+}
+
+// message will be called to emit standard git text to the terminal
+func (g *GitSource) message(str string) git.ErrorCode {
+	os.Stdout.Write([]byte(str))
+	return 0
+}
+
+// CreateCallbacks will create the default git callbacks
+func (g *GitSource) CreateCallbacks() git.RemoteCallbacks {
+	return git.RemoteCallbacks{
+		SidebandProgressCallback: g.message,
+	}
+}
+
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
+	fmt.Println(g.ClonePath)
+
+	// Attempt cloning
+	log.WithFields(log.Fields{
+		"uri": g.URI,
+	}).Info("Cloning git source")
+
+	fetchOpts := &git.FetchOptions{
+		RemoteCallbacks: g.CreateCallbacks(),
+	}
+
+	_, err := git.Clone(g.URI, g.ClonePath, &git.CloneOptions{
+		Bare:         true,
+		FetchOptions: fetchOpts,
+	})
+	if err != nil {
+		return err
+	}
 	return errors.New("Sorry - don't know how to fetch yet!")
 }
 
