@@ -42,7 +42,7 @@ solbuild is a [Solus project](https://solus-project.com/).
  - [x] Restore support for `ypkg` git sources
  - [x] Restore `git submodule` support
  - [x] Add documentation
- - [ ] Add `index` command
+ - [x] Add `index` command
  - [ ] Seal the deal, v1
 
 **Future considerations**:
