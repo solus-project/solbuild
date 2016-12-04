@@ -55,7 +55,10 @@ func (s *SimpleSource) GetIdentifier() string {
 
 // GetBindConfiguration will return the pair for binding our tarballs.
 func (s *SimpleSource) GetBindConfiguration(rootfs string) BindConfiguration {
-	return BindConfiguration{}
+	return BindConfiguration{
+		BindSource: s.GetPath(s.validator),
+		BindTarget: filepath.Join(rootfs, s.File),
+	}
 }
 
 // GetPath gets the path on the filesystem of the source
