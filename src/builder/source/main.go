@@ -18,6 +18,7 @@ package source
 
 import (
 	"os"
+	"strings"
 )
 
 const (
@@ -76,6 +77,13 @@ type Source interface {
 //
 // In all cases, New will fallback to the SimpleSource implementation
 func New(uri, validator string, legacy bool) Source {
+	if legacy {
+		return NewSimple(uri, validator, legacy)
+	}
+	// Handle git sources. Not supported in legacy format, ypkg only.
+	if strings.HasPrefix(uri, "git|") {
+		return NewGit(uri, validator)
+	}
 	return NewSimple(uri, validator, legacy)
 }
 
