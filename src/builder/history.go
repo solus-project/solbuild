@@ -18,6 +18,7 @@ package builder
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"github.com/libgit2/git2go"
 	"os"
@@ -220,6 +221,10 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 	ret := &PackageHistory{pkgfile: pkgfile}
 	ret.scanUpdates(repo, updates, tags)
 	updates = nil
+
+	if len(ret.Updates) < 1 {
+		return nil, errors.New("No usable git history found")
+	}
 
 	// All done!
 	return ret, nil
