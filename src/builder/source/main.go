@@ -82,7 +82,7 @@ func New(uri, validator string, legacy bool) (Source, error) {
 	}
 	// Handle git sources. Not supported in legacy format, ypkg only.
 	if strings.HasPrefix(uri, "git|") {
-		return NewGit(uri, validator)
+		return NewGit(uri[len("git|"):], validator)
 	}
 	return NewSimple(uri, validator, legacy)
 }

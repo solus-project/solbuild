@@ -63,7 +63,7 @@ func NewGit(uri, ref string) (*GitSource, error) {
 		ClonePath: clonePath,
 	}
 
-	return g, errors.New("I am but a simple child")
+	return g, nil
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
