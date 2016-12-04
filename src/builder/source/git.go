@@ -17,7 +17,6 @@
 package source
 
 import (
-	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/libgit2/git2go"
@@ -101,16 +100,53 @@ func (g *GitSource) Clone() error {
 	}
 
 	_, err := git.Clone(g.URI, g.ClonePath, &git.CloneOptions{
-		Bare:         true,
+		Bare:         false,
 		FetchOptions: fetchOpts,
 	})
 	return err
+}
+
+// HasTag will attempt to find the tag, if possible
+func (g *GitSource) HasTag(repo *git.Repository, tagName string) bool {
+	haveTag := false
+	repo.Tags.Foreach(func(name string, id *git.Oid) error {
+		if name == "refs/tags/"+tagName {
+			haveTag = true
+		}
+		return nil
+	})
+	return haveTag
+}
+
+// fetch will attempt
+func (g *GitSource) fetch(repo *git.Repository) error {
+	log.WithFields(log.Fields{
+		"uri": g.URI,
+	}).Info("Git fetching existing clone")
+	remote, err := repo.Remotes.Lookup("origin")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"uri":   g.URI,
+		}).Error("Failed to find git remote")
+		return err
+	}
+
+	fetchOpts := &git.FetchOptions{
+		RemoteCallbacks: g.CreateCallbacks(),
+	}
+	if err := remote.Fetch([]string{}, fetchOpts, ""); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
 	fmt.Println(g.ClonePath)
+
+	hadRepo := false
 
 	// First things first, clone if necessary
 	if !PathExists(g.ClonePath) {
@@ -121,11 +157,60 @@ func (g *GitSource) Fetch() error {
 			}).Error("Failed to clone remote repository")
 			return err
 		}
+	} else {
+		hadRepo = true
 	}
 
-	// TODO: If it did exist, attempt git pull, then check that
-	// our .Ref is actually valid
-	return errors.New("Sorry - don't know how to fetch yet!")
+	// Now open the repo and validate it
+	repo, err := git.OpenRepository(g.ClonePath)
+	if err != nil {
+		return err
+	}
+
+	// If we have the tag, no need to update
+	if g.HasTag(repo, g.Ref) {
+		return nil
+	}
+
+	// Branch should always try to update
+	_, err = repo.LookupBranch(g.Ref, git.BranchAll)
+	if err == nil {
+		if !hadRepo {
+			return nil
+		}
+		// Fetch the repo
+		if err := g.fetch(repo); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Check the oid
+	commitObj, err := git.NewOid(g.Ref)
+	if err == nil {
+		return nil
+	}
+
+	// Fetch again if the repo existed
+	if err != nil && hadRepo {
+		if err := g.fetch(repo); err != nil {
+			return err
+		}
+	}
+
+	// Does it exist now?
+	commitObj, err = git.NewOid(g.Ref)
+	if err != nil {
+		return fmt.Errorf("Unknown ref: %s", g.Ref)
+	}
+
+	// check it is some kind of commit
+	_, err = repo.LookupCommit(commitObj)
+	if err != nil {
+		return fmt.Errorf("Unknown ref: %s", g.Ref)
+	}
+
+	return nil
 }
 
 // IsFetched will check if we have the ref available, if not it will return
@@ -145,5 +230,5 @@ func (g *GitSource) GetBindConfiguration(sourcedir string) BindConfiguration {
 // GetIdentifier will return a human readable string to represent this
 // git source in the event of errors.
 func (g *GitSource) GetIdentifier() string {
-	return fmt.Sprintf("%s/%s", g.URI, g.Ref)
+	return fmt.Sprintf("%s#%s", g.URI, g.Ref)
 }
