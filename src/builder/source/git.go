@@ -21,6 +21,11 @@ import (
 	"fmt"
 )
 
+const (
+	// GitSourceDir is the base directory for all cached git sources
+	GitSourceDir = "/var/lib/solbuild/sources/git"
+)
+
 // A GitSource as referenced by `ypkg` build spec. A git source must have
 // a valid ref to check out to.
 type GitSource struct {
