@@ -116,6 +116,11 @@ func (b *BackingImage) Update(notif PidNotifier, pkgManager *EopkgManager) error
 		return err
 	}
 
+	// Lastly, add the user
+	if err := AddBuildUser(b.RootDir); err != nil {
+		return err
+	}
+
 	log.WithFields(log.Fields{
 		"profile": b.Name,
 	}).Info("Image successfully updated")
