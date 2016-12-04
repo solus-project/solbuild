@@ -276,12 +276,6 @@ func (g *GitSource) Fetch() error {
 		return err
 	}
 
-	// Determine head.
-	head, err := g.GetHead(repo)
-	if err != nil {
-		return err
-	}
-
 	wantedCommit := g.GetCommitID(repo)
 	if wantedCommit == "" {
 		// Logic here being we just cloned it. Where is it?
@@ -307,7 +301,7 @@ func (g *GitSource) Fetch() error {
 	}
 
 	// TODO: Check git submodules!
-	return fmt.Errorf("Potential id? %s", g.GetCommitID(repo))
+	return nil
 }
 
 // IsFetched will check if we have the ref available, if not it will return
@@ -321,7 +315,10 @@ func (g *GitSource) IsFetched() bool {
 // point ypkg can git clone from the bare git into a new tree and check
 // out, make changes, etc.
 func (g *GitSource) GetBindConfiguration(sourcedir string) BindConfiguration {
-	return BindConfiguration{}
+	return BindConfiguration{
+		g.ClonePath,
+		filepath.Join(sourcedir, g.BaseName),
+	}
 }
 
 // GetIdentifier will return a human readable string to represent this
