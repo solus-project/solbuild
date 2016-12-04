@@ -150,7 +150,12 @@ func GetFileContents(repo *git.Repository, tag, path string) ([]byte, error) {
 // The repository path will be taken as the directory name of the pkgfile that
 // is given to this function.
 func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
+	// Repodir
 	path := filepath.Dir(pkgfile)
+
+	// basename of file
+	fname := filepath.Base(pkgfile)
+
 	repo, err := git.OpenRepository(path)
 	if err != nil {
 		return nil, err
@@ -226,7 +231,7 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 		if update == nil {
 			continue
 		}
-		b, err := GetFileContents(repo, update.ObjectID, "package.yml")
+		b, err := GetFileContents(repo, update.ObjectID, fname)
 		if err != nil {
 			continue
 		}
