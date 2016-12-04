@@ -61,7 +61,7 @@ func (p *Package) Index(notif PidNotifier, dir string, overlay *Overlay) error {
 	}
 
 	// Create the target
-	target := filepath.Join(overlay.MountPoint, IndexBindTarget[:1])
+	target := filepath.Join(overlay.MountPoint, IndexBindTarget[1:])
 	if err := os.MkdirAll(target, 00755); err != nil {
 		log.WithFields(log.Fields{
 			"dir":   target,
