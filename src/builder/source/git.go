@@ -17,6 +17,7 @@
 package source
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/libgit2/git2go"
@@ -141,12 +142,65 @@ func (g *GitSource) fetch(repo *git.Repository) error {
 	return nil
 }
 
+// GetCommitID will attempt to find the oid of the selected ref type
+func (g *GitSource) GetCommitID(repo *git.Repository) string {
+	oid := ""
+	// Attempt to find the branch
+	branch, err := repo.LookupBranch(g.Ref, git.BranchAll)
+	if err == nil {
+		oid = branch.Target().String()
+		log.WithFields(log.Fields{
+			"branch": g.Ref,
+			"sha":    oid,
+		}).Info("Found git commit of branch")
+		return oid
+	}
+
+	tagName := g.Ref
+	if !strings.HasPrefix(tagName, "refs/tags") {
+		tagName = "refs/tags/" + tagName
+	}
+
+	repo.Tags.Foreach(func(name string, id *git.Oid) error {
+		if name == tagName {
+			oid = id.String()
+			// Force break the foreach
+			return errors.New("")
+		}
+		return nil
+	})
+
+	// Tag set the oid
+	if oid != "" {
+		log.WithFields(log.Fields{
+			"tag": tagName,
+			"sha": oid,
+		}).Info("Found git commit of tag")
+		return oid
+	}
+
+	// Check the oid is valid
+	obj, err := git.NewOid(oid)
+	if err != nil {
+		return ""
+	}
+
+	// Check if its a commit
+	_, err = repo.LookupCommit(obj)
+	if err != nil {
+		return ""
+	}
+	log.WithFields(log.Fields{
+		"tag": tagName,
+		"sha": oid,
+	}).Info("Found git commit")
+	return obj.String()
+}
+
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
 	fmt.Println(g.ClonePath)
-
-	hadRepo := false
 
 	// First things first, clone if necessary
 	if !PathExists(g.ClonePath) {
@@ -157,8 +211,6 @@ func (g *GitSource) Fetch() error {
 			}).Error("Failed to clone remote repository")
 			return err
 		}
-	} else {
-		hadRepo = true
 	}
 
 	// Now open the repo and validate it
@@ -167,50 +219,7 @@ func (g *GitSource) Fetch() error {
 		return err
 	}
 
-	// If we have the tag, no need to update
-	if g.HasTag(repo, g.Ref) {
-		return nil
-	}
-
-	// Branch should always try to update
-	_, err = repo.LookupBranch(g.Ref, git.BranchAll)
-	if err == nil {
-		if !hadRepo {
-			return nil
-		}
-		// Fetch the repo
-		if err := g.fetch(repo); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	// Check the oid
-	commitObj, err := git.NewOid(g.Ref)
-	if err == nil {
-		return nil
-	}
-
-	// Fetch again if the repo existed
-	if err != nil && hadRepo {
-		if err := g.fetch(repo); err != nil {
-			return err
-		}
-	}
-
-	// Does it exist now?
-	commitObj, err = git.NewOid(g.Ref)
-	if err != nil {
-		return fmt.Errorf("Unknown ref: %s", g.Ref)
-	}
-
-	// check it is some kind of commit
-	_, err = repo.LookupCommit(commitObj)
-	if err != nil {
-		return fmt.Errorf("Unknown ref: %s", g.Ref)
-	}
-
-	return nil
+	return fmt.Errorf("Potential id? %s", g.GetCommitID(repo))
 }
 
 // IsFetched will check if we have the ref available, if not it will return
