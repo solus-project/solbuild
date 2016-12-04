@@ -20,6 +20,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
+	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"io/ioutil"
 	"os"
@@ -28,19 +29,33 @@ import (
 
 // A SimpleSource is a tarball or other source for a package
 type SimpleSource struct {
-	SHA1Sum   string
-	SHA256Sum string
-	URI       string
-	File      string // Basename of the file
+	URI  string
+	File string // Basename of the file
+
+	legacy    bool   // If this is ypkg or not
+	validator string // Validation key for this source
 }
 
-// New will create a new source instance
-func New(uri string) *SimpleSource {
+// NewSimple will create a new source instance
+func NewSimple(uri, validator string, legacy bool) *SimpleSource {
 	// TODO: Use a better method than filepath here
-	return &SimpleSource{
-		URI:  uri,
-		File: filepath.Base(uri),
+	ret := &SimpleSource{
+		URI:       uri,
+		File:      filepath.Base(uri),
+		legacy:    legacy,
+		validator: validator,
 	}
+	return ret
+}
+
+// GetIdentifier will return the URI associated with this source.
+func (s *SimpleSource) GetIdentifier() string {
+	return s.URI
+}
+
+// GetBindConfiguration will return the pair for binding our tarballs.
+func (s *SimpleSource) GetBindConfiguration(rootfs string) BindConfiguration {
+	return BindConfiguration{}
 }
 
 // GetPath gets the path on the filesystem of the source
@@ -73,13 +88,18 @@ func (s *SimpleSource) GetSHA256Sum(path string) (string, error) {
 }
 
 // IsFetched will determine if the source is already present
-func (s *SimpleSource) IsFetched(expectedHash string) bool {
-	return PathExists(s.GetPath(expectedHash))
+func (s *SimpleSource) IsFetched() bool {
+	return PathExists(s.GetPath(s.validator))
 }
 
 // Fetch will download the given source and cache it locally
 func (s *SimpleSource) Fetch() error {
 	base := filepath.Base(s.URI)
+
+	// Now go and download it
+	log.WithFields(log.Fields{
+		"uri": s.URI,
+	}).Info("Downloading source")
 
 	destPath := filepath.Join(SourceStagingDir, base)
 
@@ -103,7 +123,6 @@ func (s *SimpleSource) Fetch() error {
 		return err
 	}
 
-	// TODO: Check if legacy or not..
 	hash, err := s.GetSHA256Sum(destPath)
 	if err != nil {
 		return err
@@ -123,7 +142,7 @@ func (s *SimpleSource) Fetch() error {
 	}
 	// If the file has a sha1sum set, symlink it to the sha256sum because
 	// it's a legacy archive (pspec.xml)
-	if s.SHA1Sum != "" {
+	if s.legacy {
 		sha, err := s.GetSHA1Sum(dest)
 		if err != nil {
 			return err

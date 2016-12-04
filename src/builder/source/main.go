@@ -57,7 +57,26 @@ type Source interface {
 
 	// GetBindConfiguration should return a valid configuration specifying
 	// the origin on our local filesystem, and the target within the container.
+	// The target should include the full source dir.
 	GetBindConfiguration(rootfs string) BindConfiguration
+
+	// GetIdentifier will return the appropriate representation for a given
+	// source URL.
+	GetIdentifier() string
+}
+
+// New will return a new source for the specified URL.
+//
+// Validator is the value by which the source will be validated, depending
+// on implementation. For example, the SimpleSource backend will expect a
+// hashsum: sha256sum for package.yml, and sha1sum for legacy.
+//
+// The legacy argument will determine whether special care should be taken
+// for legacy packages (i.e. sha1sum vs sha256sum).
+//
+// In all cases, New will fallback to the SimpleSource implementation
+func New(uri, validator string, legacy bool) Source {
+	return NewSimple(uri, validator, legacy)
 }
 
 // PathExists is a helper function to determine the existence of a file path

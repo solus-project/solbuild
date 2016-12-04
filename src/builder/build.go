@@ -77,27 +77,14 @@ func (p *Package) CreateDirs(o *Overlay) error {
 // if necessary
 func (p *Package) FetchSources(o *Overlay) error {
 	for _, source := range p.Sources {
-		var expHash string
-		if p.Type == PackageTypeXML {
-			expHash = source.SHA1Sum
-		} else {
-			expHash = source.SHA256Sum
-		}
-
 		// Already fetched, skip it
-		if source.IsFetched(expHash) {
+		if source.IsFetched() {
 			continue
 		}
-
-		// Now go and download it
-		log.WithFields(log.Fields{
-			"uri": source.URI,
-		}).Info("Downloading source")
-
 		if err := source.Fetch(); err != nil {
 			log.WithFields(log.Fields{
-				"error": err,
-				"uri":   source.URI,
+				"error":  err,
+				"source": source.GetIdentifier(),
 			}).Error("Failed to fetch source")
 			return err
 		}
@@ -111,16 +98,8 @@ func (p *Package) BindSources(o *Overlay) error {
 	mountMan := disk.GetMountManager()
 
 	for _, source := range p.Sources {
-		var expHash string
-		if p.Type == PackageTypeXML {
-			expHash = source.SHA1Sum
-		} else {
-			expHash = source.SHA256Sum
-		}
-
-		// Find the local file
-		localFile := source.GetPath(expHash)
 		sourceDir := p.GetSourceDir(o)
+		bindConfig := source.GetBindConfiguration(sourceDir)
 
 		// Ensure sources tree exists
 		if !PathExists(sourceDir) {
@@ -134,30 +113,30 @@ func (p *Package) BindSources(o *Overlay) error {
 		}
 
 		// Find the target path in the chroot
-		tgtPath := filepath.Join(sourceDir, source.File)
 		log.WithFields(log.Fields{
-			"target": tgtPath,
+			"target": bindConfig.BindTarget,
 		}).Debug("Exposing source to container")
 
-		if err := TouchFile(tgtPath); err != nil {
+		// TODO: Don't do this for git!!
+		if err := TouchFile(bindConfig.BindTarget); err != nil {
 			log.WithFields(log.Fields{
-				"target": tgtPath,
+				"target": bindConfig.BindTarget,
 				"error":  err,
 			}).Error("Failed to create bind mount target")
 			return nil
 		}
 
 		// Bind mount local source into chroot
-		if err := mountMan.BindMount(localFile, tgtPath, "ro"); err != nil {
+		if err := mountMan.BindMount(bindConfig.BindSource, bindConfig.BindTarget, "ro"); err != nil {
 			log.WithFields(log.Fields{
-				"target": tgtPath,
+				"target": bindConfig.BindTarget,
 				"error":  err,
 			}).Error("Failed to bind mount source")
 			return err
 		}
 
 		// Account for these to help cleanups
-		o.ExtraMounts = append(o.ExtraMounts, tgtPath)
+		o.ExtraMounts = append(o.ExtraMounts, bindConfig.BindTarget)
 	}
 	return nil
 }

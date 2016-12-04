@@ -40,13 +40,13 @@ const (
 
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
-	Name       string                 // Name of the package
-	Version    string                 // Version of this package
-	Release    int                    // Solus upgrades are based entirely on relno
-	Type       PackageType            // ypkg or pspec.xml legacy
-	Path       string                 // Path to the build spec
-	Sources    []*source.SimpleSource // Each package has 0 or more sources that we fetch
-	CanNetwork bool                   // Only applicable to ypkg builds
+	Name       string          // Name of the package
+	Version    string          // Version of this package
+	Release    int             // Solus upgrades are based entirely on relno
+	Type       PackageType     // ypkg or pspec.xml legacy
+	Path       string          // Path to the build spec
+	Sources    []source.Source // Each package has 0 or more sources that we fetch
+	CanNetwork bool            // Only applicable to ypkg builds
 }
 
 // YmlPackage is a parsed ypkg build file
@@ -133,8 +133,7 @@ func NewXMLPackage(path string) (*Package, error) {
 	}
 
 	for _, archive := range xpkg.Source.Archive {
-		source := source.New(archive.URI)
-		source.SHA1Sum = archive.SHA1Sum
+		source := source.New(archive.URI, archive.SHA1Sum, true)
 		ret.Sources = append(ret.Sources, source)
 	}
 
@@ -194,8 +193,7 @@ func NewYmlPackageFromBytes(by []byte) (*Package, error) {
 	// TODO: Add git detection!!
 	for _, row := range ypkg.Source {
 		for key, value := range row {
-			source := source.New(key)
-			source.SHA256Sum = value
+			source := source.New(key, value, false)
 			ret.Sources = append(ret.Sources, source)
 		}
 	}
