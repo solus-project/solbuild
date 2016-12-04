@@ -32,6 +32,11 @@ const (
 	GitSourceDir = "/var/lib/solbuild/sources/git"
 )
 
+var (
+	// ErrGitNoContinue is returned when git processing cannot continue
+	ErrGitNoContinue = errors.New("Fatal errors in git fetch")
+)
+
 // A GitSource as referenced by `ypkg` build spec. A git source must have
 // a valid ref to check out to.
 type GitSource struct {
@@ -206,10 +211,17 @@ func (g *GitSource) GetHead(repo *git.Repository) (string, error) {
 	return head.Target().String(), nil
 }
 
+// resetOnto will attempt to reset the repo (hard) onto the given commit
+func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
+	return ErrGitNoContinue
+}
+
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
 	fmt.Println(g.ClonePath)
+
+	hadRepo := true
 
 	// First things first, clone if necessary
 	if !PathExists(g.ClonePath) {
@@ -220,11 +232,49 @@ func (g *GitSource) Fetch() error {
 			}).Error("Failed to clone remote repository")
 			return err
 		}
+		hadRepo = false
 	}
 
 	// Now open the repo and validate it
 	repo, err := git.OpenRepository(g.ClonePath)
 	if err != nil {
+		return err
+	}
+
+	// Determine head.
+	head, err := g.GetHead(repo)
+	if err != nil {
+		return err
+	}
+
+	wantedCommit := g.GetCommitID(repo)
+	if wantedCommit == "" {
+		// Logic here being we just cloned it. Where is it?
+		if !hadRepo {
+			return fmt.Errorf("Cannot continue with git processing")
+		}
+		// So try to fetch it
+		if err := g.fetch(repo); err != nil {
+			return err
+		}
+		// Re-establish the wanted commit
+		wantedCommit = g.GetCommitID(repo)
+	}
+
+	// Can't proceed now. Just doesn't exist
+	if wantedCommit == "" {
+		return ErrGitNoContinue
+	}
+
+	if head == wantedCommit {
+		// goto initModules??
+		log.Info("Head is at specified commit")
+	} else {
+		log.Info("They don't match bud")
+	}
+
+	// Attempt reset
+	if err := g.resetOnto(repo, wantedCommit); err != nil {
 		return err
 	}
 
