@@ -185,13 +185,14 @@ func (g *GitSource) GetCommitID(repo *git.Repository) string {
 	}
 
 	// Check the oid is valid
+	oid = g.Ref
 	obj, err := git.NewOid(oid)
 	if err != nil {
 		return ""
 	}
 
 	// Check if its a commit
-	_, err = repo.LookupCommit(obj)
+	_, err = repo.Lookup(obj)
 	if err != nil {
 		return ""
 	}
@@ -213,7 +214,58 @@ func (g *GitSource) GetHead(repo *git.Repository) (string, error) {
 
 // resetOnto will attempt to reset the repo (hard) onto the given commit
 func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
-	return ErrGitNoContinue
+	// this stuff _really_ shouldn't happen but oh well.
+	oid, err := git.NewOid(ref)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"ref":   ref,
+		}).Error("Failed to create OID")
+		return err
+	}
+	commitFind, err := repo.Lookup(oid)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"ref":   ref,
+		}).Error("Failed to grab commit..")
+		return err
+	}
+
+	commitObj, err := commitFind.Peel(git.ObjectCommit)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"ref":   ref,
+		}).Error("Failed to grab commit object..")
+		return err
+	}
+	commit, err := commitObj.AsCommit()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"ref":   ref,
+		}).Error("Failed to cast commit object..")
+		return err
+	}
+
+	log.WithFields(log.Fields{
+		"sha": ref,
+	}).Info("Resetting git repository to commit")
+
+	checkOpts := &git.CheckoutOpts{
+		Strategy: git.CheckoutForce | git.CheckoutRemoveUntracked | git.CheckoutRemoveIgnored | git.CheckoutAllowConflicts,
+	}
+
+	if err := repo.ResetToCommit(commit, git.ResetHard, checkOpts); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"sha":   ref,
+		}).Error("Failed to reset git repository")
+		return err
+	}
+
+	return nil
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
