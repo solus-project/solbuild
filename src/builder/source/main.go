@@ -37,8 +37,8 @@ const (
 // Special care is taken to ensure that they will be bound in a way
 // compatible with the target system.
 type BindConfiguration struct {
-    BindSource string // The localy cached source
-    BindTarget string // Target within the filesystem
+	BindSource string // The localy cached source
+	BindTarget string // Target within the filesystem
 }
 
 // A Source is a general representation of source listed in a package
@@ -48,16 +48,16 @@ type BindConfiguration struct {
 // with by the interfaces.
 type Source interface {
 
-    // IsFetched is called during the early build process to determine
-    // whether this source is available for use.
-    IsFetched() bool
+	// IsFetched is called during the early build process to determine
+	// whether this source is available for use.
+	IsFetched() bool
 
-    // Fetch will attempt to fetch the this source locally and cache it.
-    Fetch() error
+	// Fetch will attempt to fetch the this source locally and cache it.
+	Fetch() error
 
-    // GetBindConfiguration should return a valid configuration specifying
-    // the origin on our local filesystem, and the target within the container.
-    GetBindConfiguration(rootfs string) BindConfiguration
+	// GetBindConfiguration should return a valid configuration specifying
+	// the origin on our local filesystem, and the target within the container.
+	GetBindConfiguration(rootfs string) BindConfiguration
 }
 
 // PathExists is a helper function to determine the existence of a file path
