@@ -117,13 +117,24 @@ func (p *Package) BindSources(o *Overlay) error {
 			"target": bindConfig.BindTarget,
 		}).Debug("Exposing source to container")
 
-		// TODO: Don't do this for git!!
-		if err := TouchFile(bindConfig.BindTarget); err != nil {
-			log.WithFields(log.Fields{
-				"target": bindConfig.BindTarget,
-				"error":  err,
-			}).Error("Failed to create bind mount target")
-			return nil
+		if st, err := os.Stat(bindConfig.BindSource); err == nil && st != nil {
+			if st.IsDir() {
+				if err := os.MkdirAll(bindConfig.BindTarget, 00755); err != nil {
+					log.WithFields(log.Fields{
+						"target": bindConfig.BindTarget,
+						"error":  err,
+					}).Error("Failed to create bind mount target")
+					return nil
+				}
+			} else {
+				if err := TouchFile(bindConfig.BindTarget); err != nil {
+					log.WithFields(log.Fields{
+						"target": bindConfig.BindTarget,
+						"error":  err,
+					}).Error("Failed to create bind mount target")
+					return nil
+				}
+			}
 		}
 
 		// Bind mount local source into chroot
