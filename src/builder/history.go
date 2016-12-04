@@ -235,7 +235,7 @@ func (p *PackageHistory) scanUpdates(repo *git.Repository, updates map[string]*P
 
 	// Iterate the commit set in order
 	for _, tagID := range tags {
-		if numEntries > MaxChangelogEntries {
+		if numEntries >= MaxChangelogEntries {
 			break
 		}
 		update := updates[tagID]
