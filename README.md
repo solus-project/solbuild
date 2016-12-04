@@ -40,7 +40,7 @@ solbuild is a [Solus project](https://solus-project.com/).
  - [x] Add locking of `Overlay` and `BackingImage` storage
  - [x] Restore `history.xml` generation for `ypkg` builds in git
  - [x] Restore support for `ypkg` git sources
- - [ ] Restore `git submodule` support
+ - [x] Restore `git submodule` support
  - [x] Add documentation
  - [ ] Seal the deal, v1
 
