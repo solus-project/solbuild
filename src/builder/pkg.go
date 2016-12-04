@@ -40,13 +40,13 @@ const (
 
 // Package is the main item we deal with, avoiding the internals
 type Package struct {
-	Name       string           // Name of the package
-	Version    string           // Version of this package
-	Release    int              // Solus upgrades are based entirely on relno
-	Type       PackageType      // ypkg or pspec.xml legacy
-	Path       string           // Path to the build spec
-	Sources    []*source.Source // Each package has 0 or more sources that we fetch
-	CanNetwork bool             // Only applicable to ypkg builds
+	Name       string                 // Name of the package
+	Version    string                 // Version of this package
+	Release    int                    // Solus upgrades are based entirely on relno
+	Type       PackageType            // ypkg or pspec.xml legacy
+	Path       string                 // Path to the build spec
+	Sources    []*source.SimpleSource // Each package has 0 or more sources that we fetch
+	CanNetwork bool                   // Only applicable to ypkg builds
 }
 
 // YmlPackage is a parsed ypkg build file

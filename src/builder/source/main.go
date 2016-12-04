@@ -34,8 +34,8 @@ const (
 	SourceStagingDir = "/var/lib/solbuild/sources/staging"
 )
 
-// A Source is a tarball or other source for a package
-type Source struct {
+// A SimpleSource is a tarball or other source for a package
+type SimpleSource struct {
 	SHA1Sum   string
 	SHA256Sum string
 	URI       string
@@ -43,21 +43,21 @@ type Source struct {
 }
 
 // New will create a new source instance
-func New(uri string) *Source {
+func New(uri string) *SimpleSource {
 	// TODO: Use a better method than filepath here
-	return &Source{
+	return &SimpleSource{
 		URI:  uri,
 		File: filepath.Base(uri),
 	}
 }
 
 // GetPath gets the path on the filesystem of the source
-func (s *Source) GetPath(hash string) string {
+func (s *SimpleSource) GetPath(hash string) string {
 	return filepath.Join(SourceDir, hash, filepath.Base(s.URI))
 }
 
 // GetSHA1Sum will return the sha1sum for the given path
-func (s *Source) GetSHA1Sum(path string) (string, error) {
+func (s *SimpleSource) GetSHA1Sum(path string) (string, error) {
 	inp, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -69,7 +69,7 @@ func (s *Source) GetSHA1Sum(path string) (string, error) {
 }
 
 // GetSHA256Sum will return the sha1sum for the given path
-func (s *Source) GetSHA256Sum(path string) (string, error) {
+func (s *SimpleSource) GetSHA256Sum(path string) (string, error) {
 	inp, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -81,12 +81,12 @@ func (s *Source) GetSHA256Sum(path string) (string, error) {
 }
 
 // IsFetched will determine if the source is already present
-func (s *Source) IsFetched(expectedHash string) bool {
+func (s *SimpleSource) IsFetched(expectedHash string) bool {
 	return PathExists(s.GetPath(expectedHash))
 }
 
 // Fetch will download the given source and cache it locally
-func (s *Source) Fetch() error {
+func (s *SimpleSource) Fetch() error {
 	base := filepath.Base(s.URI)
 
 	destPath := filepath.Join(SourceStagingDir, base)
