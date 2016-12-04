@@ -58,7 +58,7 @@ func NewLockFile(path string) (*LockFile, error) {
 	// Automatically create the leading directory structure
 	dir := filepath.Dir(path)
 	if !PathExists(dir) {
-		if err := os.MkdirAll(path, 00755); err != nil {
+		if err := os.MkdirAll(dir, 00755); err != nil {
 			return nil, err
 		}
 	}
