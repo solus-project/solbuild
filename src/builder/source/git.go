@@ -269,9 +269,6 @@ func (g *GitSource) submodules(repo *git.Repository) error {
 	}
 
 	err := repo.Submodules.Foreach(func(sub *git.Submodule, name string) int {
-		if err := repo.Submodules.SetFetchRecurseSubmodules(name, git.SubmoduleRecurseYes); err != nil {
-			return -1
-		}
 		if err := sub.Init(true); err != nil {
 			log.WithFields(log.Fields{
 				"submodule": name,
