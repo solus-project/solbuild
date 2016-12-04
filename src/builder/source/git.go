@@ -263,8 +263,6 @@ func (g *GitSource) submodules() error {
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
-	fmt.Println(g.ClonePath)
-
 	hadRepo := true
 
 	// First things first, clone if necessary
