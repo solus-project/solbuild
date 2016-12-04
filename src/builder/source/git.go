@@ -257,16 +257,32 @@ func (g *GitSource) submodules(repo *git.Repository) error {
 	fetchOpts := &git.FetchOptions{
 		RemoteCallbacks: g.CreateCallbacks(),
 	}
+	strategy := git.CheckoutForce
+	checkOpts := &git.CheckoutOpts{
+		Strategy: strategy,
+	}
 
 	opts := &git.SubmoduleUpdateOptions{
-		FetchOptions: fetchOpts,
+		FetchOptions:          fetchOpts,
+		CheckoutOpts:          checkOpts,
+		CloneCheckoutStrategy: strategy,
 	}
 
 	err := repo.Submodules.Foreach(func(sub *git.Submodule, name string) int {
+		if err := repo.Submodules.SetFetchRecurseSubmodules(name, git.SubmoduleRecurseYes); err != nil {
+			return -1
+		}
+		if err := sub.Init(true); err != nil {
+			log.WithFields(log.Fields{
+				"submodule": name,
+				"error":     err,
+			}).Error("Submodule failed to init")
+			return -1
+		}
 		log.WithFields(log.Fields{
 			"submodule": name,
 		}).Info("Updating git submodule")
-		if err := sub.Update(true, opts); err != nil {
+		if err := sub.Update(false, opts); err != nil {
 			log.WithFields(log.Fields{
 				"submodule": name,
 				"error":     err,
