@@ -45,6 +45,7 @@ const (
 // Currently we're only scoping for security update notification, though
 // more features will come in time.
 type PackageHistory struct {
+	Updates []*PackageUpdate
 }
 
 // A PackageUpdate is a point in history in the git changes, which is parsed
@@ -183,6 +184,8 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 
 	numEntries := 0
 
+	ret := &PackageHistory{}
+
 	// Iterate the commit set in order
 	for _, tagID := range tags {
 		if numEntries > MaxChangelogEntries {
@@ -203,8 +206,10 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 			return nil, err
 		}
 		update.Package = pkg
+		ret.Updates = append(ret.Updates, update)
 		numEntries++
 	}
 
-	return nil, ErrNotImplemented
+	// All done!
+	return ret, ErrNotImplemented
 }
