@@ -21,37 +21,69 @@ When building `package.yml` files ([ypkg](https://github.com/solus-project/ypkg)
 
 As a last speed booster, `solbuild` allows you to perform builds in memory via the `--tmpfs` option.
 
+**Note**: `solbuild` is designed in such a way that you *do not need to be running Solus*. You can build packages for Solus from any compatible host.
+
 solbuild is a [Solus project](https://solus-project.com/).
 
 ![logo](https://build.solus-project.com/logo.png)
 
-**TODO**:
 
- - [x] Port `update` and `chroot` to manager interface
- - [x] Restore `eopkg build` support for legacy format.
- - [x] Restore `ccache` bind mount support
- - [x] Add `tmpfs` support for builds
- - [x] Restore `.solus/packager` support
- - [x] Add an `--update,-u` flag to `init` to automatically update it
- - [x] Add profile concept *based on backing images*
- - [x] Add config file support
- - [x] Add custom repo support
- - [x] Add new `networking` key to `ypkg` files to disable network isolation
- - [x] Add locking of `Overlay` and `BackingImage` storage
- - [x] Restore `history.xml` generation for `ypkg` builds in git
- - [x] Restore support for `ypkg` git sources
- - [x] Restore `git submodule` support
- - [x] Add documentation
- - [x] Add `index` command
- - [ ] Seal the deal, v1
+Getting started
+----------------
 
-**Future considerations**:
+**Solus Users**
 
- - Abstract the package manager stuff, port it back into [libosdev](https://github.com/solus-project/libosdev)
- - Add `sol` support when the time is right..
- - When `sol` support has landed, always mount `overlayfs` with `nosuid`
- - Generate the builder base images using [USpin](https://github.com/solus-project/uspin)
+    sudo eopkg up
+    sudo eopkg it solbuild
 
+    # If you only ever want to use the unstable repo by default
+    sudo eopkg it solbuild-config-unstable
+
+**Everyone else**
+
+    git clone https://github.com/solus-project/solbuild.git
+    cd solbuild
+    make
+    sudo make install
+
+**Initialising the root**
+
+Run the following command to fetch and install the base image. If you wish
+to change the profile, use the `-p` flag (`unstable-x86_64` or `main-x86_64`)
+The `-u` flag will automatically update the image.
+
+    sudo solbuild init -u
+
+**Updating the image**
+
+    # Update the default profile
+    sudo solbuild update
+
+    # Update a specific profile
+    sudo solbuild update unstable-x86-64
+
+**Building packages**
+
+    # Build the first package found in the current directory
+    sudo solbuild build
+
+    # Build a specific path
+    sudo solbuild build ../mypackages/package.yml
+
+    # Build for unstable profile
+    sudo solbuild -p unstable-x86_64 build
+
+See the `solbuild help` command for more details, or `solbuild(1)` manpage.
+
+Requirements
+------------
+
+**Build Requirements**
+
+ - golang (tested with 1.7.4)
+ - `libgit2` (Also require `git` at runtime for submodules)
+
+Your kernel must support the `overlayfs` filesystem.
 
 License
 -------
