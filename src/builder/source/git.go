@@ -19,6 +19,8 @@ package source
 import (
 	"errors"
 	"fmt"
+	// We'll need this quite a bit =P
+	_ "github.com/libgit2/git2go"
 )
 
 const (
