@@ -19,6 +19,8 @@ package source
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strings"
 	// We'll need this quite a bit =P
 	_ "github.com/libgit2/git2go"
 )
@@ -31,16 +33,24 @@ const (
 // A GitSource as referenced by `ypkg` build spec. A git source must have
 // a valid ref to check out to.
 type GitSource struct {
-	URI string
-	Ref string
+	URI      string
+	Ref      string
+	BaseName string
 }
 
 // NewGit will create a new GitSource for the given URI & ref combination.
 func NewGit(uri, ref string) *GitSource {
-	return &GitSource{
+	g := &GitSource{
 		URI: uri,
 		Ref: ref,
 	}
+	// Switch to URL and get the proper names here shall we..
+	bs := filepath.Base(uri)
+	if !strings.HasSuffix(bs, "git.") {
+		bs += ".git"
+	}
+	g.BaseName = bs
+	return g
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
