@@ -162,6 +162,7 @@ func SaneEnvironment(username, home string) []string {
 		"no_proxy",
 		"ftp_proxy",
 		"LANG",
+		"TERM",
 	}
 	for _, p := range permitted {
 		env := os.Getenv(p)
