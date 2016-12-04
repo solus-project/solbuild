@@ -19,6 +19,7 @@ package source
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"strings"
 	// We'll need this quite a bit =P
@@ -33,23 +34,35 @@ const (
 // A GitSource as referenced by `ypkg` build spec. A git source must have
 // a valid ref to check out to.
 type GitSource struct {
-	URI      string
-	Ref      string
-	BaseName string
+	URI       string
+	Ref       string
+	BaseName  string
+	ClonePath string // This is where we will have cloned into
 }
 
 // NewGit will create a new GitSource for the given URI & ref combination.
 func NewGit(uri, ref string) (*GitSource, error) {
-	g := &GitSource{
-		URI: uri,
-		Ref: ref,
+	// Ensure we have a valid URL first.
+	urlObj, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
 	}
-	// Switch to URL and get the proper names here shall we..
-	bs := filepath.Base(uri)
-	if !strings.HasSuffix(bs, "git.") {
+
+	bs := filepath.Base(urlObj.Path)
+	if !strings.HasSuffix(bs, ".git") {
 		bs += ".git"
 	}
-	g.BaseName = bs
+
+	// This is where we intend to clone to locally
+	clonePath := filepath.Join(GitSourceDir, urlObj.Host, filepath.Dir(urlObj.Path), bs)
+
+	g := &GitSource{
+		URI:       uri,
+		Ref:       ref,
+		BaseName:  bs,
+		ClonePath: clonePath,
+	}
+
 	return g, errors.New("I am but a simple child")
 }
 
