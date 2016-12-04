@@ -37,7 +37,7 @@ type SimpleSource struct {
 }
 
 // NewSimple will create a new source instance
-func NewSimple(uri, validator string, legacy bool) *SimpleSource {
+func NewSimple(uri, validator string, legacy bool) (*SimpleSource, error) {
 	// TODO: Use a better method than filepath here
 	ret := &SimpleSource{
 		URI:       uri,
@@ -45,7 +45,7 @@ func NewSimple(uri, validator string, legacy bool) *SimpleSource {
 		legacy:    legacy,
 		validator: validator,
 	}
-	return ret
+	return ret, nil
 }
 
 // GetIdentifier will return the URI associated with this source.

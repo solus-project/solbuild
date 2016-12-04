@@ -133,7 +133,10 @@ func NewXMLPackage(path string) (*Package, error) {
 	}
 
 	for _, archive := range xpkg.Source.Archive {
-		source := source.New(archive.URI, archive.SHA1Sum, true)
+		source, err := source.New(archive.URI, archive.SHA1Sum, true)
+		if err != nil {
+			return nil, err
+		}
 		ret.Sources = append(ret.Sources, source)
 	}
 
@@ -190,10 +193,12 @@ func NewYmlPackageFromBytes(by []byte) (*Package, error) {
 		CanNetwork: ypkg.Networking,
 	}
 
-	// TODO: Add git detection!!
 	for _, row := range ypkg.Source {
 		for key, value := range row {
-			source := source.New(key, value, false)
+			source, err := source.New(key, value, false)
+			if err != nil {
+				return nil, err
+			}
 			ret.Sources = append(ret.Sources, source)
 		}
 	}

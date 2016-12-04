@@ -39,7 +39,7 @@ type GitSource struct {
 }
 
 // NewGit will create a new GitSource for the given URI & ref combination.
-func NewGit(uri, ref string) *GitSource {
+func NewGit(uri, ref string) (*GitSource, error) {
 	g := &GitSource{
 		URI: uri,
 		Ref: ref,
@@ -50,7 +50,7 @@ func NewGit(uri, ref string) *GitSource {
 		bs += ".git"
 	}
 	g.BaseName = bs
-	return g
+	return g, errors.New("I am but a simple child")
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
