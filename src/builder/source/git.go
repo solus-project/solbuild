@@ -21,6 +21,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/libgit2/git2go"
+	"github.com/solus-project/libosdev/commands"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -253,45 +254,10 @@ func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
 
 // submodules will handle setup of the git submodules after a
 // reset has taken place.
-func (g *GitSource) submodules(repo *git.Repository) error {
-	fetchOpts := &git.FetchOptions{
-		RemoteCallbacks: g.CreateCallbacks(),
-	}
-	strategy := git.CheckoutForce
-	checkOpts := &git.CheckoutOpts{
-		Strategy: strategy,
-	}
-
-	opts := &git.SubmoduleUpdateOptions{
-		FetchOptions:          fetchOpts,
-		CheckoutOpts:          checkOpts,
-		CloneCheckoutStrategy: strategy,
-	}
-
-	err := repo.Submodules.Foreach(func(sub *git.Submodule, name string) int {
-		if err := sub.Init(true); err != nil {
-			log.WithFields(log.Fields{
-				"submodule": name,
-				"error":     err,
-			}).Error("Submodule failed to init")
-			return -1
-		}
-		log.WithFields(log.Fields{
-			"submodule": name,
-		}).Info("Updating git submodule")
-		if err := sub.Update(false, opts); err != nil {
-			log.WithFields(log.Fields{
-				"submodule": name,
-				"error":     err,
-			}).Error("Submodule failed to update")
-			return -1
-		}
-		return 0
-	})
-	if err != nil {
-		return err
-	}
-	return nil
+func (g *GitSource) submodules() error {
+	// IDK What else to tell ya, git2go submodules is broken
+	cmd := []string{"submodule", "update", "--init"}
+	return commands.ExecStdoutArgsDir(g.ClonePath, "git", cmd)
 }
 
 // Fetch will attempt to download the git tree locally. If it already exists
@@ -344,7 +310,7 @@ func (g *GitSource) Fetch() error {
 	}
 
 	// Check out submodules
-	if err := g.submodules(repo); err != nil {
+	if err := g.submodules(); err != nil {
 		return err
 	}
 
