@@ -14,6 +14,7 @@ include Makefile.gobuild
 
 _PKGS = \
 	builder \
+	builder/source \
 	solbuild \
 	solbuild/cmd
 
