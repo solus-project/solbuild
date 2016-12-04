@@ -197,13 +197,13 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		}
 		b, err := GetFileContents(repo, update.ObjectID, "package.yml")
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		var pkg *Package
 		// Shouldn't *actually* bail here. Malformed packages do happen
 		if pkg, err = NewYmlPackageFromBytes(b); err != nil {
-			return nil, err
+			continue
 		}
 		update.Package = pkg
 		ret.Updates = append(ret.Updates, update)
