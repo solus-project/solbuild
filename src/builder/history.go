@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/libgit2/git2go"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -145,7 +146,11 @@ func GetFileContents(repo *git.Repository, tag, path string) ([]byte, error) {
 // NewPackageHistory will attempt to analyze the git history at the given
 // repository path, and return a usable instance of PackageHistory for writing
 // to the container history.xml file.
-func NewPackageHistory(path string) (*PackageHistory, error) {
+//
+// The repository path will be taken as the directory name of the pkgfile that
+// is given to this function.
+func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
+	path := filepath.Dir(pkgfile)
 	repo, err := git.OpenRepository(path)
 	if err != nil {
 		return nil, err

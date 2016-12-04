@@ -168,18 +168,19 @@ func (m *Manager) SetPackage(pkg *Package) error {
 		return ErrProfileNotInstalled
 	}
 
-	// Obtain package history.
-	// TODO: Only do so if .git exists!
+	// Obtain package history for git builds
 	if pkg.Type == PackageTypeYpkg {
 		repoDir := filepath.Dir(pkg.Path)
-		if history, err := NewPackageHistory(repoDir); err == nil {
-			log.Info("Obtained package history")
-			m.history = history
-		} else {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to obtain package history")
-			return err
+		if PathExists(filepath.Join(repoDir, ".git")) {
+			if history, err := NewPackageHistory(pkg.Path); err == nil {
+				log.Info("Obtained package history")
+				m.history = history
+			} else {
+				log.WithFields(log.Fields{
+					"error": err,
+				}).Error("Failed to obtain package history")
+				return err
+			}
 		}
 	}
 
