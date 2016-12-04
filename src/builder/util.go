@@ -57,7 +57,7 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 
 	// Add build user
 	if p.Type == PackageTypeYpkg {
-		if err := overlay.AddBuildUser(); err != nil {
+		if err := AddBuildUser(overlay.MountPoint); err != nil {
 			return err
 		}
 	}
@@ -211,4 +211,45 @@ func ChrootExecStdin(notif PidNotifier, dir, command string) error {
 	}
 	notif.SetActivePID(c.Process.Pid)
 	return c.Wait()
+}
+
+// AddBuildUser will attempt to add the solbuild user & group if they've not
+// previously been added
+// Note this should be changed when Solus goes fully stateless for /etc/passwd
+func AddBuildUser(rootfs string) error {
+	pwd, err := NewPasswd(filepath.Join(rootfs, "etc"))
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Unable to discover chroot users")
+		return err
+	}
+	// User already exists
+	if _, ok := pwd.Users[BuildUser]; ok {
+		return nil
+	}
+	log.WithFields(log.Fields{
+		"username": BuildUser,
+		"uid":      BuildUserID,
+		"gid":      BuildUserGID,
+		"home":     BuildUserHome,
+		"shell":    BuildUserShell,
+		"gecos":    BuildUserGecos,
+	}).Debug("Adding build user to system")
+
+	// Add the build group
+	if err := commands.AddGroup(rootfs, BuildUser, BuildUserGID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to add build group to system")
+		return err
+	}
+
+	if err := commands.AddUser(rootfs, BuildUser, BuildUserGecos, BuildUserHome, BuildUserShell, BuildUserID, BuildUserGID); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to add build user to system")
+		return err
+	}
+	return nil
 }

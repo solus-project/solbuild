@@ -262,47 +262,6 @@ func (o *Overlay) Unmount() error {
 	return nil
 }
 
-// AddBuildUser will attempt to add the solbuild user & group if they've not
-// previously been added
-// Note this should be changed when Solus goes fully stateless for /etc/passwd
-func (o *Overlay) AddBuildUser() error {
-	pwd, err := NewPasswd(filepath.Join(o.MountPoint, "etc"))
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Unable to discover chroot users")
-		return err
-	}
-	// User already exists
-	if _, ok := pwd.Users[BuildUser]; ok {
-		return nil
-	}
-	log.WithFields(log.Fields{
-		"username": BuildUser,
-		"uid":      BuildUserID,
-		"gid":      BuildUserGID,
-		"home":     BuildUserHome,
-		"shell":    BuildUserShell,
-		"gecos":    BuildUserGecos,
-	}).Debug("Adding build user to system")
-
-	// Add the build group
-	if err := commands.AddGroup(o.MountPoint, BuildUser, BuildUserGID); err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Failed to add build group to system")
-		return err
-	}
-
-	if err := commands.AddUser(o.MountPoint, BuildUser, BuildUserGecos, BuildUserHome, BuildUserShell, BuildUserID, BuildUserGID); err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("Failed to add build user to system")
-		return err
-	}
-	return nil
-}
-
 // MountVFS will bring up virtual filesystems within the chroot
 func (o *Overlay) MountVFS() error {
 	mountMan := disk.GetMountManager()
