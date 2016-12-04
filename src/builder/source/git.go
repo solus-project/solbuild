@@ -88,11 +88,9 @@ func (g *GitSource) CreateCallbacks() git.RemoteCallbacks {
 	}
 }
 
-// Fetch will attempt to download the git tree locally. If it already exists
-// then we'll make an attempt to update it.
-func (g *GitSource) Fetch() error {
-	fmt.Println(g.ClonePath)
-
+// Clone will set do a bare mirror clone of the remote repo to the local
+// cache.
+func (g *GitSource) Clone() error {
 	// Attempt cloning
 	log.WithFields(log.Fields{
 		"uri": g.URI,
@@ -106,10 +104,27 @@ func (g *GitSource) Fetch() error {
 		Bare:         true,
 		FetchOptions: fetchOpts,
 	})
+	return err
+}
 
-	if err != nil {
-		return err
+// Fetch will attempt to download the git tree locally. If it already exists
+// then we'll make an attempt to update it.
+func (g *GitSource) Fetch() error {
+	fmt.Println(g.ClonePath)
+
+	// First things first, clone if necessary
+	if !PathExists(g.ClonePath) {
+		if err := g.Clone(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"uri":   g.URI,
+			}).Error("Failed to clone remote repository")
+			return err
+		}
 	}
+
+	// TODO: If it did exist, attempt git pull, then check that
+	// our .Ref is actually valid
 	return errors.New("Sorry - don't know how to fetch yet!")
 }
 
