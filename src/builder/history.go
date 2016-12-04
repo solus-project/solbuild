@@ -65,6 +65,8 @@ func init() {
 // more features will come in time.
 type PackageHistory struct {
 	Updates []*PackageUpdate
+
+	pkgfile string // Path of the package
 }
 
 // A PackageUpdate is a point in history in the git changes, which is parsed
@@ -153,9 +155,6 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 	// Repodir
 	path := filepath.Dir(pkgfile)
 
-	// basename of file
-	fname := filepath.Base(pkgfile)
-
 	repo, err := git.OpenRepository(path)
 	if err != nil {
 		return nil, err
@@ -218,9 +217,21 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 	// Sort the tags by -refname
 	sort.Sort(sort.Reverse(sort.StringSlice(tags)))
 
+	ret := &PackageHistory{pkgfile: pkgfile}
+	ret.scanUpdates(repo, updates, tags)
+	updates = nil
+
+	// All done!
+	return ret, nil
+}
+
+// scanUpdates will go back through the collected, "ok" tags, and analyze
+// them to be more useful.
+func (p *PackageHistory) scanUpdates(repo *git.Repository, updates map[string]*PackageUpdate, tags []string) {
 	numEntries := 0
 
-	ret := &PackageHistory{}
+	// basename of file
+	fname := filepath.Base(p.pkgfile)
 
 	// Iterate the commit set in order
 	for _, tagID := range tags {
@@ -242,12 +253,9 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 			continue
 		}
 		update.Package = pkg
-		ret.Updates = append(ret.Updates, update)
+		p.Updates = append(p.Updates, update)
 		numEntries++
 	}
-
-	// All done!
-	return ret, nil
 }
 
 // YPKG provides ypkg-gen-history history.xml compatibility
