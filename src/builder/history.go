@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/libgit2/git2go"
+	"regexp"
 	"sort"
 	"time"
 )
@@ -28,6 +29,16 @@ const (
 	// parse and provide changelog entries for.
 	MaxChangelogEntries = 10
 )
+
+var (
+	// CveRegex is used to identify security updates which mention a specific
+	// CVE ID.
+	CveRegex *regexp.Regexp
+)
+
+func init() {
+	CveRegex = regexp.MustCompile(`(CVE\-[0-9]+\-[0-9]+)`)
+}
 
 // PackageHistory is an automatic changelog generated from the changes to
 // the package.yml file during the history of the package.
@@ -58,6 +69,7 @@ type PackageUpdate struct {
 	Time        time.Time // When the update took place
 	ObjectID    string    // OID stored in string form
 	Package     *Package  // Associated parsed package
+	IsSecurity  bool      // Whether this is a security update
 }
 
 // NewPackageUpdate will attempt to parse the given commit and provide a usable
@@ -72,6 +84,13 @@ func NewPackageUpdate(tag string, commit *git.Commit, objectID string) *PackageU
 	update.Body = commit.Message()
 	update.Time = signature.When
 	update.ObjectID = objectID
+
+	// Attempt to identify the update type. Limit to 1 match, we only need to
+	// know IF there is a CVE fix, not how many.
+	cves := CveRegex.FindAllString(update.Body, 1)
+	if len(cves) > 0 {
+		update.IsSecurity = true
+	}
 
 	return update
 }
