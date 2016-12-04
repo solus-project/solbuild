@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-package builder
+package source
 
 import (
 	"crypto/sha1"
@@ -42,8 +42,8 @@ type Source struct {
 	File      string // Basename of the file
 }
 
-// NewSource will create a new source instance
-func NewSource(uri string) *Source {
+// New will create a new source instance
+func New(uri string) *Source {
 	// TODO: Use a better method than filepath here
 	return &Source{
 		URI:  uri,
@@ -142,4 +142,12 @@ func (s *Source) Fetch() error {
 		}
 	}
 	return nil
+}
+
+// PathExists is a helper function to determine the existence of a file path
+func PathExists(path string) bool {
+	if st, err := os.Stat(path); err == nil && st != nil {
+		return true
+	}
+	return false
 }
