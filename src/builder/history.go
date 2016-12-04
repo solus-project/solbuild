@@ -56,6 +56,7 @@ type PackageUpdate struct {
 	Body        string    // The associated message of the commit
 	Time        time.Time // When the update took place
 	ObjectID    string    // OID stored in string form
+	Package     *Package  // Associated parsed package
 }
 
 // NewPackageUpdate will attempt to parse the given commit and provide a usable
@@ -191,13 +192,17 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		if update == nil {
 			continue
 		}
-		fmt.Println(update)
-
 		b, err := GetFileContents(repo, update.ObjectID, "package.yml")
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(string(b))
+
+		var pkg *Package
+		// Shouldn't *actually* bail here. Malformed packages do happen
+		if pkg, err = NewYmlPackageFromBytes(b); err != nil {
+			return nil, err
+		}
+		update.Package = pkg
 		numEntries++
 	}
 
