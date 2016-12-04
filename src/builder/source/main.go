@@ -28,6 +28,38 @@ const (
 	SourceStagingDir = "/var/lib/solbuild/sources/staging"
 )
 
+// A BindConfiguration is used by a source as a way to express bind
+// mounts required for a given source.
+//
+// In solbuild, *all* sources are bind mounted to the target cache,
+// regardless of their type.
+//
+// Special care is taken to ensure that they will be bound in a way
+// compatible with the target system.
+type BindConfiguration struct {
+    BindSource string // The localy cached source
+    BindTarget string // Target within the filesystem
+}
+
+// A Source is a general representation of source listed in a package
+// spec file.
+//
+// Source's may be of multiple types, but all are abstracted and dealt
+// with by the interfaces.
+type Source interface {
+
+    // IsFetched is called during the early build process to determine
+    // whether this source is available for use.
+    IsFetched() bool
+
+    // Fetch will attempt to fetch the this source locally and cache it.
+    Fetch() error
+
+    // GetBindConfiguration should return a valid configuration specifying
+    // the origin on our local filesystem, and the target within the container.
+    GetBindConfiguration(rootfs string) BindConfiguration
+}
+
 // PathExists is a helper function to determine the existence of a file path
 func PathExists(path string) bool {
 	if st, err := os.Stat(path); err == nil && st != nil {
