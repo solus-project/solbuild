@@ -38,7 +38,7 @@ solbuild is a [Solus project](https://solus-project.com/).
  - [x] Add custom repo support
  - [x] Add new `networking` key to `ypkg` files to disable network isolation
  - [x] Add locking of `Overlay` and `BackingImage` storage
- - [ ] Restore `history.xml` generation for `ypkg` builds in git
+ - [x] Restore `history.xml` generation for `ypkg` builds in git
  - [ ] Restore support for `ypkg` git sources
  - [x] Add documentation
  - [ ] Seal the deal, v1
