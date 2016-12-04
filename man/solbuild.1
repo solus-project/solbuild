@@ -116,6 +116,55 @@ dependencies\.
 .IP "" 0
 .
 .P
+\fBindex [directory]\fR
+.
+.IP "" 4
+.
+.nf
+
+Use the given build profile to construct a repository index in the
+given directory\. If a directory is not specified, then the current directory
+is used\. This directory will be mounted inside the container and the Solus
+machinery will be used to create a repository\.
+.
+.fi
+.
+.IP "" 0
+.
+.IP "\(bu" 4
+\fB\-t\fR, \fB\-\-tmpfs\fR:
+.
+.IP "" 4
+.
+.nf
+
+ Instruct `solbuild(1)` to use a `tmpfs` mount as the bottom most point
+ in the chroot layer system\. This can help to speed up indexing of large
+ repositories\.
+.
+.fi
+.
+.IP "" 0
+
+.
+.IP "\(bu" 4
+\fB\-m\fR, \fB\-\-memory\fR
+.
+.IP "" 4
+.
+.nf
+
+Set the contraint size for `tmpfs` mounts used by `solbuild(1)`\. This is
+only useful in conjunction with the `\-t` option\.
+.
+.fi
+.
+.IP "" 0
+
+.
+.IP "" 0
+.
+.P
 \fBinit\fR
 .
 .IP "" 4
