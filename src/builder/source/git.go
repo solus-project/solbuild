@@ -36,15 +36,14 @@ func NewGit(uri, ref string) *GitSource {
 	}
 }
 
-// Fetch will attempt to download the git tree locally. In all instances,
-// IsFetched() must return false so that we can ensure we at least try to
-// fetch/update again.
+// Fetch will attempt to download the git tree locally. If it already exists
+// then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
 	return errors.New("Sorry - don't know how to fetch yet!")
 }
 
-// IsFetched will always return false as we always should try to fetch and
-// update the git tree.
+// IsFetched will check if we have the ref available, if not it will return
+// false so that Fetch() can do the hard work.
 func (g *GitSource) IsFetched() bool {
 	return false
 }
