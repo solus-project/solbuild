@@ -197,6 +197,15 @@ func (g *GitSource) GetCommitID(repo *git.Repository) string {
 	return obj.String()
 }
 
+// GetHead will attempt to gain the OID for head
+func (g *GitSource) GetHead(repo *git.Repository) (string, error) {
+	head, err := repo.Head()
+	if err != nil {
+		return "", err
+	}
+	return head.Target().String(), nil
+}
+
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
