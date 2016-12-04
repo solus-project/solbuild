@@ -217,35 +217,19 @@ func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
 	// this stuff _really_ shouldn't happen but oh well.
 	oid, err := git.NewOid(ref)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-			"ref":   ref,
-		}).Error("Failed to create OID")
 		return err
 	}
 	commitFind, err := repo.Lookup(oid)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-			"ref":   ref,
-		}).Error("Failed to grab commit..")
 		return err
 	}
 
 	commitObj, err := commitFind.Peel(git.ObjectCommit)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-			"ref":   ref,
-		}).Error("Failed to grab commit object..")
 		return err
 	}
 	commit, err := commitObj.AsCommit()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error": err,
-			"ref":   ref,
-		}).Error("Failed to cast commit object..")
 		return err
 	}
 
@@ -254,8 +238,7 @@ func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
 	}).Info("Resetting git repository to commit")
 
 	checkOpts := &git.CheckoutOpts{
-		Strategy: git.CheckoutForce | git.CheckoutRemoveUntracked | git.CheckoutRemoveIgnored | git.CheckoutAllowConflicts,
-	}
+		Strategy: git.CheckoutForce | git.CheckoutRemoveUntracked | git.CheckoutRemoveIgnored}
 
 	if err := repo.ResetToCommit(commit, git.ResetHard, checkOpts); err != nil {
 		log.WithFields(log.Fields{
@@ -318,18 +301,12 @@ func (g *GitSource) Fetch() error {
 		return ErrGitNoContinue
 	}
 
-	if head == wantedCommit {
-		// goto initModules??
-		log.Info("Head is at specified commit")
-	} else {
-		log.Info("They don't match bud")
-	}
-
 	// Attempt reset
 	if err := g.resetOnto(repo, wantedCommit); err != nil {
 		return err
 	}
 
+	// TODO: Check git submodules!
 	return fmt.Errorf("Potential id? %s", g.GetCommitID(repo))
 }
 
