@@ -37,7 +37,7 @@ const (
 	// PackageTypeYpkg is the native build format of Solus, the package.yml format
 	PackageTypeYpkg PackageType = "ypkg"
 
-	// Faux type to enable indexing
+	// PackageTypeIndex is a faux type to enable indexing
 	PackageTypeIndex PackageType = "index"
 )
 
