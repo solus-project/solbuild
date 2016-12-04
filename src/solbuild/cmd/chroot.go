@@ -61,6 +61,11 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 		return errors.New("Require a filename to chroot")
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to use chroot\n")
+		os.Exit(1)
+	}
+
 	// Initialise the build manager
 	manager, err := builder.NewManager()
 	if err != nil {
@@ -75,11 +80,6 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load package: %v\n", err)
 		return nil
-	}
-
-	if os.Geteuid() != 0 {
-		fmt.Fprintf(os.Stderr, "You must be root to use chroot\n")
-		os.Exit(1)
 	}
 
 	// Set the package

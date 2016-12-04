@@ -48,6 +48,11 @@ func updateProfile(cmd *cobra.Command, args []string) {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
+		os.Exit(1)
+	}
+
 	// Initialise the build manager
 	manager, err := builder.NewManager()
 	if err != nil {
@@ -59,11 +64,6 @@ func updateProfile(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
 		}
 		return
-	}
-
-	if os.Geteuid() != 0 {
-		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")
-		os.Exit(1)
 	}
 
 	if err := manager.Update(); err != nil {

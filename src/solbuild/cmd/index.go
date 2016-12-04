@@ -46,6 +46,11 @@ func indexPackages(cmd *cobra.Command, args []string) error {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Fprintf(os.Stderr, "You must be root to use index\n")
+		os.Exit(1)
+	}
+
 	indexDir := "."
 	if len(args) == 1 {
 		indexDir = args[0]
@@ -61,11 +66,6 @@ func indexPackages(cmd *cobra.Command, args []string) error {
 	// Safety first..
 	if err = manager.SetProfile(profile); err != nil {
 		return nil
-	}
-
-	if os.Geteuid() != 0 {
-		fmt.Fprintf(os.Stderr, "You must be root to use index\n")
-		os.Exit(1)
 	}
 
 	// Set the package
