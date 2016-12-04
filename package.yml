@@ -1,0 +1,17 @@
+name       : solbuild
+version    : 0.1
+release    : 1
+source     :
+    - git|https://github.com/solus-project/solbuild.git : 77a0e18eb7704eff895f91a490bda8226b2afc48
+license    :
+    - Apache-2.0
+summary    : Solus package builder
+component  : programming.tools
+description: |
+    solbuild is the Solus package builder
+builddeps  :
+    - golang
+build      : |
+    %make
+install    : |
+    %make_install
