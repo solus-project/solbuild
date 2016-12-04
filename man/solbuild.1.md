@@ -80,6 +80,25 @@ These options apply to all subcommands within `solbuild(1)`.
     further inspection when issues aren't immediately resolvable, i.e. pkg-config
     dependencies.
 
+`index [directory]`
+
+    Use the given build profile to construct a repository index in the
+    given directory. If a directory is not specified, then the current directory
+    is used. This directory will be mounted inside the container and the Solus
+    machinery will be used to create a repository.
+
+
+ * `-t`, `--tmpfs`:
+
+        Instruct `solbuild(1)` to use a `tmpfs` mount as the bottom most point
+        in the chroot layer system. This can help to speed up indexing of large
+        repositories.
+
+ *  `-m`, `--memory`
+
+        Set the contraint size for `tmpfs` mounts used by `solbuild(1)`. This is
+        only useful in conjunction with the `-t` option.
+
 `init`
 
     Initialise a solbuild profile so that it can be used for subsequent
