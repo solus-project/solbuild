@@ -37,7 +37,9 @@ machinery will be used to create a repository.`,
 
 func init() {
 	indexCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
+	indexCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	indexCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	indexCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
 	RootCmd.AddCommand(indexCmd)
 }
 
@@ -76,6 +78,7 @@ func indexPackages(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	manager.SetTmpfs(tmpfs, tmpfsSize)
 	if err := manager.Index(indexDir); err != nil {
 		log.Error("Index failure")
 		return nil
