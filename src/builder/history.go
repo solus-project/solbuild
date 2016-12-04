@@ -236,13 +236,8 @@ func NewPackageHistory(path string) (*PackageHistory, error) {
 		numEntries++
 	}
 
-	// !!TESTING!! //
-	if err := ret.WriteXML("history.xml"); err != nil {
-		return nil, err
-	}
-
 	// All done!
-	return ret, ErrNotImplemented
+	return ret, nil
 }
 
 // YPKG provides ypkg-gen-history history.xml compatibility
