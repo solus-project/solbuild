@@ -26,14 +26,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	// SourceDir is where we store all tarballs
-	SourceDir = "/var/lib/solbuild/sources"
-
-	// SourceStagingDir is where we initially fetch downloads
-	SourceStagingDir = "/var/lib/solbuild/sources/staging"
-)
-
 // A SimpleSource is a tarball or other source for a package
 type SimpleSource struct {
 	SHA1Sum   string
@@ -142,12 +134,4 @@ func (s *SimpleSource) Fetch() error {
 		}
 	}
 	return nil
-}
-
-// PathExists is a helper function to determine the existence of a file path
-func PathExists(path string) bool {
-	if st, err := os.Stat(path); err == nil && st != nil {
-		return true
-	}
-	return false
 }
