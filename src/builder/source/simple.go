@@ -23,6 +23,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 )
@@ -38,10 +39,14 @@ type SimpleSource struct {
 
 // NewSimple will create a new source instance
 func NewSimple(uri, validator string, legacy bool) (*SimpleSource, error) {
-	// TODO: Use a better method than filepath here
+	// Ensure the URI is actually valid.
+	uriObj, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
 	ret := &SimpleSource{
 		URI:       uri,
-		File:      filepath.Base(uri),
+		File:      filepath.Base(uriObj.Path),
 		legacy:    legacy,
 		validator: validator,
 	}
@@ -63,7 +68,7 @@ func (s *SimpleSource) GetBindConfiguration(rootfs string) BindConfiguration {
 
 // GetPath gets the path on the filesystem of the source
 func (s *SimpleSource) GetPath(hash string) string {
-	return filepath.Join(SourceDir, hash, filepath.Base(s.URI))
+	return filepath.Join(SourceDir, hash, s.File)
 }
 
 // GetSHA1Sum will return the sha1sum for the given path
@@ -97,14 +102,12 @@ func (s *SimpleSource) IsFetched() bool {
 
 // Fetch will download the given source and cache it locally
 func (s *SimpleSource) Fetch() error {
-	base := filepath.Base(s.URI)
-
 	// Now go and download it
 	log.WithFields(log.Fields{
 		"uri": s.URI,
 	}).Info("Downloading source")
 
-	destPath := filepath.Join(SourceStagingDir, base)
+	destPath := filepath.Join(SourceStagingDir, s.File)
 
 	// Check staging is available
 	if !PathExists(SourceStagingDir) {
@@ -139,7 +142,7 @@ func (s *SimpleSource) Fetch() error {
 		}
 	}
 	// Move from staging into hash based directory
-	dest := filepath.Join(tgtDir, base)
+	dest := filepath.Join(tgtDir, s.File)
 	if err := os.Rename(destPath, dest); err != nil {
 		return err
 	}
