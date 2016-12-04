@@ -251,6 +251,36 @@ func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
 	return nil
 }
 
+// submodules will handle setup of the git submodules after a
+// reset has taken place.
+func (g *GitSource) submodules(repo *git.Repository) error {
+	fetchOpts := &git.FetchOptions{
+		RemoteCallbacks: g.CreateCallbacks(),
+	}
+
+	opts := &git.SubmoduleUpdateOptions{
+		FetchOptions: fetchOpts,
+	}
+
+	err := repo.Submodules.Foreach(func(sub *git.Submodule, name string) int {
+		log.WithFields(log.Fields{
+			"submodule": name,
+		}).Info("Updating git submodule")
+		if err := sub.Update(true, opts); err != nil {
+			log.WithFields(log.Fields{
+				"submodule": name,
+				"error":     err,
+			}).Error("Submodule failed to update")
+			return -1
+		}
+		return 0
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Fetch will attempt to download the git tree locally. If it already exists
 // then we'll make an attempt to update it.
 func (g *GitSource) Fetch() error {
@@ -300,7 +330,11 @@ func (g *GitSource) Fetch() error {
 		return err
 	}
 
-	// TODO: Check git submodules!
+	// Check out submodules
+	if err := g.submodules(repo); err != nil {
+		return err
+	}
+
 	return nil
 }
 
