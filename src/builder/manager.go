@@ -402,6 +402,34 @@ func (m *Manager) Update() error {
 	return m.image.Update(m, m.pkgManager)
 }
 
+// Index will attempt to index the given directory for eopkgs
+func (m *Manager) Index(dir string) error {
+	if m.IsCancelled() {
+		return ErrInterrupted
+	}
+
+	m.lock.Lock()
+	if m.pkg == nil {
+		m.lock.Unlock()
+		return ErrNoPackage
+	}
+	m.lock.Unlock()
+
+	// Now get on with the real work!
+	defer m.Cleanup()
+	m.SigIntCleanup()
+
+	// Now set our options according to the config
+	m.overlay.EnableTmpfs = m.config.EnableTmpfs
+	m.overlay.TmpfsSize = m.config.TmpfsSize
+
+	if err := m.doLock(m.overlay.LockPath, "indexing"); err != nil {
+		return err
+	}
+
+	return m.pkg.Index(m, dir, m.overlay)
+}
+
 // SetTmpfs sets the manager tmpfs option
 func (m *Manager) SetTmpfs(enable bool, size string) {
 	if m.IsCancelled() {

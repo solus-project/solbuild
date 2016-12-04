@@ -68,6 +68,19 @@ func indexPackages(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	log.Info("Chroot complete")
+	// Set the package
+	if err := manager.SetPackage(&builder.IndexPackage); err != nil {
+		if err == builder.ErrProfileNotInstalled {
+			fmt.Fprintf(os.Stderr, "%v: Did you forget to init?\n", err)
+		}
+		return nil
+	}
+
+	if err := manager.Index(indexDir); err != nil {
+		log.Error("Index failure")
+		return nil
+	}
+
+	log.Info("Indexing complete")
 	return nil
 }

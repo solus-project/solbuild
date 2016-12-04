@@ -36,6 +36,21 @@ const (
 
 	// PackageTypeYpkg is the native build format of Solus, the package.yml format
 	PackageTypeYpkg PackageType = "ypkg"
+
+	// Faux type to enable indexing
+	PackageTypeIndex PackageType = "index"
+)
+
+var (
+	// IndexPackage is used by the index command to make use of the overlayfs
+	// system.
+	IndexPackage = Package{
+		Name:    "index",
+		Version: "0.1",
+		Type:    PackageTypeIndex,
+		Release: 1,
+		Path:    "",
+	}
 )
 
 // Package is the main item we deal with, avoiding the internals
