@@ -428,7 +428,6 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 // users current directory. If solbuild was invoked via sudo, solbuild will
 // then attempt to set the owner as the original user.
 func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
-	// TODO: Change this to a dedicated collection directory..
 	collectionDir := p.GetWorkDir(overlay)
 	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
 	if len(collections) < 1 {
