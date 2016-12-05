@@ -23,7 +23,7 @@ import (
 
 const (
 	// SolbuildVersion is the current public version of solbuild
-	SolbuildVersion = "1.0.3"
+	SolbuildVersion = "1.0.4"
 )
 
 var versionCmd = &cobra.Command{
