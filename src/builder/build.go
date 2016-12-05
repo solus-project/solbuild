@@ -362,7 +362,7 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 	cmd = fmt.Sprintf("/bin/su %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 	// Pass unix timestamp of last git update
 	if h != nil && len(h.Updates) > 0 {
-		cmd += fmt.Sprintf(" -t %v", h.Updates[0].Time.Unix())
+		cmd += fmt.Sprintf(" -t %v", h.Updates[0].Time.UTC().Unix())
 	}
 
 	log.WithFields(log.Fields{
