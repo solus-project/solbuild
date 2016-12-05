@@ -28,7 +28,7 @@ image = "main-x86_64"
 
 # Example of adding a remote repo
 # [repo.Solus]
-# uri = "http://packages.solus-project.com/unstable/eopkg-index.xml.xz"
+# uri = "https://packages.solus-project.com/unstable/eopkg-index.xml.xz"
 
 # Add a local repository by bind mounting it into chroot on each build
 # [repo.Local]
