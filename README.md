@@ -27,6 +27,14 @@ solbuild is a [Solus project](https://solus-project.com/).
 
 ![logo](https://build.solus-project.com/logo.png)
 
+Pending items for Solus switch
+------------------------------
+
+There are a couple of items left to address before we switch the Solus build infrastructure over to `solbuild`:
+
+- [ ] Add CLI flag to disable colour output
+- [ ] Add rewriting of `eopkg.conf` to conditionally disable `dbginfo` packages, i.e. for the kernel package.
+- [ ] Add `tmpfs` option to `ypkg` to disable a package from building in tmpfs when the default config specifies to use tmpfs. i.e. for LibreOffice.
 
 Getting started
 ----------------
