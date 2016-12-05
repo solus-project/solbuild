@@ -108,6 +108,12 @@ strict validation occurs against expected key types.
     uri = "/var/lib/myrepo"
     local = true
 
+    # If you have a local repo providing packages that exist in the main
+    # repository already, you should remove the repo, and re-add it *after*
+    # your local repository:
+    remove_repos = ['Solus']
+    add_repos = ['Local','Solus']
+
 
 
 ## COPYRIGHT

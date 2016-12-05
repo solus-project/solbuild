@@ -26,6 +26,12 @@ image = "main-x86_64"
 # Restrict enabled repos to just one repo
 # add_repos = ["Solus"]
 
+# If you have a local repo providing packages that exist in the main
+# repository already, you should remove the repo, and re-add it *after*
+# your local repository:
+# remove_repos = ['Solus']
+# add_repos = ['Local','Solus']
+
 # Example of adding a remote repo
 # [repo.Solus]
 # uri = "https://packages.solus-project.com/unstable/eopkg-index.xml.xz"
