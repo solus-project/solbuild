@@ -438,7 +438,7 @@ func (m *Manager) SetTmpfs(enable bool, size string) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if m.overlay != nil {
-		m.overlay.EnableTmpfs = enable
-		m.overlay.TmpfsSize = strings.TrimSpace(size)
+		m.config.EnableTmpfs = enable
+		m.config.TmpfsSize = strings.TrimSpace(size)
 	}
 }
