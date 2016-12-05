@@ -30,7 +30,7 @@ solbuild is a [Solus project](https://solus-project.com/).
 Pending items for Solus switch
 ------------------------------
 
-There are a couple of items left to address before we switch the Solus build infrastructure over to `solbuild`:
+There are a few items left to address before we switch the Solus build infrastructure over to `solbuild`:
 
 - [ ] Add CLI flag to disable colour output
 - [ ] Add rewriting of `eopkg.conf` to conditionally disable `dbginfo` packages, i.e. for the kernel package.
