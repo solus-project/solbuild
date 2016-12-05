@@ -263,7 +263,7 @@ func (p *Package) CopyAssets(h *PackageHistory, o *Overlay) error {
 
 // BuildYpkg will take care of the ypkg specific build process and is called only
 // by Build()
-func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay, h *PackageHistory) error {
 	log.Debug("Writing packager file")
 	fp := filepath.Join(overlay.MountPoint, BuildUserHome, ".solus", "packager")
 	fpd := filepath.Dir(fp)
@@ -360,6 +360,11 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 
 	// Now build the package
 	cmd = fmt.Sprintf("/bin/su %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
+	// Pass unix timestamp of last git update
+	if h != nil && len(h.Updates) > 0 {
+		cmd += fmt.Sprintf(" -t %v", h.Updates[0].Time.Unix())
+	}
+
 	log.WithFields(log.Fields{
 		"package": p.Name,
 	}).Info("Now starting build of package")
@@ -568,7 +573,7 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 
 	// Call the relevant build function
 	if p.Type == PackageTypeYpkg {
-		if err := p.BuildYpkg(notif, usr, pman, overlay); err != nil {
+		if err := p.BuildYpkg(notif, usr, pman, overlay, history); err != nil {
 			return err
 		}
 	} else {
