@@ -230,6 +230,7 @@ func (o *Overlay) Unmount() error {
 
 	vfsPoints := []string{
 		filepath.Join(o.MountPoint, "dev/pts"),
+		filepath.Join(o.MountPoint, "dev/shm"),
 		filepath.Join(o.MountPoint, "dev"),
 		filepath.Join(o.MountPoint, "proc"),
 		filepath.Join(o.MountPoint, "sys"),
@@ -271,6 +272,7 @@ func (o *Overlay) MountVFS() error {
 		filepath.Join(o.MountPoint, "dev/pts"),
 		filepath.Join(o.MountPoint, "proc"),
 		filepath.Join(o.MountPoint, "sys"),
+		filepath.Join(o.MountPoint, "dev/shm"),
 	}
 
 	for _, p := range vfsPoints {
@@ -329,6 +331,17 @@ func (o *Overlay) MountVFS() error {
 		"vfs": "/sys",
 	}).Debug("Mounting vfs")
 	if err := mountMan.Mount("sysfs", vfsPoints[3], "sysfs"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /sys")
+		return err
+	}
+
+	// Bring up shm
+	log.WithFields(log.Fields{
+		"vfs": "/dev/shm",
+	}).Debug("Mounting vfs")
+	if err := mountMan.Mount("tmpfs-shm", vfsPoints[4], "tmpfs"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Error("Failed to mount /sys")
