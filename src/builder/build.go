@@ -246,9 +246,13 @@ func (p *Package) CopyAssets(h *PackageHistory, o *Overlay) error {
 	// This should be changed for ypkg.
 	destdir := p.GetWorkDir(o)
 
-	for _, p := range copyPaths {
-		fso := filepath.Join(baseDir, p)
-		if err := CopyAll(fso, destdir); err != nil {
+	for _, pat := range copyPaths {
+		fso := filepath.Join(baseDir, pat)
+		newDest := destdir
+		if p.Type == PackageTypeXML && pat == "component.xml" {
+			newDest = filepath.Dir(destdir)
+		}
+		if err := CopyAll(fso, newDest); err != nil {
 			return err
 		}
 	}
