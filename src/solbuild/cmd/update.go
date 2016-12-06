@@ -36,6 +36,7 @@ minimize the build times in future updates with this profile.`,
 func init() {
 	updateCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	updateCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	updateCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
 	RootCmd.AddCommand(updateCmd)
 }
 
@@ -47,6 +48,7 @@ func updateProfile(cmd *cobra.Command, args []string) {
 	if CLIDebug {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.StandardLogger().Formatter.(*log.TextFormatter).DisableColors = builder.DisableColors
 
 	if os.Geteuid() != 0 {
 		fmt.Fprintf(os.Stderr, "You must be root to run init profiles\n")

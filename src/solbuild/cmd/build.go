@@ -42,6 +42,7 @@ func init() {
 	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
 	buildCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	buildCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
 	RootCmd.AddCommand(buildCmd)
 }
 
@@ -51,6 +52,7 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	if CLIDebug {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.StandardLogger().Formatter.(*log.TextFormatter).DisableColors = builder.DisableColors
 
 	if len(args) == 1 {
 		pkgPath = args[0]

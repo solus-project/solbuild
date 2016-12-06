@@ -38,6 +38,7 @@ dependencies.`,
 func init() {
 	chrootCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	chrootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	chrootCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
 	RootCmd.AddCommand(chrootCmd)
 }
 
@@ -47,6 +48,7 @@ func chrootPackage(cmd *cobra.Command, args []string) error {
 	if CLIDebug {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.StandardLogger().Formatter.(*log.TextFormatter).DisableColors = builder.DisableColors
 
 	if len(args) == 1 {
 		pkgPath = args[0]

@@ -40,6 +40,7 @@ func init() {
 	indexCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	indexCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	indexCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
+	indexCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
 	RootCmd.AddCommand(indexCmd)
 }
 
@@ -47,6 +48,7 @@ func indexPackages(cmd *cobra.Command, args []string) error {
 	if CLIDebug {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.StandardLogger().Formatter.(*log.TextFormatter).DisableColors = builder.DisableColors
 
 	if os.Geteuid() != 0 {
 		fmt.Fprintf(os.Stderr, "You must be root to use index\n")

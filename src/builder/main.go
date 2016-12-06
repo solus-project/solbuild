@@ -23,6 +23,10 @@ import (
 	"path/filepath"
 )
 
+// DisableColors controls whether or not to use colours in the display.
+// Spelled this way so people don't get confused :P
+var DisableColors bool
+
 const (
 	// ImagesDir is where we keep the rootfs images for build profiles
 	ImagesDir = "/var/lib/solbuild/images"
