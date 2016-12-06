@@ -164,6 +164,9 @@ func SaneEnvironment(username, home string) []string {
 		"LANG",
 		"TERM",
 	}
+	if !DisableColors {
+		permitted = append(permitted, "TERM")
+	}
 	for _, p := range permitted {
 		env := os.Getenv(p)
 		if env == "" {
@@ -175,6 +178,9 @@ func SaneEnvironment(username, home string) []string {
 		}
 		environment = append(environment,
 			fmt.Sprintf("%s=%s", p, env))
+	}
+	if DisableColors {
+		environment = append(environment, "TERM=dumb")
 	}
 	return environment
 }
