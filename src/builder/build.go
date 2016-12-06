@@ -265,9 +265,8 @@ func (p *Package) CopyAssets(h *PackageHistory, o *Overlay) error {
 	return h.WriteXML(histPath)
 }
 
-// BuildYpkg will take care of the ypkg specific build process and is called only
-// by Build()
-func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay, h *PackageHistory) error {
+// PrepYpkg will do the initial leg work of preparing us for a ypkg build.
+func (p *Package) PrepYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay, h *PackageHistory) error {
 	log.Debug("Writing packager file")
 	fp := filepath.Join(overlay.MountPoint, BuildUserHome, ".solus", "packager")
 	fpd := filepath.Dir(fp)
@@ -329,6 +328,15 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 		return err
 	}
 	notif.SetActivePID(0)
+	return nil
+}
+
+// BuildYpkg will take care of the ypkg specific build process and is called only
+// by Build()
+func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager, overlay *Overlay, h *PackageHistory) error {
+	if err := p.PrepYpkg(notif, usr, pman, overlay, h); err != nil {
+		return err
+	}
 
 	// Now kill networking
 	if !p.CanNetwork {
@@ -365,8 +373,11 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 		return err
 	}
 
+	wdir := p.GetWorkDirInternal()
+	ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
+
 	// Now build the package
-	cmd = fmt.Sprintf("/bin/su %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
+	cmd := fmt.Sprintf("/bin/su %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
 	if DisableColors {
 		cmd += " -n"
 	}
