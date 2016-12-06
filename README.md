@@ -32,7 +32,7 @@ Pending items for Solus switch
 
 There are a few items left to address before we switch the Solus build infrastructure over to `solbuild`:
 
-- [ ] Add CLI flag to disable colour output
+- [x] Add CLI flag to disable colour output
 - [ ] Add rewriting of `eopkg.conf` to conditionally disable `dbginfo` packages, i.e. for the kernel package.
 - [ ] Add `tmpfs` option to `ypkg` to disable a package from building in tmpfs when the default config specifies to use tmpfs. i.e. for LibreOffice.
 
