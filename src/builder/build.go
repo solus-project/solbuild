@@ -289,6 +289,9 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 	wdir := p.GetWorkDirInternal()
 	ymlFile := filepath.Join(wdir, filepath.Base(p.Path))
 	cmd := fmt.Sprintf("ypkg-install-deps -f %s", ymlFile)
+	if DisableColors {
+		cmd += " -n"
+	}
 
 	// Install build dependencies
 	log.WithFields(log.Fields{
@@ -360,6 +363,9 @@ func (p *Package) BuildYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager
 
 	// Now build the package
 	cmd = fmt.Sprintf("/bin/su %s -- fakeroot ypkg-build -D %s %s", BuildUser, wdir, ymlFile)
+	if DisableColors {
+		cmd += " -n"
+	}
 	// Pass unix timestamp of last git update
 	if h != nil && len(h.Updates) > 0 {
 		cmd += fmt.Sprintf(" -t %v", h.Updates[0].Time.UTC().Unix())
