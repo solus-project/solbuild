@@ -39,6 +39,11 @@ These options apply to all subcommands within `solbuild(1)`.
    Help provides an explanation for any command or subcommand. Without any
    specified subcommands it will list the main subcommands for the application.
 
+ * `-n`, `--no-color`
+
+   Disable text colourisation in the output from `solbuild` and all child
+   processes.
+
  * `-p`, `--profile`
 
    Set the build configuration profile to use with all operations.
