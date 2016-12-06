@@ -1,9 +1,5 @@
-solbuild.profile(5) -- solbuild profiles
-==========================================
-
-## NAME
-
-    solbuild.profile - Profile definition for solbuild
+solbuild.profile(5) -- Profile definitions for solbuild
+=======================================================
     
 ## SYNOPSIS
 
