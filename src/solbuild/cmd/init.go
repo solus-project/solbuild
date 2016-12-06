@@ -41,7 +41,7 @@ func init() {
 	initCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	initCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	initCmd.Flags().BoolVarP(&autoUpdate, "update", "u", false, "Automatically update the new image")
-	initCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
+	initCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
 	RootCmd.AddCommand(initCmd)
 }
 

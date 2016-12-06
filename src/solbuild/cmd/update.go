@@ -36,7 +36,7 @@ minimize the build times in future updates with this profile.`,
 func init() {
 	updateCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	updateCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
-	updateCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "N", false, "Disable color output")
+	updateCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
 	RootCmd.AddCommand(updateCmd)
 }
 
