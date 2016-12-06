@@ -58,7 +58,7 @@ func (p *Package) addLocalRepo(notif PidNotifier, o *Overlay, pkgManager *EopkgM
 			"name": repo.Name,
 		}).Info("Reindexing repository")
 
-		command := fmt.Sprintf("cd %s/%s; eopkg index --skip-signing .", BindRepoDir, repo.Name)
+		command := fmt.Sprintf("cd %s/%s; %s", BindRepoDir, repo.Name, eopkgCommand("eopkg index --skip-signing ."))
 		err := ChrootExec(notif, o.MountPoint, command)
 		notif.SetActivePID(0)
 		if err != nil {

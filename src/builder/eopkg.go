@@ -27,6 +27,15 @@ import (
 	"strings"
 )
 
+// eopkgCommand utility wraps all eopkg calls to autodisable colours
+// where appropriate, as eopkg largely ignores the console type.
+func eopkgCommand(c string) string {
+	if !DisableColors {
+		return c
+	}
+	return fmt.Sprintf("%s -N", c)
+}
+
 // An EopkgRepo is a simplistic representation of a repo found in any given
 // chroot.
 type EopkgRepo struct {
@@ -192,17 +201,17 @@ func (e *EopkgManager) Upgrade() error {
 	newReqs := []string{
 		"iproute2",
 	}
-	if err := ChrootExec(e.notif, e.root, "eopkg upgrade -y"); err != nil {
+	if err := ChrootExec(e.notif, e.root, eopkgCommand("eopkg upgrade -y")); err != nil {
 		return err
 	}
 	e.notif.SetActivePID(0)
-	err := ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg install -y %s", strings.Join(newReqs, " ")))
+	err := ChrootExec(e.notif, e.root, eopkgCommand(fmt.Sprintf("eopkg install -y %s", strings.Join(newReqs, " "))))
 	return err
 }
 
 // InstallComponent will install the named component inside the chroot
 func (e *EopkgManager) InstallComponent(comp string) error {
-	err := ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg install -c %v -y", comp))
+	err := ChrootExec(e.notif, e.root, eopkgCommand(fmt.Sprintf("eopkg install -c %v -y", comp)))
 	e.notif.SetActivePID(0)
 	return err
 }
@@ -310,11 +319,11 @@ func (e *EopkgManager) GetRepos() ([]*EopkgRepo, error) {
 // AddRepo will attempt to add a repo to the filesystem
 func (e *EopkgManager) AddRepo(id, source string) error {
 	e.notif.SetActivePID(0)
-	return ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg add-repo '%s' '%s'", id, source))
+	return ChrootExec(e.notif, e.root, eopkgCommand(fmt.Sprintf("eopkg add-repo '%s' '%s'", id, source)))
 }
 
 // RemoveRepo will attempt to remove a named repo from the filesystem
 func (e *EopkgManager) RemoveRepo(id string) error {
 	e.notif.SetActivePID(0)
-	return ChrootExec(e.notif, e.root, fmt.Sprintf("eopkg remove-repo '%s'", id))
+	return ChrootExec(e.notif, e.root, eopkgCommand(fmt.Sprintf("eopkg remove-repo '%s'", id)))
 }

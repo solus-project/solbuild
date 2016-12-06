@@ -411,7 +411,7 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 
 	// Now build the package, ignore-sandbox in case someone is stupid
 	// and activates it in eopkg.conf..
-	cmd := fmt.Sprintf("eopkg build --ignore-sandbox -O %s %s", wdir, xmlFile)
+	cmd := eopkgCommand(fmt.Sprintf("eopkg build --ignore-sandbox -O %s %s", wdir, xmlFile))
 	log.WithFields(log.Fields{
 		"package": p.Name,
 	}).Info("Now starting build of package")
