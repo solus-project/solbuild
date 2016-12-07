@@ -36,11 +36,8 @@ machinery will be used to create a repository.`,
 }
 
 func init() {
-	indexCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	indexCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
-	indexCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
 	indexCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
-	indexCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
 	RootCmd.AddCommand(indexCmd)
 }
 

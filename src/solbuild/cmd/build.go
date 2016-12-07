@@ -38,11 +38,8 @@ var tmpfs bool
 var tmpfsSize string
 
 func init() {
-	buildCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
 	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
-	buildCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
-	buildCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
 	RootCmd.AddCommand(buildCmd)
 }
 

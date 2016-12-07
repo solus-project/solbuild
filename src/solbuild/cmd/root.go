@@ -35,9 +35,9 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.Flags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
-	RootCmd.Flags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
-	RootCmd.Flags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
+	RootCmd.PersistentFlags().StringVarP(&profile, "profile", "p", "", "Build profile to use")
+	RootCmd.PersistentFlags().BoolVarP(&CLIDebug, "debug", "d", false, "Enable debug messages")
+	RootCmd.PersistentFlags().BoolVarP(&builder.DisableColors, "no-color", "n", false, "Disable color output")
 }
 
 // FindLikelyArg will look in the current directory to see if common path names exist,
