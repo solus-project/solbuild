@@ -1,7 +1,8 @@
 solbuild
 --------
 
-[![Report](https://goreportcard.com/badge/github.com/solus-project/solbuild)](https://goreportcard.com/report/github.com/solus-project/solbuild) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Report](https://goreportcard.com/badge/github.com/solus-project/solbuild)](https://goreportcard.com/report/github.com/solus-project/solbuild) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/solus-project/solbuild.svg?branch=master)](https://travis-ci.org/solus-project/solbuild)
+
 
 `solbuild` is a `chroot` based package build system, used to safely and efficiently build Solus packages from source, in a highly controlled and isolated environment. This tool succeeds the `evobuild` tool, originally in Evolve OS, which is now known as Solus. The very core concept of the layered builder has always remained the same, this is the next .. evolution.. of the tool.
 
