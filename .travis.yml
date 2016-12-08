@@ -5,6 +5,9 @@ go:
   - 1.7.x
   - tip
 
+before_script:
+  - go get -u github.com/client9/misspell/cmd/misspell
+
 script:
   - make ensure_modules
   - make compliant && git diff --exit-code
