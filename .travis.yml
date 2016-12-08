@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.6
+  - 1.7.x
+  - tip
+
+script:
+  - make ensure_modules
+  - make compliant git diff --exit-code
+  - make
+  - make check
