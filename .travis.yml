@@ -7,6 +7,6 @@ go:
 
 script:
   - make ensure_modules
-  - make compliant git diff --exit-code
+  - make compliant && git diff --exit-code
   - make
   - make check
