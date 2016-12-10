@@ -23,6 +23,11 @@ As a last speed booster, `solbuild` allows you to perform builds in memory via t
 
 **Note**: `solbuild` is designed in such a way that you *do not need to be running Solus*. You can build packages for Solus from any compatible host.
 
+
+![tty](https://raw.githubusercontent.com/solus-project/solbuild/master/.github/tty.gif)
+
+
+
 solbuild is a [Solus project](https://solus-project.com/).
 
 ![logo](https://build.solus-project.com/logo.png)
