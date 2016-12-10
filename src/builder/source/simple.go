@@ -28,6 +28,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // A SimpleSource is a tarball or other source for a package
@@ -108,9 +109,12 @@ func (s *SimpleSource) IsFetched() bool {
 // TODO: Use a progressbar dependent on whether we're in server
 // mode or not.
 func (s *SimpleSource) download(destination string) error {
+	// Fix up the http client
+	client := http.Client{
+		Timeout: time.Second * 15,
+	}
 	// Grab a http request
-	// TODO: Create a client and set the source timeout params!
-	resp, err := http.Get(s.URI)
+	resp, err := client.Get(s.URI)
 	if err != nil {
 		return err
 	}
