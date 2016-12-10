@@ -21,6 +21,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	log "github.com/Sirupsen/logrus"
+	"github.com/cheggaaa/pb"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -122,7 +123,17 @@ func (s *SimpleSource) download(destination string) error {
 
 	defer out.Close()
 
-	if _, err := io.Copy(out, resp.Body); err != nil {
+	pbar := pb.New64(resp.ContentLength)
+	pbar.SetUnits(pb.U_BYTES)
+	pbar.ShowSpeed = true
+	reader := pbar.NewProxyReader(resp.Body)
+	pbar.Start()
+	defer func() {
+		pbar.Update()
+		pbar.Finish()
+	}()
+
+	if _, err := io.Copy(out, reader); err != nil {
 		return err
 	}
 	return nil
