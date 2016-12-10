@@ -127,8 +127,9 @@ func (s *SimpleSource) download(destination string) error {
 
 	defer out.Close()
 
-	pbar := pb.New64(resp.ContentLength)
+	pbar := pb.New64(resp.ContentLength).Prefix(filepath.Base(destination))
 	pbar.SetUnits(pb.U_BYTES)
+	pbar.SetMaxWidth(80)
 	pbar.ShowSpeed = true
 	reader := pbar.NewProxyReader(resp.Body)
 	pbar.Start()
