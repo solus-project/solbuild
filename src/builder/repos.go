@@ -56,7 +56,7 @@ func (p *Package) addLocalRepo(notif PidNotifier, o *Overlay, pkgManager *EopkgM
 	if repo.AutoIndex {
 		log.WithFields(log.Fields{
 			"name": repo.Name,
-		}).Info("Reindexing repository")
+		}).Debug("Reindexing repository")
 
 		command := fmt.Sprintf("cd %s/%s; %s", BindRepoDir, repo.Name, eopkgCommand("eopkg index --skip-signing ."))
 		err := ChrootExec(notif, o.MountPoint, command)
@@ -89,7 +89,7 @@ func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
 	for _, id := range repos {
 		log.WithFields(log.Fields{
 			"name": id,
-		}).Info("Removing repository")
+		}).Debug("Removing repository")
 		if err := pkgManager.RemoveRepo(id); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,
@@ -111,7 +111,7 @@ func (p *Package) addRepos(notif PidNotifier, o *Overlay, pkgManager *EopkgManag
 			log.WithFields(log.Fields{
 				"name": repo.Name,
 				"path": repo.URI,
-			}).Info("Adding local repo to system")
+			}).Debug("Adding local repo to system")
 
 			if err := p.addLocalRepo(notif, o, pkgManager, repo); err != nil {
 				log.WithFields(log.Fields{
@@ -125,7 +125,7 @@ func (p *Package) addRepos(notif PidNotifier, o *Overlay, pkgManager *EopkgManag
 		log.WithFields(log.Fields{
 			"name": repo.Name,
 			"url":  repo.URI,
-		}).Info("Adding repo to system")
+		}).Debug("Adding repo to system")
 		if err := pkgManager.AddRepo(repo.Name, repo.URI); err != nil {
 			log.WithFields(log.Fields{
 				"error": err,

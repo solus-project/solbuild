@@ -37,7 +37,7 @@ var (
 func (p *Package) Index(notif PidNotifier, dir string, overlay *Overlay) error {
 	log.WithFields(log.Fields{
 		"profile": overlay.Back.Name,
-	}).Info("Beginning indexer")
+	}).Debug("Beginning indexer")
 
 	mman := disk.GetMountManager()
 
@@ -72,7 +72,7 @@ func (p *Package) Index(notif PidNotifier, dir string, overlay *Overlay) error {
 
 	log.WithFields(log.Fields{
 		"dir": dir,
-	}).Info("Bind mounting directory for indexing")
+	}).Debug("Bind mounting directory for indexing")
 
 	if err := mman.BindMount(dir, target); err != nil {
 		log.WithFields(log.Fields{
@@ -85,7 +85,7 @@ func (p *Package) Index(notif PidNotifier, dir string, overlay *Overlay) error {
 	// Ensure it gets cleaned up
 	overlay.ExtraMounts = append(overlay.ExtraMounts, target)
 
-	log.Info("Now indexing")
+	log.Debug("Now indexing")
 	command := fmt.Sprintf("cd %s; %s", IndexBindTarget, eopkgCommand("eopkg index --skip-signing ."))
 	if err := ChrootExec(notif, overlay.MountPoint, command); err != nil {
 		log.WithFields(log.Fields{

@@ -173,7 +173,7 @@ func (m *Manager) SetPackage(pkg *Package) error {
 		repoDir := filepath.Dir(pkg.Path)
 		if PathExists(filepath.Join(repoDir, ".git")) {
 			if history, err := NewPackageHistory(pkg.Path); err == nil {
-				log.Info("Obtained package history")
+				log.Debug("Obtained package history")
 				m.history = history
 			} else {
 				log.WithFields(log.Fields{
@@ -216,7 +216,7 @@ func (m *Manager) Cleanup() {
 	log.Debug("Acquiring global lock")
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	log.Info("Cleaning up")
+	log.Debug("Cleaning up")
 
 	if m.pkgManager != nil {
 		// Potentially unnecessary but meh

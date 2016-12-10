@@ -48,7 +48,7 @@ type PidNotifier interface {
 // ActivateRoot will do the hard work of actually bring up the overlayfs
 // system to allow manipulation of the roots for builds, etc.
 func (p *Package) ActivateRoot(overlay *Overlay) error {
-	log.Info("Configuring overlay storage")
+	log.Debug("Configuring overlay storage")
 
 	// Now mount the overlayfs
 	if err := overlay.Mount(); err != nil {
@@ -62,7 +62,7 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 		}
 	}
 
-	log.Info("Bringing up virtual filesystems")
+	log.Debug("Bringing up virtual filesystems")
 	if err := overlay.MountVFS(); err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (p *Package) DeactivateRoot(overlay *Overlay) {
 	mountMan := disk.GetMountManager()
 	commands.SetStdin(nil)
 	overlay.Unmount()
-	log.Info("Requesting unmount of all remaining mountpoints")
+	log.Debug("Requesting unmount of all remaining mountpoints")
 	mountMan.UnmountAll()
 }
 
@@ -118,7 +118,7 @@ func MurderDeathKill(root string) error {
 
 		log.WithFields(log.Fields{
 			"pid": pid,
-		}).Info("Killing child process in chroot")
+		}).Debug("Killing child process in chroot")
 
 		if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
 			log.WithFields(log.Fields{

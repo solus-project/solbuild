@@ -299,7 +299,7 @@ func (p *Package) PrepYpkg(notif PidNotifier, usr *UserInfo, pman *EopkgManager,
 	// Install build dependencies
 	log.WithFields(log.Fields{
 		"buildFile": ymlFile,
-	}).Info("Installing build dependencies")
+	}).Debug("Installing build dependencies")
 
 	if err := ChrootExec(notif, overlay.MountPoint, cmd); err != nil {
 		log.WithFields(log.Fields{
@@ -481,7 +481,7 @@ func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
 
 		log.WithFields(log.Fields{
 			"file": filepath.Base(p),
-		}).Info("Collecting build artifact")
+		}).Debug("Collecting build artifact")
 
 		if err := disk.CopyFile(p, tgt); err != nil {
 			log.WithFields(log.Fields{
@@ -514,7 +514,7 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 		"package": p.Name,
 		"type":    p.Type,
 		"release": p.Release,
-	}).Info("Building package")
+	}).Debug("Building package")
 
 	usr := GetUserInfo()
 
@@ -544,7 +544,7 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 		return err
 	}
 
-	log.Info("Validating sources")
+	log.Debug("Validating sources")
 	if err := p.FetchSources(overlay); err != nil {
 		return err
 	}
@@ -571,7 +571,7 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 		return err
 	}
 
-	log.Info("Upgrading system base")
+	log.Debug("Upgrading system base")
 	if err := pman.Upgrade(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -579,7 +579,7 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 		return err
 	}
 
-	log.Info("Asserting system.devel component installation")
+	log.Debug("Asserting system.devel component installation")
 	if err := pman.InstallComponent("system.devel"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,

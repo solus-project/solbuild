@@ -133,7 +133,7 @@ func (o *Overlay) CleanExisting() error {
 // Mount will set up the overlayfs structure with the lower/upper respected
 // properly.
 func (o *Overlay) Mount() error {
-	log.Info("Mounting overlayfs")
+	log.Debug("Mounting overlayfs")
 
 	mountMan := disk.GetMountManager()
 
@@ -354,7 +354,7 @@ func (o *Overlay) MountVFS() error {
 // that localhost networking will still work
 func (o *Overlay) ConfigureNetworking() error {
 	ipCommand := "ip link set lo up"
-	log.Info("Configuring container networking")
+	log.Debug("Configuring container networking")
 	if err := commands.ChrootExec(o.MountPoint, ipCommand); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,

@@ -148,7 +148,7 @@ func (s *SimpleSource) Fetch() error {
 	// Now go and download it
 	log.WithFields(log.Fields{
 		"uri": s.URI,
-	}).Info("Downloading source")
+	}).Debug("Downloading source")
 
 	destPath := filepath.Join(SourceStagingDir, s.File)
 

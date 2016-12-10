@@ -167,7 +167,7 @@ func (u *UserInfo) SetFromPackager() bool {
 		}
 		u.Name = uname.String()
 		u.Email = email.String()
-		log.Info("Setting packager details from packager INI file")
+		log.Debug("Setting packager details from packager INI file")
 		return true
 	}
 
@@ -216,7 +216,7 @@ func (u *UserInfo) SetFromGit() bool {
 	}
 	u.Name = uname.String()
 	u.Email = email.String()
-	log.Info("Setting packager details from git config")
+	log.Debug("Setting packager details from git config")
 
 	return true
 }

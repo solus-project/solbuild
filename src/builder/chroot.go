@@ -31,7 +31,7 @@ func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay
 		"package": p.Name,
 		"type":    p.Type,
 		"release": p.Release,
-	}).Info("Beginning chroot")
+	}).Debug("Beginning chroot")
 
 	var env []string
 	if p.Type == PackageTypeXML {
@@ -61,7 +61,7 @@ func (p *Package) Chroot(notif PidNotifier, pman *EopkgManager, overlay *Overlay
 		}
 	}
 
-	log.Info("Spawning login shell")
+	log.Debug("Spawning login shell")
 	// Allow bash to work
 	commands.SetStdin(os.Stdin)
 

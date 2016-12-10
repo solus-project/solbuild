@@ -35,7 +35,7 @@ func ConfigureNamespace() error {
 
 // DropNetworking will unshare() the context networking capabilities
 func DropNetworking() error {
-	log.Info("Dropping container networking")
+	log.Debug("Dropping container networking")
 	if err := syscall.Unshare(syscall.CLONE_NEWNET | syscall.CLONE_NEWUTS); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,

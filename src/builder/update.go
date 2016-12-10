@@ -23,7 +23,7 @@ import (
 )
 
 func (b *BackingImage) updatePackages(notif PidNotifier, pkgManager *EopkgManager) error {
-	log.Info("Initialising package manager")
+	log.Debug("Initialising package manager")
 
 	if err := pkgManager.Init(); err != nil {
 		log.WithFields(log.Fields{
@@ -41,7 +41,7 @@ func (b *BackingImage) updatePackages(notif PidNotifier, pkgManager *EopkgManage
 		return err
 	}
 
-	log.Info("Upgrading builder image")
+	log.Debug("Upgrading builder image")
 	if err := pkgManager.Upgrade(); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -49,7 +49,7 @@ func (b *BackingImage) updatePackages(notif PidNotifier, pkgManager *EopkgManage
 		return err
 	}
 
-	log.Info("Asserting system.devel component")
+	log.Debug("Asserting system.devel component")
 	if err := pkgManager.InstallComponent("system.devel"); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
@@ -75,7 +75,7 @@ func (b *BackingImage) Update(notif PidNotifier, pkgManager *EopkgManager) error
 	mountMan := disk.GetMountManager()
 	log.WithFields(log.Fields{
 		"image": b.Name,
-	}).Info("Updating backing image")
+	}).Debug("Updating backing image")
 
 	if !PathExists(b.RootDir) {
 		if err := os.MkdirAll(b.RootDir, 00755); err != nil {
@@ -123,7 +123,7 @@ func (b *BackingImage) Update(notif PidNotifier, pkgManager *EopkgManager) error
 
 	log.WithFields(log.Fields{
 		"profile": b.Name,
-	}).Info("Image successfully updated")
+	}).Debug("Image successfully updated")
 
 	return nil
 }

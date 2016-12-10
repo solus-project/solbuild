@@ -77,7 +77,7 @@ func NewGit(uri, ref string) (*GitSource, error) {
 func (g *GitSource) completed(r git.RemoteCompletion) git.ErrorCode {
 	log.WithFields(log.Fields{
 		"source": g.BaseName,
-	}).Info("Completed fetch of git source")
+	}).Debug("Completed fetch of git source")
 	return 0
 }
 
@@ -100,7 +100,7 @@ func (g *GitSource) Clone() error {
 	// Attempt cloning
 	log.WithFields(log.Fields{
 		"uri": g.URI,
-	}).Info("Cloning git source")
+	}).Debug("Cloning git source")
 
 	fetchOpts := &git.FetchOptions{
 		RemoteCallbacks: g.CreateCallbacks(),
@@ -129,7 +129,7 @@ func (g *GitSource) HasTag(repo *git.Repository, tagName string) bool {
 func (g *GitSource) fetch(repo *git.Repository) error {
 	log.WithFields(log.Fields{
 		"uri": g.URI,
-	}).Info("Git fetching existing clone")
+	}).Debug("Git fetching existing clone")
 	remote, err := repo.Remotes.Lookup("origin")
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -158,7 +158,7 @@ func (g *GitSource) GetCommitID(repo *git.Repository) string {
 		log.WithFields(log.Fields{
 			"branch": g.Ref,
 			"sha":    oid,
-		}).Info("Found git commit of branch")
+		}).Debug("Found git commit of branch")
 		return oid
 	}
 
@@ -181,7 +181,7 @@ func (g *GitSource) GetCommitID(repo *git.Repository) string {
 		log.WithFields(log.Fields{
 			"tag": tagName,
 			"sha": oid,
-		}).Info("Found git commit of tag")
+		}).Debug("Found git commit of tag")
 		return oid
 	}
 
@@ -200,7 +200,7 @@ func (g *GitSource) GetCommitID(repo *git.Repository) string {
 	log.WithFields(log.Fields{
 		"tag": tagName,
 		"sha": oid,
-	}).Info("Found git commit")
+	}).Debug("Found git commit")
 	return obj.String()
 }
 
@@ -236,7 +236,7 @@ func (g *GitSource) resetOnto(repo *git.Repository, ref string) error {
 
 	log.WithFields(log.Fields{
 		"sha": ref,
-	}).Info("Resetting git repository to commit")
+	}).Debug("Resetting git repository to commit")
 
 	checkOpts := &git.CheckoutOpts{
 		Strategy: git.CheckoutForce | git.CheckoutRemoveUntracked | git.CheckoutRemoveIgnored}
