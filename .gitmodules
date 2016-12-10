@@ -22,3 +22,9 @@
 [submodule "src/vendor/github.com/libgit2/git2go"]
 	path = src/vendor/github.com/libgit2/git2go
 	url = https://github.com/libgit2/git2go.git
+[submodule "src/vendor/github.com/cheggaaa/pb"]
+	path = src/vendor/github.com/cheggaaa/pb
+	url = https://github.com/cheggaaa/pb.git
+[submodule "src/vendor/github.com/mattn/go-runewidth"]
+	path = src/vendor/github.com/mattn/go-runewidth
+	url = https://github.com/mattn/go-runewidth.git
