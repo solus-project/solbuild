@@ -5,7 +5,7 @@ solbuild
 
 `solbuild` is a `chroot` based package build system, used to safely and efficiently build Solus packages from source, in a highly controlled and isolated environment. This tool succeeds the `evobuild` tool, originally in Evolve OS, which is now known as Solus. The very core concept of the layered builder has always remained the same, this is the next .. evolution.. of the tool.
 
-![tty](https://raw.githubusercontent.com/solus-project/solbuild/master/.github/tty.gif)
+![tty](https://raw.githubusercontent.com/solus-project/solbuild/master/.github/building.gif)
 
 `solbuild` makes use of `OverlayFS` to provide a simple caching system, whereby a base image (provided by the Solus project) is used as the bottom-most, read-only layer, and changes are made in temporary upper layers. Currently the project provides two base images for the default profiles shipped with `solbuild`:
 
