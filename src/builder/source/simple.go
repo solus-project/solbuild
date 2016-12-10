@@ -21,8 +21,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	log "github.com/Sirupsen/logrus"
-	"github.com/solus-project/libosdev/commands"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -100,6 +101,33 @@ func (s *SimpleSource) IsFetched() bool {
 	return PathExists(s.GetPath(s.validator))
 }
 
+// download will perform the actual download of the source in
+// question.
+//
+// TODO: Use a progressbar dependent on whether we're in server
+// mode or not.
+func (s *SimpleSource) download(destination string) error {
+	// Grab a http request
+	// TODO: Create a client and set the source timeout params!
+	resp, err := http.Get(s.URI)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(destination)
+	if err != nil {
+		return err
+	}
+
+	defer out.Close()
+
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Fetch will download the given source and cache it locally
 func (s *SimpleSource) Fetch() error {
 	// Now go and download it
@@ -116,16 +144,8 @@ func (s *SimpleSource) Fetch() error {
 		}
 	}
 
-	// Download to staging
-	command := []string{
-		"-L",
-		"-o",
-		destPath,
-		"--progress-bar",
-		s.URI,
-	}
-
-	if err := commands.ExecStdoutArgs("curl", command); err != nil {
+	// Grab the file
+	if err := s.download(destPath); err != nil {
 		return err
 	}
 
