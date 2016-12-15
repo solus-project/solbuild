@@ -20,15 +20,17 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/cheggaaa/pb"
+	"github.com/jlaffaye/ftp"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -156,7 +158,84 @@ func (s *SimpleSource) downloadHTTP(destination string) error {
 
 // downloadFTP will fetch a file over ftp using anonymous credentials
 func (s *SimpleSource) downloadFTP(destination string) error {
-	return errors.New("ftp: Not yet implemented")
+	hostAddr := s.url.Host
+	// Assign a port if not set
+	if !strings.Contains(hostAddr, ":") {
+		hostAddr += ":21"
+	}
+	client, err := ftp.DialTimeout(hostAddr, time.Minute*2)
+	if err != nil {
+		return err
+	}
+	defer client.Quit()
+
+	// Get the relevant credentials
+	username := "anonymous"
+	password := "anonymous"
+	if s.url.User != nil {
+		username = s.url.User.Username()
+		if pwd, set := s.url.User.Password(); set {
+			password = pwd
+		} else {
+			password = ""
+		}
+	}
+
+	// Login to the server
+	log.WithFields(log.Fields{
+		"username": username,
+	}).Info("Logging into FTP server")
+	if err := client.Login(username, password); err != nil {
+		return err
+	}
+
+	// Try to list the file
+	toFetch := s.url.Path
+	log.WithFields(log.Fields{
+		"path": toFetch,
+	}).Info("Getting remote file information")
+	entries, err := client.List(toFetch)
+	if err != nil {
+		return err
+	}
+
+	// Assert *1* file
+	if len(entries) != 1 {
+		return fmt.Errorf("FTP expected 1 file, found %d files", len(entries))
+	}
+
+	// Try to RETR the file
+	fileLen := entries[0].Size
+	resp, err := client.Retr(toFetch)
+	if err != nil {
+		return err
+	}
+	defer resp.Close()
+
+	// Set the output
+	out, err := os.Create(destination)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Set up the progressbar & hooks
+	pbar := pb.New64(int64(fileLen)).Prefix(filepath.Base(destination))
+	pbar.SetUnits(pb.U_BYTES)
+	pbar.SetMaxWidth(80)
+	pbar.ShowSpeed = true
+	reader := pbar.NewProxyReader(resp)
+	pbar.Start()
+	defer func() {
+		pbar.Update()
+		pbar.Finish()
+	}()
+
+	// Now actually download it
+	if _, err := io.Copy(out, reader); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Fetch will download the given source and cache it locally
