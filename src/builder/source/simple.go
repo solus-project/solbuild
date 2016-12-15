@@ -20,6 +20,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	log "github.com/Sirupsen/logrus"
 	"github.com/cheggaaa/pb"
 	"io"
@@ -38,6 +39,8 @@ type SimpleSource struct {
 
 	legacy    bool   // If this is ypkg or not
 	validator string // Validation key for this source
+
+	url *url.URL
 }
 
 // NewSimple will create a new source instance
@@ -52,6 +55,7 @@ func NewSimple(uri, validator string, legacy bool) (*SimpleSource, error) {
 		File:      filepath.Base(uriObj.Path),
 		legacy:    legacy,
 		validator: validator,
+		url:       uriObj,
 	}
 	return ret, nil
 }
@@ -103,13 +107,19 @@ func (s *SimpleSource) IsFetched() bool {
 	return PathExists(s.GetPath(s.validator))
 }
 
-// download will perform the actual download of the source in
-// question.
-//
-// TODO: Use a progressbar dependent on whether we're in server
-// mode or not.
+// download will proxy the download to the correct scheme handler
 func (s *SimpleSource) download(destination string) error {
 	// Fix up the http client
+	switch s.url.Scheme {
+	case "ftp":
+		return s.downloadFTP(destination)
+	default:
+		return s.downloadHTTP(destination)
+	}
+}
+
+// downloadHTTP handles all http based connections
+func (s *SimpleSource) downloadHTTP(destination string) error {
 	client := http.Client{
 		Timeout: time.Minute * 2,
 	}
@@ -142,6 +152,11 @@ func (s *SimpleSource) download(destination string) error {
 		return err
 	}
 	return nil
+}
+
+// downloadFTP will fetch a file over ftp using anonymous credentials
+func (s *SimpleSource) downloadFTP(destination string) error {
+	return errors.New("ftp: Not yet implemented")
 }
 
 // Fetch will download the given source and cache it locally
