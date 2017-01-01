@@ -151,6 +151,8 @@ func TouchFile(path string) error {
 func SaneEnvironment(username, home string) []string {
 	environment := []string{
 		"PATH=/usr/bin:/usr/sbin:/bin/:/sbin",
+		"LANG=C",
+		"LC_ALL=C",
 		fmt.Sprintf("HOME=%s", home),
 		fmt.Sprintf("USER=%s", username),
 		fmt.Sprintf("USERNAME=%s", username),
@@ -161,7 +163,6 @@ func SaneEnvironment(username, home string) []string {
 		"https_proxy",
 		"no_proxy",
 		"ftp_proxy",
-		"LANG",
 		"TERM",
 	}
 	if !DisableColors {
