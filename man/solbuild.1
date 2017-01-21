@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "SOLBUILD" "1" "December 2016" "" ""
+.TH "SOLBUILD" "1" "January 2017" "" ""
 .
 .SH "NAME"
 \fBsolbuild\fR \- Solus package builder
@@ -118,6 +118,42 @@ further inspection when issues aren\'t immediately resolvable, i\.e\. pkg\-confi
 dependencies\.
 .
 .fi
+.
+.IP "" 0
+.
+.P
+\fBdelete\-cache\fR
+.
+.IP "" 4
+.
+.nf
+
+Delete all of the build roots under `/var/cache/solbuild`\. Although `solbuild(1)`
+employs many cache efficient methods in which to save on space and time, we
+retain the build roots after builds to allow inspection and chrooting\.
+
+Using this command will remove ALL roots from the cache\. You should ensure
+you are not already running any builds whilst calling this command, as it may
+lead to undefined behaviour\.
+.
+.fi
+.
+.IP "" 0
+.
+.IP "\(bu" 4
+\fB\-a\fR, \fB\-\-all\fR
+.
+.IP "" 4
+.
+.nf
+
+In addition to deleting the build root caches, the packages, sources,
+and ccache (compiler) caches will also be purged from disk\.
+.
+.fi
+.
+.IP "" 0
+
 .
 .IP "" 0
 .
