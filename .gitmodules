@@ -31,3 +31,6 @@
 [submodule "src/vendor/github.com/jlaffaye/ftp"]
 	path = src/vendor/github.com/jlaffaye/ftp
 	url = https://github.com/jlaffaye/ftp.git
+[submodule "src/vendor/github.com/andelf/go-curl"]
+	path = src/vendor/github.com/andelf/go-curl
+	url = https://github.com/andelf/go-curl.git
