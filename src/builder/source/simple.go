@@ -156,6 +156,7 @@ func (s *SimpleSource) downloadCurl(destination string) error {
 	hnd.Setopt(curl.OPT_NOPROGRESS, false)
 	hnd.Setopt(curl.OPT_PROGRESSFUNCTION, progress)
 	hnd.Setopt(curl.OPT_TIMEOUT, 120)
+	hnd.Setopt(curl.OPT_USERAGENT, fmt.Sprintf("solbuild 1.2.1"))
 
 	pbar.Start()
 	defer func() {
