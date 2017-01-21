@@ -96,6 +96,6 @@ Git is required as `solbuild` supports the `git|` source type of ypkg files. Add
 License
 -------
 
-Copyright © 2016 Solus Project
+Copyright © 2016-2017 Solus Project
 
 `solbuild` is available under the terms of the Apache-2.0 license

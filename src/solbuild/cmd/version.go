@@ -1,5 +1,5 @@
 //
-// Copyright © 2016 Ikey Doherty <ikey@solus-project.com>
+// Copyright © 2016-2017 Ikey Doherty <ikey@solus-project.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,6 @@ func init() {
 }
 
 func printVersion(cmd *cobra.Command, args []string) {
-	fmt.Printf("solbuild version %v\n\nCopyright © 2016 Solus Project\n", SolbuildVersion)
+	fmt.Printf("solbuild version %v\n\nCopyright © 2016-2017 Solus Project\n", SolbuildVersion)
 	fmt.Printf("Licensed under the Apache License, Version 2.0\n")
 }
