@@ -134,6 +134,7 @@ func (s *SimpleSource) downloadCurl(destination string) error {
 	}
 
 	pbar := pb.New64(0).Prefix(filepath.Base(destination))
+	pbar.Set(0)
 	pbar.SetUnits(pb.U_BYTES)
 	pbar.SetMaxWidth(80)
 	pbar.ShowSpeed = true
@@ -147,6 +148,7 @@ func (s *SimpleSource) downloadCurl(destination string) error {
 	progress := func(total, now, utotal, unow float64, udata interface{}) bool {
 		pbar.Total = int64(total)
 		pbar.Set64(int64(now))
+		pbar.Update()
 		return true
 	}
 
