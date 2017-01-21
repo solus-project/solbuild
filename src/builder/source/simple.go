@@ -22,11 +22,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	curl "github.com/andelf/go-curl"
 	"github.com/cheggaaa/pb"
 	"github.com/jlaffaye/ftp"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -116,44 +116,52 @@ func (s *SimpleSource) download(destination string) error {
 	case "ftp":
 		return s.downloadFTP(destination)
 	default:
-		return s.downloadHTTP(destination)
+		return s.downloadCurl(destination)
 	}
 }
 
-// downloadHTTP handles all http based connections
-func (s *SimpleSource) downloadHTTP(destination string) error {
-	client := http.Client{
-		Timeout: time.Minute * 2,
-	}
-	// Grab a http request
-	resp, err := client.Get(s.URI)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+// downloadCURL utilises CURL to do all downloads
+func (s *SimpleSource) downloadCurl(destination string) error {
+	hnd := curl.EasyInit()
+	defer hnd.Cleanup()
+
+	hnd.Setopt(curl.OPT_URL, s.URI)
+	hnd.Setopt(curl.OPT_FOLLOWLOCATION, 1)
 
 	out, err := os.Create(destination)
 	if err != nil {
 		return err
 	}
 
-	defer out.Close()
-
-	pbar := pb.New64(resp.ContentLength).Prefix(filepath.Base(destination))
+	pbar := pb.New64(0).Prefix(filepath.Base(destination))
 	pbar.SetUnits(pb.U_BYTES)
 	pbar.SetMaxWidth(80)
 	pbar.ShowSpeed = true
-	reader := pbar.NewProxyReader(resp.Body)
+
+	writer := func(data []byte, udata interface{}) bool {
+		if _, err := out.Write(data); err != nil {
+			return false
+		}
+		return true
+	}
+	progress := func(total, now, utotal, unow float64, udata interface{}) bool {
+		pbar.Total = int64(total)
+		pbar.Set64(int64(now))
+		return true
+	}
+
+	hnd.Setopt(curl.OPT_WRITEFUNCTION, writer)
+	hnd.Setopt(curl.OPT_NOPROGRESS, false)
+	hnd.Setopt(curl.OPT_PROGRESSFUNCTION, progress)
+	hnd.Setopt(curl.OPT_TIMEOUT, 120)
+
 	pbar.Start()
 	defer func() {
 		pbar.Update()
 		pbar.Finish()
 	}()
 
-	if _, err := io.Copy(out, reader); err != nil {
-		return err
-	}
-	return nil
+	return hnd.Perform()
 }
 
 // downloadFTP will fetch a file over ftp using anonymous credentials
