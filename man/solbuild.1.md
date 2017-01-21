@@ -85,6 +85,21 @@ These options apply to all subcommands within `solbuild(1)`.
     further inspection when issues aren't immediately resolvable, i.e. pkg-config
     dependencies.
 
+`delete-cache`
+
+    Delete all of the build roots under `/var/cache/solbuild`. Although `solbuild(1)`
+    employs many cache efficient methods in which to save on space and time, we
+    retain the build roots after builds to allow inspection and chrooting.
+
+    Using this command will remove ALL roots from the cache. You should ensure
+    you are not already running any builds whilst calling this command, as it may
+    lead to undefined behaviour.
+
+ *  `-a`, `--all`
+
+        In addition to deleting the build root caches, the packages, sources,
+        and ccache (compiler) caches will also be purged from disk.
+
 `index [directory]`
 
     Use the given build profile to construct a repository index in the
