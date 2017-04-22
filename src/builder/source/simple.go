@@ -157,7 +157,7 @@ func (s *SimpleSource) downloadCurl(destination string) error {
 	hnd.Setopt(curl.OPT_PROGRESSFUNCTION, progress)
 	// Enforce internal 300 second connect timeout in libcurl
 	hnd.Setopt(curl.OPT_CONNECTTIMEOUT, 0)
-	hnd.Setopt(curl.OPT_USERAGENT, fmt.Sprintf("solbuild 1.3.0"))
+	hnd.Setopt(curl.OPT_USERAGENT, fmt.Sprintf("solbuild 1.3.1"))
 
 	pbar.Start()
 	defer func() {
