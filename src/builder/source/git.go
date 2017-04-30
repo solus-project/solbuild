@@ -129,7 +129,7 @@ func (g *GitSource) HasTag(repo *git.Repository, tagName string) bool {
 func (g *GitSource) fetch(repo *git.Repository) error {
 	log.WithFields(log.Fields{
 		"uri": g.URI,
-	}).Debug("Git fetching existing clone")
+	}).Info("Git fetching existing clone")
 	remote, err := repo.Remotes.Lookup("origin")
 	if err != nil {
 		log.WithFields(log.Fields{
