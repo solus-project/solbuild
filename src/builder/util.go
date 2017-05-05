@@ -151,8 +151,8 @@ func TouchFile(path string) error {
 func SaneEnvironment(username, home string) []string {
 	environment := []string{
 		"PATH=/usr/bin:/usr/sbin:/bin/:/sbin",
-		"LANG=C",
-		"LC_ALL=C",
+		"LANG=en_US.utf8",
+		"LC_ALL=en_US.utf8",
 		fmt.Sprintf("HOME=%s", home),
 		fmt.Sprintf("USER=%s", username),
 		fmt.Sprintf("USERNAME=%s", username),
