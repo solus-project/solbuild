@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -274,9 +273,13 @@ type YPKGUpdate struct {
 	Type    string `xml:"type,attr,omitempty"`
 	Date    string
 	Version string
-	Comment string
-	Name    string
-	Email   string
+	Comment struct {
+		Value string `xml:",cdata"`
+	}
+	Name struct {
+		Value string `xml:",cdata"`
+	}
+	Email string
 }
 
 // WriteXML will attempt to dump the update history to an XML file
@@ -294,11 +297,11 @@ func (p *PackageHistory) WriteXML(path string) error {
 		yUpdate := &YPKGUpdate{
 			Release: update.Package.Release,
 			Version: update.Package.Version,
-			Comment: update.Body,
-			Name:    update.Author,
 			Email:   update.AuthorEmail,
 			Date:    update.Time.Format(UpdateDateFormat),
 		}
+		yUpdate.Comment.Value = update.Body
+		yUpdate.Name.Value = update.Author
 		if update.IsSecurity {
 			yUpdate.Type = "security"
 		}
@@ -310,10 +313,8 @@ func (p *PackageHistory) WriteXML(path string) error {
 	if err != nil {
 		return err
 	}
-	// My version of go is incorrectly replacing newlines, fix it.
-	s := strings.Replace(string(bytes), "&#xA;", "\n", -1)
 
 	// Dump it to the file
-	_, err = fi.WriteString(s)
+	_, err = fi.WriteString(string(bytes))
 	return err
 }
