@@ -46,7 +46,7 @@ var (
 	// system.
 	IndexPackage = Package{
 		Name:    "index",
-		Version: "1.3.2",
+		Version: "1.3.3",
 		Type:    PackageTypeIndex,
 		Release: 1,
 		Path:    "",
