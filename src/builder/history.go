@@ -229,19 +229,30 @@ func NewPackageHistory(pkgfile string) (*PackageHistory, error) {
 	return ret, nil
 }
 
+// SortUpdatesByRelease is a simple wrapper to allowing sorting history
+type SortUpdatesByRelease []*PackageUpdate
+
+func (a SortUpdatesByRelease) Len() int {
+	return len(a)
+}
+
+func (a SortUpdatesByRelease) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a SortUpdatesByRelease) Less(i, j int) bool {
+	return a[i].Package.Release < a[j].Package.Release
+}
+
 // scanUpdates will go back through the collected, "ok" tags, and analyze
 // them to be more useful.
 func (p *PackageHistory) scanUpdates(repo *git.Repository, updates map[string]*PackageUpdate, tags []string) {
-	numEntries := 0
-
 	// basename of file
 	fname := filepath.Base(p.pkgfile)
 
+	var updateSet []*PackageUpdate
 	// Iterate the commit set in order
 	for _, tagID := range tags {
-		if numEntries >= MaxChangelogEntries {
-			break
-		}
 		update := updates[tagID]
 		if update == nil {
 			continue
@@ -257,9 +268,15 @@ func (p *PackageHistory) scanUpdates(repo *git.Repository, updates map[string]*P
 			continue
 		}
 		update.Package = pkg
-		p.Updates = append(p.Updates, update)
-		numEntries++
+		updateSet = append(updateSet, update)
 	}
+	sort.Sort(sort.Reverse(SortUpdatesByRelease(updateSet)))
+	if len(updateSet) >= MaxChangelogEntries {
+		p.Updates = updateSet[:MaxChangelogEntries]
+	} else {
+		p.Updates = updateSet
+	}
+
 }
 
 // YPKG provides ypkg-gen-history history.xml compatibility
