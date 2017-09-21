@@ -17,6 +17,8 @@
 package builder
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
@@ -260,4 +262,17 @@ func AddBuildUser(rootfs string) error {
 		return err
 	}
 	return nil
+}
+
+// FileSha256sum is a quick wrapper to grab the sha256sum for the given file
+func FileSha256sum(path string) (string, error) {
+	mfile, err := MapFile(path)
+	if err != nil {
+		return "", err
+	}
+	defer mfile.Close()
+	h := sha256.New()
+	// Pump from memory into hash for zero-copy sha1sum
+	h.Write(mfile.Data)
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
