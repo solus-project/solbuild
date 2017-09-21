@@ -76,6 +76,8 @@ type Manager struct {
 
 	history *PackageHistory // Given package history, if any
 
+	manifestTarget string // Generate manifest if set
+
 	activePID int // Active PID
 }
 
@@ -112,6 +114,14 @@ func (m *Manager) SetActivePID(pid int) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.activePID = pid
+}
+
+// SetManifestTarget will set the manifest target to be used
+// An empty target (default) means no manifest
+func (m *Manager) SetManifestTarget(target string) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.manifestTarget = strings.TrimSpace(target)
 }
 
 // SetProfile will attempt to initialise the manager with a given profile
@@ -347,7 +357,7 @@ func (m *Manager) Build() error {
 		return err
 	}
 
-	return m.pkg.Build(m, m.history, m.GetProfile(), m.pkgManager, m.overlay)
+	return m.pkg.Build(m, m.history, m.GetProfile(), m.pkgManager, m.overlay, m.manifestTarget)
 }
 
 // Chroot will enter the build environment to allow users to introspect it

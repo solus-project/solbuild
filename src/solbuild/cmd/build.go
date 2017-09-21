@@ -88,6 +88,8 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	manager.SetManifestTarget(manifest)
+
 	// Set the package
 	if err := manager.SetPackage(pkg); err != nil {
 		if err == builder.ErrProfileNotInstalled {
@@ -103,5 +105,6 @@ func buildPackage(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Building succeeded")
+
 	return nil
 }

@@ -453,12 +453,39 @@ func (p *Package) BuildXML(notif PidNotifier, pman *EopkgManager, overlay *Overl
 // CollectAssets will search for the build files and copy them back to the
 // users current directory. If solbuild was invoked via sudo, solbuild will
 // then attempt to set the owner as the original user.
-func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
+func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo, manifestTarget string) error {
 	collectionDir := p.GetWorkDir(overlay)
 	collections, _ := filepath.Glob(filepath.Join(collectionDir, "*.eopkg"))
 	if len(collections) < 1 {
 		log.Error("Mysterious lack of eopkg files is mysterious")
 		return errors.New("Internal error: .eopkg files are missing")
+	}
+
+	// Prior to blitting the files out, let's grab the manifest if requested
+	if manifestTarget != "" {
+		tram := NewTransitManifest(manifestTarget)
+		for _, p := range collections {
+			if err := tram.AddFile(p); err != nil {
+				log.WithFields(log.Fields{
+					"path":  p,
+					"error": err,
+				}).Error("Failed to collect eopkg asset for transit manifest")
+				return err
+			}
+		}
+
+		// $source-$version-$release.tram
+		// We omit arch for *now*, Solus isn't multiple architecture yet.
+		tramFile := fmt.Sprintf("%s-%s-%d%s", p.Name, p.Version, p.Release, TransitManifestSuffix)
+		tramPath := filepath.Join(collectionDir, tramFile)
+
+		// Try to write manifest
+		if err := tram.Write(tramPath); err != nil {
+			return err
+		}
+
+		// Worked, great. Now ensure our next cycle collects, chowns, etc.
+		collections = append(collections, tramPath)
 	}
 
 	if p.Type == PackageTypeYpkg {
@@ -507,7 +534,7 @@ func (p *Package) CollectAssets(overlay *Overlay, usr *UserInfo) error {
 }
 
 // Build will attempt to build the package in the overlayfs system
-func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Profile, pman *EopkgManager, overlay *Overlay) error {
+func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Profile, pman *EopkgManager, overlay *Overlay, manifestTarget string) error {
 	log.WithFields(log.Fields{
 		"profile": overlay.Back.Name,
 		"version": p.Version,
@@ -603,5 +630,5 @@ func (p *Package) Build(notif PidNotifier, history *PackageHistory, profile *Pro
 		}
 	}
 
-	return p.CollectAssets(overlay, usr)
+	return p.CollectAssets(overlay, usr, manifestTarget)
 }
