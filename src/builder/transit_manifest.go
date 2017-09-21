@@ -17,8 +17,8 @@
 package builder
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"path/filepath"
@@ -31,18 +31,6 @@ const (
 )
 
 var (
-	// ErrInvalidHeader will be returned when the [manifest] section is malformed
-	ErrInvalidHeader = errors.New("Manifest contains an invalid header")
-
-	// ErrMissingTarget will be returned when the target is not present
-	ErrMissingTarget = errors.New("Manifest contains no target")
-
-	// ErrMissingPayload will be returned when the [[file]]s are missing
-	ErrMissingPayload = errors.New("Manifest does not contain a payload")
-
-	// ErrInvalidPayload will be returned when the payload is in some way invalid
-	ErrInvalidPayload = errors.New("Manifest contains an invalid payload")
-
 	// ErrIllegalUpload is returned when someone is a spanner and tries uploading an unsupported file
 	ErrIllegalUpload = errors.New("The manifest file is NOT an eopkg")
 )
@@ -66,25 +54,6 @@ type TransitManifest struct {
 
 	// A list of files that accompanied this .tram upload
 	File []TransitManifestFile `toml:"file"`
-
-	path string // Privately held path to the file
-	dir  string // Where the .tram was loaded from
-	id   string // Effectively our basename
-}
-
-// ID will return the unique ID for the transit manifest file
-func (t *TransitManifest) ID() string {
-	return t.id
-}
-
-// GetPaths will return the package paths as a slice of strings
-func (t *TransitManifest) GetPaths() []string {
-	var ret []string
-	for i := range t.File {
-		f := &t.File[i]
-		ret = append(ret, filepath.Join(t.dir, f.Path))
-	}
-	return ret
 }
 
 // TransitManifestFile provides simple verification data for each file in the
@@ -100,73 +69,36 @@ type TransitManifestFile struct {
 
 // NewTransitManifest will attempt to load the transit manifest from the
 // named path and perform *basic* validation.
-func NewTransitManifest(path string) (*TransitManifest, error) {
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &TransitManifest{
-		path: abs,
-		dir:  filepath.Dir(abs),
-		id:   filepath.Base(abs),
-	}
-
-	blob, err := ioutil.ReadFile(ret.path)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := toml.Decode(string(blob), ret); err != nil {
-		return nil, err
-	}
-
-	ret.Manifest.Target = strings.TrimSpace(ret.Manifest.Target)
-	ret.Manifest.Version = strings.TrimSpace(ret.Manifest.Version)
-
-	if ret.Manifest.Version != "1.0" {
-		return nil, ErrInvalidHeader
-	}
-
-	if len(ret.Manifest.Target) < 1 {
-		return nil, ErrMissingTarget
-	}
-
-	if len(ret.File) < 1 {
-		return nil, ErrMissingPayload
-	}
-
-	for i := range ret.File {
-		f := &ret.File[i]
-		f.Path = strings.TrimSpace(f.Path)
-		f.Sha256 = strings.TrimSpace(f.Sha256)
-
-		if len(f.Path) < 1 || len(f.Sha256) < 1 {
-			return nil, ErrInvalidPayload
-		}
-
-		if !strings.HasSuffix(f.Path, ".eopkg") {
-			return nil, ErrIllegalUpload
-		}
-	}
-
-	return ret, nil
+func NewTransitManifest(target string) *TransitManifest {
+	ret := &TransitManifest{}
+	ret.Manifest.Version = "1.0"
+	ret.Manifest.Target = target
+	return ret
 }
 
-// ValidatePayload will verify the files listed in the manifest locally, ensuring
-// that they actually exist, and that the hashes match to prevent any corrupted
-// uploads being inadvertently imported
-func (t *TransitManifest) ValidatePayload() error {
-	for i := range t.File {
-		f := &t.File[i]
-		path := filepath.Join(t.dir, f.Path)
-		sha, err := FileSha256sum(path)
-		if err != nil {
-			return err
-		}
-		if sha != f.Sha256 {
-			return fmt.Errorf("Invalid SHA256 for '%s'. Local: '%s'", f.Path, sha)
-		}
+// AddFile will attempt to add a file to the payload for this package
+func (t *TransitManifest) AddFile(path string) error {
+	if !strings.HasSuffix(path, ".eopkg") {
+		return ErrIllegalUpload
 	}
+	hash, err := FileSha256sum(path)
+	if err != nil {
+		return err
+	}
+
+	t.File = append(t.File, TransitManifestFile{
+		Path:   filepath.Base(path),
+		Sha256: hash,
+	})
 	return nil
+}
+
+// Write will dump the manifest to the given file path
+func (t *TransitManifest) Write(path string) error {
+	blob := bytes.Buffer{}
+	tmenc := toml.NewEncoder(&blob)
+	if err := tmenc.Encode(t); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, blob.Bytes(), 00644)
 }
