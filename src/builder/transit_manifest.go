@@ -97,6 +97,8 @@ func (t *TransitManifest) AddFile(path string) error {
 func (t *TransitManifest) Write(path string) error {
 	blob := bytes.Buffer{}
 	tmenc := toml.NewEncoder(&blob)
+	// Waste of bytes.
+	tmenc.Indent = ""
 	if err := tmenc.Encode(t); err != nil {
 		return err
 	}
