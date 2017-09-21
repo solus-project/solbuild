@@ -33,7 +33,7 @@ const (
 func (p *Package) addLocalRepo(notif PidNotifier, o *Overlay, pkgManager *EopkgManager, repo *Repo) error {
 	// Ensure the source exists too. Sorta helpful like that.
 	if !PathExists(repo.URI) {
-		return fmt.Errorf("Local repo does not exist!")
+		return fmt.Errorf("Local repo does not exist")
 	}
 
 	mman := disk.GetMountManager()

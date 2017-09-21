@@ -134,7 +134,7 @@ func (l *LockFile) Lock() error {
 // Unlock will attempt to unlock the file, or return an error if this fails
 func (l *LockFile) Unlock() error {
 	if l.fd == nil || !l.owner {
-		return errors.New("Cannot unlock that which we don't own!")
+		return errors.New("cannot unlock that which we don't own")
 	}
 
 	if err := syscall.Flock(int(l.fd.Fd()), syscall.LOCK_UN); err != nil {
@@ -171,7 +171,7 @@ func (l *LockFile) readPID() (int, error) {
 // writePID will store our PID in the lockfile
 func (l *LockFile) writePID() error {
 	if l.fd == nil {
-		panic(errors.New("Cannot write PID for no file!"))
+		panic(errors.New("cannot write PID for no file"))
 	}
 	l.conlock.Lock()
 	defer l.conlock.Unlock()
