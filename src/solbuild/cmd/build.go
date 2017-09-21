@@ -36,10 +36,12 @@ store those packages in the current directory`,
 
 var tmpfs bool
 var tmpfsSize string
+var manifest string
 
 func init() {
 	buildCmd.Flags().BoolVarP(&tmpfs, "tmpfs", "t", false, "Enable building in a tmpfs")
 	buildCmd.Flags().StringVarP(&tmpfsSize, "memory", "m", "", "Set the tmpfs size to use")
+	buildCmd.Flags().StringVarP(&manifest, "transit-manifest", "", "", "Create transit manifest for the given target")
 	RootCmd.AddCommand(buildCmd)
 }
 
