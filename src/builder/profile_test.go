@@ -40,7 +40,7 @@ func TestLoadProfile(t *testing.T) {
 		t.Fatalf("Wrong image in profile: %v", profile.Image)
 	}
 	if repo, ok := profile.Repos["Solus"]; ok {
-		if repo.URI != "http://packages.solus-project.com/unstable/eopkg-index.xml.xz" {
+		if repo.URI != "https://packages.solus-project.com/unstable/eopkg-index.xml.xz" {
 			t.Fatalf("Wrong Solus URI: %v", repo.URI)
 		}
 	} else {
