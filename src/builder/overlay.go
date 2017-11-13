@@ -353,7 +353,7 @@ func (o *Overlay) MountVFS() error {
 // ConfigureNetworking will add a loopback interface to the container so
 // that localhost networking will still work
 func (o *Overlay) ConfigureNetworking() error {
-	ipCommand := "ip link set lo up"
+	ipCommand := "/sbin/ip link set lo up"
 	log.Debug("Configuring container networking")
 	if err := commands.ChrootExec(o.MountPoint, ipCommand); err != nil {
 		log.WithFields(log.Fields{
