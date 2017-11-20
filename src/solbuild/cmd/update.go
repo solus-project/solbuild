@@ -30,7 +30,8 @@ var updateCmd = &cobra.Command{
 	Short: "update a solbuild profile",
 	Long: `Update the base image of the specified solbuild profile, helping to
 minimize the build times in future updates with this profile.`,
-	Run: updateProfile,
+	Aliases: []string{"up"},
+	Run:     updateProfile,
 }
 
 func init() {

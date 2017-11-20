@@ -27,10 +27,11 @@ import (
 )
 
 var deleteCacheCmd = &cobra.Command{
-	Use:   "delete-cache",
-	Short: "delete solbuild cached files",
-	Long:  `Delete assets stored on disk by solbuild`,
-	Run:   deleteCache,
+	Use:     "delete-cache",
+	Short:   "delete solbuild cached files",
+	Long:    `Delete assets stored on disk by solbuild`,
+	Aliases: []string{"dc"},
+	Run:     deleteCache,
 }
 
 // Whether we nuke *all* assets, i.e. sources too
