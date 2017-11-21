@@ -335,3 +335,33 @@ func (p *PackageHistory) WriteXML(path string) error {
 	_, err = fi.WriteString(string(bytes))
 	return err
 }
+
+// GetLastVersionTimestamp will return a timestamp appropriate for us within
+// reproducible builds.
+//
+// This is calculated by using the timestamp from the last explicit version
+// change, and not from simple bumps. The idea here is to only increment the
+// timestamp if we've actually upgraded to a major version, and in general
+// attempt to reduce the noise, and thus, produce better delta packages
+// between minor package alterations
+func (p *PackageHistory) GetLastVersionTimestamp() int64 {
+	lastVersion := p.Updates[0].Package.Version
+	lastTime := p.Updates[0].Time
+
+	if len(p.Updates) < 2 {
+		return lastTime.UTC().Unix()
+	}
+
+	// Walk history and find the last version change, assigning timestamp
+	// as appropriate.
+	for i := 1; i < len(p.Updates); i++ {
+		newVersion := p.Updates[i].Package.Version
+		if newVersion != lastVersion {
+			break
+		}
+		lastVersion = p.Updates[i].Package.Version
+		lastTime = p.Updates[i].Time
+	}
+
+	return lastTime.UTC().Unix()
+}
