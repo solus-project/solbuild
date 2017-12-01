@@ -20,6 +20,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/disk"
 	"os"
+	"path/filepath"
 )
 
 func (b *BackingImage) updatePackages(notif PidNotifier, pkgManager *EopkgManager) error {
@@ -108,6 +109,19 @@ func (b *BackingImage) Update(notif PidNotifier, pkgManager *EopkgManager) error
 			"image": b.ImagePath,
 			"error": err,
 		}).Error("Failed to fix filesystem layout")
+		return err
+	}
+
+	procPoint := filepath.Join(b.RootDir, "proc")
+
+	// Bring up proc
+	log.WithFields(log.Fields{
+		"vfs": "/proc",
+	}).Debug("Mounting vfs")
+	if err := mountMan.Mount("proc", procPoint, "proc", "nosuid", "noexec"); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to mount /proc")
 		return err
 	}
 
