@@ -83,6 +83,26 @@ The `-u` flag will automatically update the image.
 
 See the `solbuild help` command for more details, or `solbuild(1)` manpage.
 
+**Tweak solbuild paths**
+
+When you installed `/` on a seperate, smaller disk, all the files created and used by solbuild might end up filling your disk.
+If that is the case, you can symlink the relevant directories to other parts of your system:
+
+    # ONLY DO THIS AFTER YOU HAVE SAVED EVERYTHING IMPORTANT FROM HERE
+    # THIS WILL REMOVE EVERYTHING
+    sudo rm -r /var/lib/solbuild # stuff like images
+    sudo rm -r /var/cache/solbuild # solbuild cache
+
+    # create new directories (lib and cache)
+    mkdir -p /somewhere/else/solbuild/lib
+    mkdir -p /somewhere/else/solbuild/cache
+
+    # link these
+    ln -s /somewhere/else/solbuild/lib /var/lib/solbuild
+    ln -s /somewhere/else/solbuild/cache /var/cache/solbuild
+
+(see #5)
+
 Requirements
 ------------
 
