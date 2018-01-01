@@ -65,10 +65,7 @@ func (p *Package) ActivateRoot(overlay *Overlay) error {
 	}
 
 	log.Debug("Bringing up virtual filesystems")
-	if err := overlay.MountVFS(); err != nil {
-		return err
-	}
-	return nil
+	return overlay.MountVFS()
 }
 
 // DeactivateRoot will tear down the previously activated root

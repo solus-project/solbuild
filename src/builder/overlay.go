@@ -212,11 +212,7 @@ func (o *Overlay) Mount() error {
 	o.mountedOverlay = true
 
 	// Must be done here before we do any more overlayfs work
-	if err := EnsureEopkgLayout(o.MountPoint); err != nil {
-		return err
-	}
-
-	return nil
+	return EnsureEopkgLayout(o.MountPoint)
 }
 
 // Unmount will tear down the overlay mount again

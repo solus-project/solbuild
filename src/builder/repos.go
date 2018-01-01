@@ -75,11 +75,7 @@ func (p *Package) addLocalRepo(notif PidNotifier, o *Overlay, pkgManager *EopkgM
 
 	// Now add the local repo
 	chrootLocal := filepath.Join(BindRepoDir, repo.Name, "eopkg-index.xml.xz")
-	if err := pkgManager.AddRepo(repo.Name, chrootLocal); err != nil {
-		return err
-	}
-
-	return nil
+	return pkgManager.AddRepo(repo.Name, chrootLocal)
 }
 
 func (p *Package) removeRepos(pkgManager *EopkgManager, repos []string) error {
