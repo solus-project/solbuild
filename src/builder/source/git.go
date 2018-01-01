@@ -142,10 +142,8 @@ func (g *GitSource) fetch(repo *git.Repository) error {
 	fetchOpts := &git.FetchOptions{
 		RemoteCallbacks: g.CreateCallbacks(),
 	}
-	if err := remote.Fetch([]string{}, fetchOpts, ""); err != nil {
-		return err
-	}
-	return nil
+
+	return remote.Fetch([]string{}, fetchOpts, "")
 }
 
 // GetCommitID will attempt to find the oid of the selected ref type
@@ -308,11 +306,7 @@ func (g *GitSource) Fetch() error {
 	}
 
 	// Check out submodules
-	if err := g.submodules(); err != nil {
-		return err
-	}
-
-	return nil
+	return g.submodules()
 }
 
 // IsFetched will check if we have the ref available, if not it will return

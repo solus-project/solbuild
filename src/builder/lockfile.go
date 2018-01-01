@@ -124,11 +124,7 @@ func (l *LockFile) Lock() error {
 	l.conlock.Unlock()
 
 	// Write the PID now we have an exclusive lock on it
-	if err := l.writePID(); err != nil {
-		return err
-	}
-
-	return nil
+	return l.writePID()
 }
 
 // Unlock will attempt to unlock the file, or return an error if this fails
@@ -137,10 +133,7 @@ func (l *LockFile) Unlock() error {
 		return errors.New("cannot unlock that which we don't own")
 	}
 
-	if err := syscall.Flock(int(l.fd.Fd()), syscall.LOCK_UN); err != nil {
-		return err
-	}
-	return nil
+	return syscall.Flock(int(l.fd.Fd()), syscall.LOCK_UN)
 }
 
 // readPID is a simple utility to extract the PID from a file
