@@ -74,7 +74,7 @@ func doInit(manager *builder.Manager) {
 
 	// Now ensure we actually have said image
 	if !bk.IsFetched() {
-		downloadImage(bk, false)
+		downloadImage(bk)
 	}
 
 	// Decompress the image
@@ -96,7 +96,7 @@ func doInit(manager *builder.Manager) {
 }
 
 // Downloads an image using net/http.
-func downloadImage(bk *builder.BackingImage, progressBar bool) (err error) {
+func downloadImage(bk *builder.BackingImage) (err error) {
 	file, err := os.Create(bk.ImagePathXZ)
 	if err != nil {
 		log.WithFields(log.Fields{
