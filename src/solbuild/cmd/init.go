@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/cheggaaa/pb"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/spf13/cobra"
 )
@@ -124,11 +125,17 @@ func downloadImage(bk *builder.BackingImage, progressBar bool) (err error) {
 
 	defer resp.Body.Close()
 
+	bar := pb.New64(resp.ContentLength).SetUnits(pb.U_BYTES)
+	reader := bar.NewProxyReader(resp.Body)
+	bar.ShowSpeed = true
+	bar.Start()
+	defer bar.Finish()
+
 	bytesRemaining := resp.ContentLength
 	done := false
 	buf := make([]byte, 32*1024)
 	for !done {
-		bytesRead, err := resp.Body.Read(buf)
+		bytesRead, err := reader.Read(buf)
 		if err == io.EOF {
 			done = true
 		} else if err != nil {
