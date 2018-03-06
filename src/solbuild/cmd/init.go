@@ -19,23 +19,28 @@ package cmd
 import (
 	"builder"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/solus-project/libosdev/commands"
 	"github.com/spf13/cobra"
-	"os"
-	"strings"
 )
 
-var initCmd = &cobra.Command{
-	Use:   "init [profile]",
-	Short: "initialise a solbuild profile",
-	Long: `Initialise a solbuild profile so that it can be used for subsequent
+var (
+	initCmd = &cobra.Command{
+		Use:   "init [profile]",
+		Short: "initialise a solbuild profile",
+		Long: `Initialise a solbuild profile so that it can be used for subsequent
 builds`,
-	Run: initProfile,
-}
+		Run: initProfile,
+	}
 
-// Whether we should automatically update the image after initialising it.
-var autoUpdate bool
+	// Whether we should automatically update the image after initialising it.
+	autoUpdate bool
+)
 
 func init() {
 	initCmd.Flags().BoolVarP(&autoUpdate, "update", "u", false, "Automatically update the new image")
@@ -68,16 +73,65 @@ func doInit(manager *builder.Manager) {
 
 	// Now ensure we actually have said image
 	if !bk.IsFetched() {
-		com := []string{"-o", bk.ImagePathXZ, "-L", "--progress-bar", bk.ImageURI}
-		log.WithFields(log.Fields{
-			"uri": bk.ImageURI,
-		}).Info("Fetching backing image")
-		if err := commands.ExecStdoutArgs("curl", com); err != nil {
+		file, err := os.Create(bk.ImagePathXZ)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"path":  bk.ImagePathXZ,
+				"error": err,
+			}).Error("Failed to create file")
+		}
+
+		defer file.Close()
+
+		resp, err := http.Get(bk.ImageURI)
+		if err != nil {
 			log.WithFields(log.Fields{
 				"uri":   bk.ImageURI,
 				"error": err,
 			}).Error("Failed to fetch image")
 		}
+
+		defer resp.Body.Close()
+
+		bytesRemaining := resp.ContentLength
+		done := false
+		buf := make([]byte, 32*1024)
+		for !done {
+			bytesRead, err := resp.Body.Read(buf)
+			if err == io.EOF {
+				done = true
+			} else if err != nil {
+				log.WithFields(log.Fields{
+					"uri":   bk.ImageURI,
+					"error": err,
+				}).Error("Failed to fetch image")
+				break
+			}
+
+			_, err = file.Write(buf[:bytesRead])
+			if err != nil {
+				log.WithFields(log.Fields{
+					"uri":   bk.ImagePathXZ,
+					"error": err,
+				}).Error("Failed to write to file")
+				break
+			}
+
+			bytesRemaining -= int64(bytesRead)
+		}
+
+		file.Sync()
+
+		// com := []string{"-o", bk.ImagePathXZ, "-L", "--progress-bar", bk.ImageURI}
+		// log.WithFields(log.Fields{
+		// 	"uri": bk.ImageURI,
+		// }).Info("Fetching backing image")
+		// if err := commands.ExecStdoutArgs("curl", com); err != nil {
+		// 	log.WithFields(log.Fields{
+		// 		"uri":   bk.ImageURI,
+		// 		"error": err,
+		// 	}).Error("Failed to fetch image")
+		// }
 	}
 
 	// Decompress the image
