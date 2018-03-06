@@ -73,65 +73,7 @@ func doInit(manager *builder.Manager) {
 
 	// Now ensure we actually have said image
 	if !bk.IsFetched() {
-		file, err := os.Create(bk.ImagePathXZ)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"path":  bk.ImagePathXZ,
-				"error": err,
-			}).Error("Failed to create file")
-		}
-
-		defer file.Close()
-
-		resp, err := http.Get(bk.ImageURI)
-		if err != nil {
-			log.WithFields(log.Fields{
-				"uri":   bk.ImageURI,
-				"error": err,
-			}).Error("Failed to fetch image")
-		}
-
-		defer resp.Body.Close()
-
-		bytesRemaining := resp.ContentLength
-		done := false
-		buf := make([]byte, 32*1024)
-		for !done {
-			bytesRead, err := resp.Body.Read(buf)
-			if err == io.EOF {
-				done = true
-			} else if err != nil {
-				log.WithFields(log.Fields{
-					"uri":   bk.ImageURI,
-					"error": err,
-				}).Error("Failed to fetch image")
-				break
-			}
-
-			_, err = file.Write(buf[:bytesRead])
-			if err != nil {
-				log.WithFields(log.Fields{
-					"uri":   bk.ImagePathXZ,
-					"error": err,
-				}).Error("Failed to write to file")
-				break
-			}
-
-			bytesRemaining -= int64(bytesRead)
-		}
-
-		file.Sync()
-
-		// com := []string{"-o", bk.ImagePathXZ, "-L", "--progress-bar", bk.ImageURI}
-		// log.WithFields(log.Fields{
-		// 	"uri": bk.ImageURI,
-		// }).Info("Fetching backing image")
-		// if err := commands.ExecStdoutArgs("curl", com); err != nil {
-		// 	log.WithFields(log.Fields{
-		// 		"uri":   bk.ImageURI,
-		// 		"error": err,
-		// 	}).Error("Failed to fetch image")
-		// }
+		downloadImage(bk, false)
 	}
 
 	// Decompress the image
@@ -150,6 +92,66 @@ func doInit(manager *builder.Manager) {
 	log.WithFields(log.Fields{
 		"profile": profile,
 	}).Info("Profile successfully initialised")
+}
+
+// Downloads an image using net/http.
+func downloadImage(bk *builder.BackingImage, progressBar bool) (err error) {
+	file, err := os.Create(bk.ImagePathXZ)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"path":  bk.ImagePathXZ,
+			"error": err,
+		}).Error("Failed to create file")
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			os.Remove(bk.ImagePathXZ)
+		}
+	}()
+
+	defer file.Close()
+
+	resp, err := http.Get(bk.ImageURI)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"uri":   bk.ImageURI,
+			"error": err,
+		}).Error("Failed to fetch image")
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	bytesRemaining := resp.ContentLength
+	done := false
+	buf := make([]byte, 32*1024)
+	for !done {
+		bytesRead, err := resp.Body.Read(buf)
+		if err == io.EOF {
+			done = true
+		} else if err != nil {
+			log.WithFields(log.Fields{
+				"uri":   bk.ImageURI,
+				"error": err,
+			}).Error("Failed to fetch image")
+			return err
+		}
+
+		_, err = file.Write(buf[:bytesRead])
+		if err != nil {
+			log.WithFields(log.Fields{
+				"uri":   bk.ImagePathXZ,
+				"error": err,
+			}).Error("Failed to write to file")
+			return err
+		}
+
+		bytesRemaining -= int64(bytesRead)
+	}
+
+	return nil
 }
 
 // doUpdate will perform an update to the image after the initial init stage
