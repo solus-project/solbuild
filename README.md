@@ -26,9 +26,9 @@ As a last speed booster, `solbuild` allows you to perform builds in memory via t
 **Note**: `solbuild` is designed in such a way that you *do not need to be running Solus*. You can build packages for Solus from any compatible host.
 
 
-solbuild is a [Solus project](https://solus-project.com/).
+solbuild is a [Solus project](https://getsol.us/).
 
-![logo](https://build.solus-project.com/logo.png)
+![logo](https://build.getsol.us/logo.png)
 
 
 Getting started
